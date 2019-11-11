@@ -43,6 +43,12 @@ pub mod mime {
 
     /// Content-Type for plain text.
     pub const PLAIN: &'static str = "text/plain; charset=utf-8";
+
+    /// Content-Type for Form.
+    pub const FORM: &'static str = "application/x-www-urlencoded";
+
+    /// Content-Type for a multipart form.
+    pub const MULTIPART_FORM: &'static str = "multipart/form-data";
 }
 
 /// Security headers.
