@@ -23,7 +23,27 @@ pub mod url {
 pub mod headers;
 
 /// IANA Media Types.
-pub mod mime {}
+///
+/// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types).
+pub mod mime {
+    /// Content-Type for JavaScript.
+    pub const JAVASCRIPT: &'static str = "application/javascript; charset=utf-8";
+
+    /// Content-Type for JSON.
+    pub const JSON: &'static str = "application/json";
+
+    /// Content-Type for CSS.
+    pub const CSS: &'static str = "text/css; charset=utf-8";
+
+    /// Content-Type for HTML.
+    pub const HTML: &'static str = "text/html; charset=utf-8";
+
+    /// Content-Type for Server Sent Events
+    pub const SSE: &'static str = "text/event-stream;";
+
+    /// Content-Type for plain text.
+    pub const PLAIN: &'static str = "text/plain; charset=utf-8";
+}
 
 /// Security headers.
 pub mod secure {
@@ -32,14 +52,14 @@ pub mod secure {
     pub struct Policy {}
 }
 
+mod method;
 mod request;
 mod response;
-mod method;
 mod status_code;
 
+pub use method::Method;
 pub use request::Request;
 pub use response::Response;
-pub use method::Method;
 pub use status_code::StatusCode;
 
 #[doc(inline)]

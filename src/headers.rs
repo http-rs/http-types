@@ -5,7 +5,15 @@ use std::collections::HashMap;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]
-pub struct Headers<'a> {
+pub struct Headers {
     headers: HashMap<String, String>,
-    __marker: &'a std::marker::PhantomData<()>,
+}
+
+impl Headers {
+    /// Create a new instance.
+    pub fn new() -> Self {
+        Self {
+            headers: HashMap::new(),
+        }
+    }
 }
