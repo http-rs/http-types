@@ -1,11 +1,7 @@
 /// HTTP response status codes.
-///
-/// HTTP response status codes indicate whether a specific HTTP request has been successfully
-/// completed. Responses are grouped in five classes:
 #[repr(u16)]
 #[derive(Debug)]
 pub enum StatusCode {
-    // 100-199
     /// 100 Continue
     ///
     /// This interim response indicates that everything so far is OK and that the client should
@@ -24,7 +20,6 @@ pub enum StatusCode {
     /// user agent start preloading resources while the server prepares a response.
     EarlyHints = 103,
 
-    // 200-299
     /// 200 Ok
     ///
     /// The request has succeeded
@@ -76,7 +71,6 @@ pub enum StatusCode {
     /// current instance.
     ImUsed = 226,
 
-    // 300-399
     /// 300 Multiple Choice
     ///
     /// The request has more than one possible response. The user-agent or user should choose one
@@ -126,7 +120,6 @@ pub enum StatusCode {
     /// used: If a POST was used in the first request, a POST must be used in the second request.
     PermanentRedirect = 308,
 
-    // 400-499
     /// 400 Bad Request
     ///
     /// The server could not understand the request due to invalid syntax.
@@ -291,7 +284,6 @@ pub enum StatusCode {
     /// censored by a government.
     UnavailableForLegalReasons = 451,
 
-    // 500-599
     /// 500 Internal Server Error
     ///
     /// The server has encountered a situation it doesn't know how to handle.
@@ -348,4 +340,10 @@ pub enum StatusCode {
     ///
     /// The 511 status code indicates that the client needs to authenticate to gain network access.
     NetworkAuthenticationRequired = 511,
+}
+
+impl Into<u16> for StatusCode {
+    fn into(self) -> u16 {
+        self as u16
+    }
 }
