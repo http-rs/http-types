@@ -14,6 +14,6 @@ edition = "2018"
 [dependencies]
 url = "2.1.0"
 cookie = "0.12.0"
-async-std = "0.99.11"
+async-std = { version = "0.99.12", default-features = false, features = ["std"] }
 
 [dev-dependencies]
