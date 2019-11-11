@@ -1,4 +1,6 @@
 /// HTTP response status codes.
+///
+/// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 #[repr(u16)]
 #[derive(Debug)]
 pub enum StatusCode {
