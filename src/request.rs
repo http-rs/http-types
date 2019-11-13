@@ -6,12 +6,15 @@ use std::task::{Context, Poll};
 
 use crate::{Headers, Method, Url};
 
-/// An HTTP request.
-pub struct Request {
-    method: Method,
-    url: Url,
-    headers: Headers,
-    body: Box<dyn BufRead + Unpin + Send + 'static>,
+pin_project_lite::pin_project! {
+    /// An HTTP request.
+    pub struct Request {
+        method: Method,
+        url: Url,
+        headers: Headers,
+        #[pin]
+        body: Box<dyn BufRead + Unpin + Send + 'static>,
+    }
 }
 
 impl Request {
@@ -60,7 +63,7 @@ impl Read for Request {
 //         mut self: Pin<&mut Self>,
 //         cx: &mut Context<'_>
 //     ) -> Poll<io::Result<&'_ [u8]>> {
-//         self.body.poll_fill_buf(cx)
+//         self.get_mut().body.poll_fill_buf(cx)
 //     }
 
 //     fn consume(mut self: Pin<&mut Self>, amt: usize) {
