@@ -57,16 +57,17 @@ impl Read for Request {
 }
 
 // TODO(yoshuawuyts): impl this
-// impl BufRead for Request {
-//     #[allow(missing_doc_code_examples)]
-//     fn poll_fill_buf(
-//         mut self: Pin<&mut Self>,
-//         cx: &mut Context<'_>
-//     ) -> Poll<io::Result<&'_ [u8]>> {
-//         self.get_mut().body.poll_fill_buf(cx)
-//     }
+impl BufRead for Request {
+    #[allow(missing_doc_code_examples)]
+    fn poll_fill_buf(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>
+    ) -> Poll<io::Result<&'_ [u8]>> {
+        let this = self.project();
+        this.body.poll_fill_buf(cx)
+    }
 
-//     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-//         Pin::new(&mut self.body).consume(amt)
-//     }
-// }
+    fn consume(mut self: Pin<&mut Self>, amt: usize) {
+        Pin::new(&mut self.body).consume(amt)
+    }
+}
