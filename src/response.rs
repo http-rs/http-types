@@ -5,8 +5,8 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::{Headers, StatusCode};
 use crate::mime::{self, Mime};
+use crate::{Headers, StatusCode};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.

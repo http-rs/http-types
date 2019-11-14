@@ -5,8 +5,8 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::{Headers, Method, Url};
 use crate::mime::{self, Mime};
+use crate::{Headers, Method, Url};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -113,10 +113,7 @@ impl Read for Request {
 
 impl BufRead for Request {
     #[allow(missing_doc_code_examples)]
-    fn poll_fill_buf(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>
-    ) -> Poll<io::Result<&'_ [u8]>> {
+    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
         this.body.poll_fill_buf(cx)
     }
