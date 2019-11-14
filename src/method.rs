@@ -1,7 +1,9 @@
+use std::fmt::{self, Display};
+
 /// HTTP request methods.
 ///
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods)
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Method {
     /// The GET method requests a representation of the specified resource. Requests using GET
     /// should only retrieve data.
@@ -32,4 +34,20 @@ pub enum Method {
 
     /// The PATCH method is used to apply partial modifications to a resource.
     Patch,
+}
+
+impl Display for Method {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Get => write!(f, "GET"),
+            Self::Head => write!(f, "HEAD"),
+            Self::Post => write!(f, "POST"),
+            Self::Put => write!(f, "PUT"),
+            Self::Delete => write!(f, "DELETE"),
+            Self::Connect => write!(f, "CONNECT"),
+            Self::Options => write!(f, "OPTIONS"),
+            Self::Trace => write!(f, "TRACE"),
+            Self::Patch => write!(f, "PATCH"),
+        }
+    }
 }
