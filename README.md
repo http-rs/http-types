@@ -1,18 +1,45 @@
-# http-types
-[![crates.io version][1]][2] [![build status][3]][4]
-[![downloads][5]][6] [![docs.rs docs][7]][8]
+<h1 align="center">http-types</h1>
+<div align="center">
+  <strong>
+    Common types for HTTP operations.
+  </strong>
+</div>
 
-HTTP Types.
+<br />
 
-- [Documentation][8]
-- [Crates.io][2]
-- [Releases][releases]
+<div align="center">
+  <!-- Crates version -->
+  <a href="https://crates.io/crates/http-types">
+    <img src="https://img.shields.io/crates/v/http-types.svg?style=flat-square"
+    alt="Crates.io version" />
+  </a>
+  <!-- Downloads -->
+  <a href="https://crates.io/crates/http-types">
+    <img src="https://img.shields.io/crates/d/http-types.svg?style=flat-square"
+      alt="Download" />
+  </a>
+  <!-- docs.rs docs -->
+  <a href="https://docs.rs/http-types">
+    <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square"
+      alt="docs.rs docs" />
+  </a>
+</div>
 
-## Examples
-__Basic usage__
-```rust
-// tbi
-```
+<div align="center">
+  <h3>
+    <a href="https://docs.rs/http-types">
+      API Docs
+    </a>
+    <span> | </span>
+    <a href="https://github.com/async-rs/async-std/releases">
+      Releases
+    </a>
+    <span> | </span>
+    <a href="https://github.com/http-rs/http-types/blob/master.github/CONTRIBUTING.md">
+      Contributing
+    </a>
+  </h3>
+</div>
 
 ## Installation
 ```sh
@@ -30,22 +57,21 @@ look at some of these issues:
 - [Issues labeled "good first issue"][good-first-issue]
 - [Issues labeled "help wanted"][help-wanted]
 
-## References
-None.
+[contributing]: https://github.com/http-rs/http-types/blob/master.github/CONTRIBUTING.md
+[good-first-issue]: https://github.com/http-rs/http-types/labels/good%20first%20issue
+[help-wanted]: https://github.com/http-rs/http-types/labels/help%20wanted
 
 ## License
-[MIT](./LICENSE-MIT) OR [Apache-2.0](./LICENSE-APACHE)
 
-[1]: https://img.shields.io/crates/v/http-types.svg?style=flat-square
-[2]: https://crates.io/crates/http-types
-[3]: https://img.shields.io/travis/yoshuawuyts/http-types/master.svg?style=flat-square
-[4]: https://travis-ci.org/yoshuawuyts/http-types
-[5]: https://img.shields.io/crates/d/http-types.svg?style=flat-square
-[6]: https://crates.io/crates/http-types
-[7]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
-[8]: https://docs.rs/http-types
+<sup>
+Licensed under either of <a href="LICENSE-APACHE">Apache License, Version
+2.0</a> or <a href="LICENSE-MIT">MIT license</a> at your option.
+</sup>
 
-[releases]: https://github.com/yoshuawuyts/http-types/releases
-[contributing]: https://github.com/yoshuawuyts/http-types/blob/master.github/CONTRIBUTING.md
-[good-first-issue]: https://github.com/yoshuawuyts/http-types/labels/good%20first%20issue
-[help-wanted]: https://github.com/yoshuawuyts/http-types/labels/help%20wanted
+<br/>
+
+<sub>
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in this crate by you, as defined in the Apache-2.0 license, shall
+be dual licensed as above, without any additional terms or conditions.
+</sub>
