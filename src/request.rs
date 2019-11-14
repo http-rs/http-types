@@ -4,7 +4,7 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::{Headers, Method, Url};
+use crate::{Headers, Method, Url, mime};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -14,22 +14,19 @@ pin_project_lite::pin_project! {
         headers: Headers,
         #[pin]
         body: Box<dyn BufRead + Unpin + Send + 'static>,
+        length: Option<usize>,
     }
 }
 
 impl Request {
     /// Create a new request.
     pub fn new(method: Method, url: Url) -> Self {
-        Self::with_body(method, url, io::empty())
-    }
-
-    /// Create a new request with a body.
-    pub fn with_body(method: Method, url: Url, body: impl BufRead + Unpin + Send + 'static) -> Self {
         Self {
             method,
             url,
             headers: Headers::new(),
-            body: Box::new(body),
+            body: Box::new(io::empty()),
+            length: None,
         }
     }
 
@@ -37,6 +34,51 @@ impl Request {
     pub fn body(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
         self.body = Box::new(body);
         self
+    }
+
+    /// Set the body as a string.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `text/plain; charset=utf-8`.
+    pub fn body_string(mut self, string: String) -> io::Result<Self> {
+        self.length = Some(string.len());
+        let reader = io::Cursor::new(string.into_bytes());
+        self.body(reader).set_mime(mime::PLAIN)
+    }
+
+    /// Pass bytes as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/octet-stream`.
+    pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
+        let bytes = bytes.as_ref().to_owned();
+        self.length = Some(bytes.len());
+        let reader = io::Cursor::new(bytes);
+        self.body(reader).set_mime(mime::BYTE_STREAM)
+    }
+
+    /// Set an HTTP header.
+    pub fn set_header(mut self, key: impl AsRef<str>, value: impl AsRef<str>) -> io::Result<Self> {
+        let key = key.as_ref().to_owned();
+        let value = value.as_ref().to_owned();
+        self.headers.insert(key, value)?; // TODO: this should be a Result because only ASCII values are allowed
+        Ok(self)
+    }
+
+    /// Set the response MIME.
+    pub fn set_mime(self, mime: impl AsRef<str>) -> io::Result<Self> {
+        self.set_header("Content-Type", mime)
+    }
+
+    /// Get the length of the body stream, if it has been set.
+    ///
+    /// This value is set when passing a fixed-size object into as the body. E.g. a string, or a
+    /// buffer. Consumers of this API should check this value to decide whether to use `Chunked`
+    /// encoding, or set the response length.
+    pub fn len(&self) -> Option<usize> {
+        self.length
     }
 }
 
