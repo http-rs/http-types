@@ -2,11 +2,11 @@
 name = "http-types"
 version = "1.0.0"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/yoshuawuyts/http-types"
+repository = "https://github.com/http-rs/http-types"
 documentation = "https://docs.rs/http-types"
-description = "HTTP Types."
-keywords = ["http", "types", "standard"]
-categories = ["network-programming", "web-programming", "web-programming::http-client", "web-programming::http-server"]
+description = "Common types for HTTP operations."
+keywords = ["http", "types", "request", "response", "h2"]
+categories = ["asynchronous", "web-programming", "web-programming::http-client", "web-programming::http-server", "web-programming::websocket"]
 authors = ["Yoshua Wuyts <yoshuawuyts@gmail.com>"]
 readme = "README.md"
 edition = "2018"
