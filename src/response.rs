@@ -35,10 +35,26 @@ impl Response {
     }
 
     /// Set the body as a string.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `text/plain; charset=utf-8`.
     pub fn body_string(mut self, string: String) -> io::Result<Self> {
         self.length = Some(string.len());
         let reader = io::Cursor::new(string.into_bytes());
         self.body(reader).set_mime(mime::PLAIN)
+    }
+
+    /// Pass bytes as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/octet-stream`.
+    pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
+        let bytes = bytes.as_ref().to_owned();
+        self.length = Some(bytes.len());
+        let reader = io::Cursor::new(bytes);
+        self.body(reader).set_mime(mime::BYTE_STREAM)
     }
 
     /// Set an HTTP header.

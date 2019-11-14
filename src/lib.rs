@@ -44,6 +44,9 @@ pub mod mime {
     /// Content-Type for plain text.
     pub const PLAIN: &'static str = "text/plain; charset=utf-8";
 
+    /// Content-Type for byte streams.
+    pub const BYTE_STREAM: &'static str = "application/octet-stream";
+
     /// Content-Type for form.
     pub const FORM: &'static str = "application/x-www-urlencoded";
 
