@@ -5,7 +5,8 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::{Headers, Method, Url, mime};
+use crate::{Headers, Method, Url};
+use crate::mime::{self, Mime};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -74,8 +75,8 @@ impl Request {
     }
 
     /// Set the response MIME.
-    pub fn set_mime(self, mime: impl AsRef<str>) -> io::Result<Self> {
-        self.set_header("Content-Type", mime)
+    pub fn set_mime(self, mime: Mime) -> io::Result<Self> {
+        self.set_header("Content-Type", format!("{}", mime))
     }
 
     /// Get the length of the body stream, if it has been set.
