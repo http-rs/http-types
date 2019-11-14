@@ -1,5 +1,6 @@
 use async_std::io::{self, BufRead, Read};
 
+use std::borrow::Borrow;
 use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -55,6 +56,11 @@ impl Response {
         self.length = Some(bytes.len());
         let reader = io::Cursor::new(bytes);
         self.body(reader).set_mime(mime::BYTE_STREAM)
+    }
+
+    /// Get an HTTP header.
+    pub fn header(&self, key: impl Borrow<str>) -> Option<&String> {
+        self.headers.get(key)
     }
 
     /// Set an HTTP header.

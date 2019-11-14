@@ -1,6 +1,7 @@
 //! HTTP headers.
 
 use async_std::io;
+use std::borrow::Borrow;
 use std::collections::HashMap;
 // use std::iter::{IntoIterator, Iterator};
 
@@ -28,5 +29,10 @@ impl Headers {
         let name = name.as_ref().to_owned();
         let value = value.as_ref().to_owned();
         Ok(self.headers.insert(name, value))
+    }
+
+    /// Get a header.
+    pub fn get(&self, key: impl Borrow<str>) -> Option<&String> {
+        self.headers.get(key.borrow())
     }
 }
