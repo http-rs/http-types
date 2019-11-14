@@ -1,8 +1,10 @@
+use std::fmt::{self, Display};
+
 /// HTTP response status codes.
 ///
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 #[repr(u16)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum StatusCode {
     /// 100 Continue
     ///
@@ -355,5 +357,11 @@ pub enum StatusCode {
 impl Into<u16> for StatusCode {
     fn into(self) -> u16 {
         self as u16
+    }
+}
+
+impl Display for StatusCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.clone() as u16)
     }
 }
