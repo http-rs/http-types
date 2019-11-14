@@ -32,6 +32,12 @@ impl Request {
             body: Box::new(body),
         }
     }
+
+    /// Set the body.
+    pub fn body(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
+        self.body = Box::new(body);
+        self
+    }
 }
 
 impl Debug for Request {
@@ -56,7 +62,6 @@ impl Read for Request {
     }
 }
 
-// TODO(yoshuawuyts): impl this
 impl BufRead for Request {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(
