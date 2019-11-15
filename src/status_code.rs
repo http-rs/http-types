@@ -354,9 +354,29 @@ pub enum StatusCode {
     NetworkAuthenticationRequired = 511,
 }
 
+impl StatusCode {
+    /// The canonical reason for a given status code
+    pub fn canonical_reason(&self) -> &'static str {
+        match self {
+            StatusCode::Ok => "OK",
+            _ => unimplemented!(),
+        }
+    }
+}
+
 impl Into<u16> for StatusCode {
     fn into(self) -> u16 {
         self as u16
+    }
+}
+
+impl std::convert::TryFrom<u16> for StatusCode {
+    type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        match value {
+            200 => Ok(StatusCode::Ok),
+            _ => unimplemented!(),
+        }
     }
 }
 

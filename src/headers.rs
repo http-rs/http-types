@@ -35,4 +35,24 @@ impl Headers {
     pub fn get(&self, key: impl Borrow<str>) -> Option<&String> {
         self.headers.get(key.borrow())
     }
+
+    /// Get an iterator over the headers
+    pub fn iter<'a>(&'a self) -> HeadersIterator<'a> {
+        HeadersIterator {
+            internal: self.headers.iter(),
+        }
+    }
+}
+
+#[derive(Debug)]
+/// Iterator over the headers
+pub struct HeadersIterator<'a> {
+    internal: std::collections::hash_map::Iter<'a, String, String>,
+}
+
+impl<'a> std::iter::Iterator for HeadersIterator<'a> {
+    type Item = (&'a String, &'a String);
+    fn next(&mut self) -> Option<Self::Item> {
+        self.internal.next()
+    }
 }
