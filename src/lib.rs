@@ -1,9 +1,26 @@
 //! HTTP Types.
 //!
+//! HTTP types is a library of common HTTP types that serves as a foundation for dedicated HTTP
+//! clients, servers, and everything in between. It's built equal parts to be performant, complete,
+//! and accessible.
+//!
 //! ## Example
 //!
+//! Create a new request:
 //! ```rust
+//! use http_types::{Request, Method, mime, Url};
+//!
+//! # fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
+//! #
+//! let url = Url::parse("https://httpbin.org/get")?;
+//! let req = Request::new(Method::Get, url)
+//!     .set_header("x-cat-name", "chashu")?
+//!     .body_string("meow".to_string());
+//! #
+//! # Ok(())}
 //! ```
+//!
+//! Create a new response:
 
 #![forbid(rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]
@@ -22,13 +39,7 @@ pub mod url {
 
 pub mod headers;
 pub mod mime;
-
-/// Security headers.
-pub mod secure {
-    /// An HTTP security policy.
-    #[derive(Debug)]
-    pub struct Policy {}
-}
+pub mod secure;
 
 mod method;
 mod request;
