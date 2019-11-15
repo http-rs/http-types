@@ -7,7 +7,8 @@
 //! ## Example
 //!
 //! Create a new request:
-//! ```rust
+//!
+//! ```
 //! use http_types::{Request, Method, mime, Url};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
@@ -21,6 +22,19 @@
 //! ```
 //!
 //! Create a new response:
+//!
+//! ```
+//! use http_types::{Response, Method, mime, Url};
+//!
+//! # fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
+//! #
+//! let url = Url::parse("https://httpbin.org/get")?;
+//! let req = Response::new(200)
+//!     .set_header("x-cat-name", "nori")?
+//!     .body_string("meow".to_string());
+//! #
+//! # Ok(())}
+//! ```
 
 #![forbid(rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]

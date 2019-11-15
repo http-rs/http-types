@@ -6,14 +6,14 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::mime::{self, Mime};
-use crate::{Headers, StatusCode};
+use crate::Headers;
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
     pub struct Response {
         #[pin]
         body: Box<dyn BufRead + Unpin + Send + 'static>,
-        status: StatusCode,
+        status: u16,
         headers: Headers,
         length: Option<usize>,
     }
@@ -21,7 +21,7 @@ pin_project_lite::pin_project! {
 
 impl Response {
     /// Create a new response.
-    pub fn new(status: StatusCode) -> Self {
+    pub fn new(status: u16) -> Self {
         Self {
             status,
             headers: Headers::new(),
