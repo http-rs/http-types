@@ -8,6 +8,8 @@ use std::task::{Context, Poll};
 use crate::mime::{self, Mime};
 use crate::{Headers, Method, Url};
 
+type Body = dyn BufRead + Unpin + Send + 'static;
+
 pin_project_lite::pin_project! {
     /// An HTTP request.
     pub struct Request {
@@ -15,7 +17,7 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         #[pin]
-        body: Box<dyn BufRead + Unpin + Send + 'static>,
+        body: Box<Body>,
         length: Option<usize>,
     }
 }
@@ -32,8 +34,33 @@ impl Request {
         }
     }
 
+    /// Get the HTTP method
+    pub fn method(&self) -> &Method {
+        &self.method
+    }
+
+    /// Get the url
+    pub fn url(&self) -> &Url {
+        &self.url
+    }
+
+    /// Get the headers
+    pub fn headers(&self) -> &Headers {
+        &self.headers
+    }
+
+    /// Get the body
+    pub fn body(&self) -> &Box<Body> {
+        &self.body
+    }
+
+    /// Consume self and get body
+    pub fn into_body(self) -> Box<Body> {
+        self.body
+    }
+
     /// Set the body.
-    pub fn body(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
+    pub fn set_body(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
         self.body = Box::new(body);
         self
     }
@@ -43,10 +70,10 @@ impl Request {
     /// # Mime
     ///
     /// The encoding is set to `text/plain; charset=utf-8`.
-    pub fn body_string(mut self, string: String) -> io::Result<Self> {
+    pub fn set_body_string(mut self, string: String) -> io::Result<Self> {
         self.length = Some(string.len());
         let reader = io::Cursor::new(string.into_bytes());
-        self.body(reader).set_mime(mime::PLAIN)
+        self.set_body(reader).set_mime(mime::PLAIN)
     }
 
     /// Pass bytes as the request body.
@@ -54,11 +81,11 @@ impl Request {
     /// # Mime
     ///
     /// The encoding is set to `application/octet-stream`.
-    pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
+    pub fn set_body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
         let bytes = bytes.as_ref().to_owned();
         self.length = Some(bytes.len());
         let reader = io::Cursor::new(bytes);
-        self.body(reader).set_mime(mime::BYTE_STREAM)
+        self.set_body(reader).set_mime(mime::BYTE_STREAM)
     }
 
     /// Get an HTTP header.

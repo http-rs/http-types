@@ -51,3 +51,14 @@ impl Display for Method {
         }
     }
 }
+
+impl<'a> std::convert::TryFrom<&'a str> for Method {
+    type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(match value {
+            "GET" => Self::Get,
+            "POST" => Self::Post,
+            _ => unimplemented!(),
+        })
+    }
+}

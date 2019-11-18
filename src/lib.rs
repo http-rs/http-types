@@ -34,11 +34,13 @@ mod method;
 mod request;
 mod response;
 mod status_code;
+mod version;
 
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;
 pub use status_code::StatusCode;
+pub use version::HttpVersion;
 
 #[doc(inline)]
 pub use headers::Headers;
