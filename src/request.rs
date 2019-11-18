@@ -6,14 +6,13 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::mime::{self, Mime};
-use crate::{Headers, HttpVersion, Method, Url};
+use crate::{Headers, Method, Url};
 
 type Body = dyn BufRead + Unpin + Send + 'static;
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
     pub struct Request {
-        version: HttpVersion,
         method: Method,
         url: Url,
         headers: Headers,
@@ -25,20 +24,14 @@ pin_project_lite::pin_project! {
 
 impl Request {
     /// Create a new request.
-    pub fn new(version: HttpVersion, method: Method, url: Url) -> Self {
+    pub fn new(method: Method, url: Url) -> Self {
         Self {
-            version,
             method,
             url,
             headers: Headers::new(),
             body: Box::new(io::empty()),
             length: None,
         }
-    }
-
-    /// Get the HTTP version
-    pub fn version(&self) -> &HttpVersion {
-        &self.version
     }
 
     /// Get the HTTP method
