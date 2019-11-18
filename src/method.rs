@@ -1,4 +1,6 @@
+use std::error::Error;
 use std::fmt::{self, Display};
+use std::str::FromStr;
 
 /// HTTP request methods.
 ///
@@ -52,13 +54,35 @@ impl Display for Method {
     }
 }
 
-impl<'a> std::convert::TryFrom<&'a str> for Method {
-    type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(match value {
-            "GET" => Self::Get,
-            "POST" => Self::Post,
-            _ => unimplemented!(),
-        })
+/// An error returned when failing to convert into a status code.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ParseError {
+    _private: (),
+}
+
+impl Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        "Error parsing a string into a status code".fmt(f)
+    }
+}
+
+impl FromStr for Method {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "GET" => Ok(Self::Get),
+            "HEAD" => Ok(Self::Head),
+            "POST" => Ok(Self::Post),
+            "PUT" => Ok(Self::Put),
+            "DELETE" => Ok(Self::Delete),
+            "CONNECT" => Ok(Self::Connect),
+            "OPTIONS" => Ok(Self::Options),
+            "TRACE" => Ok(Self::Trace),
+            "PATCH" => Ok(Self::Patch),
+            _ => Err(ParseError { _private: () }),
+        }
     }
 }
