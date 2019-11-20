@@ -8,7 +8,7 @@ use std::task::{Context, Poll};
 use crate::mime::{self, Mime};
 use crate::{Headers, Method, Url};
 
-type Body = dyn BufRead + Unpin + Send + 'static;
+type BodyReader = dyn BufRead + Unpin + Send + 'static;
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -17,7 +17,7 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         #[pin]
-        body: Box<Body>,
+        body_reader: Box<BodyReader>,
         length: Option<usize>,
     }
 }
@@ -29,7 +29,7 @@ impl Request {
             method,
             url,
             headers: Headers::new(),
-            body: Box::new(io::empty()),
+            body_reader: Box::new(io::empty()),
             length: None,
         }
     }
@@ -50,18 +50,18 @@ impl Request {
     }
 
     /// Get the body
-    pub fn body(&self) -> &Box<Body> {
-        &self.body
+    pub fn body_reader(&self) -> &Box<BodyReader> {
+        &self.body_reader
     }
 
     /// Consume self and get body
-    pub fn into_body(self) -> Box<Body> {
-        self.body
+    pub fn into_body_reader(self) -> Box<BodyReader> {
+        self.body_reader
     }
 
-    /// Set the body.
-    pub fn set_body(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
-        self.body = Box::new(body);
+    /// Set the body reader.
+    pub fn set_body_reader(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
+        self.body_reader = Box::new(body);
         self
     }
 
@@ -73,7 +73,7 @@ impl Request {
     pub fn set_body_string(mut self, string: String) -> io::Result<Self> {
         self.length = Some(string.len());
         let reader = io::Cursor::new(string.into_bytes());
-        self.set_body(reader).set_mime(mime::PLAIN)
+        self.set_body_reader(reader).set_mime(mime::PLAIN)
     }
 
     /// Pass bytes as the request body.
@@ -85,7 +85,7 @@ impl Request {
         let bytes = bytes.as_ref().to_owned();
         self.length = Some(bytes.len());
         let reader = io::Cursor::new(bytes);
-        self.set_body(reader).set_mime(mime::BYTE_STREAM)
+        self.set_body_reader(reader).set_mime(mime::BYTE_STREAM)
     }
 
     /// Get an HTTP header.
@@ -114,6 +114,12 @@ impl Request {
     pub fn len(&self) -> Option<usize> {
         self.length
     }
+
+    /// Set the length of the body stream
+    pub fn set_len(mut self, len: usize) -> Self {
+        self.length = Some(len);
+        self
+    }
 }
 
 impl Debug for Request {
@@ -134,7 +140,7 @@ impl Read for Request {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.body).poll_read(cx, buf)
+        Pin::new(&mut self.body_reader).poll_read(cx, buf)
     }
 }
 
@@ -142,10 +148,10 @@ impl BufRead for Request {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.body.poll_fill_buf(cx)
+        this.body_reader.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body).consume(amt)
+        Pin::new(&mut self.body_reader).consume(amt)
     }
 }
