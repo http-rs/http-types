@@ -57,11 +57,6 @@ jobs:
         components: rustfmt, clippy
         override: true
 
-    - name: setup
-      run: |
-        rustup component add rustfmt
-        rustc --version
-
     - name: fmt
       run: cargo fmt --all -- --check
 
