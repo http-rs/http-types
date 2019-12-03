@@ -3,7 +3,10 @@
 use async_std::io;
 use std::borrow::Borrow;
 use std::collections::HashMap;
-// use std::iter::{IntoIterator, Iterator};
+
+mod iter;
+
+pub use iter::Iter;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]
@@ -36,23 +39,10 @@ impl Headers {
         self.headers.get(key.borrow())
     }
 
-    /// Get an iterator over the headers
+    /// Get an iterator over the headers.
     pub fn iter<'a>(&'a self) -> Iter<'a> {
         Iter {
             internal: self.headers.iter(),
         }
-    }
-}
-
-#[derive(Debug)]
-/// Iterator over the headers
-pub struct Iter<'a> {
-    internal: std::collections::hash_map::Iter<'a, String, String>,
-}
-
-impl<'a> std::iter::Iterator for Iter<'a> {
-    type Item = (&'a String, &'a String);
-    fn next(&mut self) -> Option<Self::Item> {
-        self.internal.next()
     }
 }
