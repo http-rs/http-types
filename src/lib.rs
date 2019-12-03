@@ -17,7 +17,10 @@ pub mod cookies {
 
 /// URL records.
 pub mod url {
-    pub use url::*;
+    pub use url::{
+        EncodingOverride, Host, OpaqueOrigin, Origin, ParseError, ParseOptions, PathSegmentsMut,
+        Position, SyntaxViolation, Url, UrlQuery,
+    };
 }
 
 pub mod headers;
