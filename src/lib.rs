@@ -2,7 +2,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```
 //! ```
 
 #![forbid(rust_2018_idioms)]
@@ -40,7 +40,10 @@ pub use method::Method;
 pub use request::Request;
 pub use response::Response;
 pub use status_code::StatusCode;
-pub use version::HttpVersion;
+pub use version::Version;
+
+#[doc(inline)]
+pub use mime::Mime;
 
 #[doc(inline)]
 pub use headers::Headers;
