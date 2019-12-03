@@ -1,5 +1,5 @@
 /// The version of the HTTP protocol in use.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum Version {
     /// HTTP/0.9
