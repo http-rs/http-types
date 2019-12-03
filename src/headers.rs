@@ -37,8 +37,8 @@ impl Headers {
     }
 
     /// Get an iterator over the headers
-    pub fn iter<'a>(&'a self) -> HeadersIterator<'a> {
-        HeadersIterator {
+    pub fn iter<'a>(&'a self) -> Iter<'a> {
+        Iter {
             internal: self.headers.iter(),
         }
     }
@@ -46,11 +46,11 @@ impl Headers {
 
 #[derive(Debug)]
 /// Iterator over the headers
-pub struct HeadersIterator<'a> {
+pub struct Iter<'a> {
     internal: std::collections::hash_map::Iter<'a, String, String>,
 }
 
-impl<'a> std::iter::Iterator for HeadersIterator<'a> {
+impl<'a> std::iter::Iterator for Iter<'a> {
     type Item = (&'a String, &'a String);
     fn next(&mut self) -> Option<Self::Item> {
         self.internal.next()

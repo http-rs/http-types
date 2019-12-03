@@ -2,7 +2,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```
 //! ```
 
 #![forbid(rust_2018_idioms)]
@@ -23,13 +23,6 @@ pub mod url {
 pub mod headers;
 pub mod mime;
 
-/// Security headers.
-pub mod secure {
-    /// An HTTP security policy.
-    #[derive(Debug)]
-    pub struct Policy {}
-}
-
 mod method;
 mod request;
 mod response;
@@ -40,7 +33,10 @@ pub use method::Method;
 pub use request::Request;
 pub use response::Response;
 pub use status_code::StatusCode;
-pub use version::HttpVersion;
+pub use version::Version;
+
+#[doc(inline)]
+pub use mime::Mime;
 
 #[doc(inline)]
 pub use headers::Headers;

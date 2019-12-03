@@ -4,7 +4,7 @@ use std::fmt::{self, Display};
 ///
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 #[repr(u16)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum StatusCode {
     /// 100 Continue
     ///

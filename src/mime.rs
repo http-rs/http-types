@@ -4,34 +4,7 @@
 
 use std::fmt::{self, Display};
 
-/// Content-Type for JavaScript.
-pub const JAVASCRIPT: Mime = Mime::new("application/javascript; charset=utf-8");
-
-/// Content-Type for JSON.
-pub const JSON: Mime = Mime::new("application/json");
-
-/// Content-Type for CSS.
-pub const CSS: Mime = Mime::new("text/css; charset=utf-8");
-
-/// Content-Type for HTML.
-pub const HTML: Mime = Mime::new("text/html; charset=utf-8");
-
-/// Content-Type for Server Sent Events
-pub const SSE: Mime = Mime::new("text/event-stream;");
-
-/// Content-Type for plain text.
-pub const PLAIN: Mime = Mime::new("text/plain; charset=utf-8");
-
-/// Content-Type for byte streams.
-pub const BYTE_STREAM: Mime = Mime::new("application/octet-stream");
-
-/// Content-Type for form.
-pub const FORM: Mime = Mime::new("application/x-www-urlencoded");
-
-/// Content-Type for a multipart form.
-pub const MULTIPART_FORM: Mime = Mime::new("multipart/form-data");
-
-/// A mime type.
+/// An IANA media type.
 #[derive(Debug)]
 pub struct Mime {
     inner: &'static str,
@@ -49,3 +22,30 @@ impl Display for Mime {
         write!(f, "{}", self.inner)
     }
 }
+
+/// Content-Type for JavaScript.
+pub const JAVASCRIPT: Mime = Mime::new("application/javascript; charset=utf-8");
+
+/// Content-Type for JSON.
+pub const JSON: Mime = Mime::new("application/json");
+
+/// Content-Type for CSS.
+pub const CSS: Mime = Mime::new("text/css; charset=utf-8");
+
+/// Content-Type for HTML.
+pub const HTML: Mime = Mime::new("text/html; charset=utf-8");
+
+/// Content-Type for Server Sent Events
+pub const SSE: Mime = Mime::new("text/event-stream");
+
+/// Content-Type for plain text.
+pub const PLAIN: Mime = Mime::new("text/plain; charset=utf-8");
+
+/// Content-Type for byte streams.
+pub const BYTE_STREAM: Mime = Mime::new("application/octet-stream");
+
+/// Content-Type for form.
+pub const FORM: Mime = Mime::new("application/x-www-urlencoded");
+
+/// Content-Type for a multipart form.
+pub const MULTIPART_FORM: Mime = Mime::new("multipart/form-data");
