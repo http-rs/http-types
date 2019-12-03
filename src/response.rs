@@ -130,3 +130,15 @@ impl BufRead for Response {
         Pin::new(&mut self.body).consume(amt)
     }
 }
+
+impl AsRef<Headers> for Response {
+    fn as_ref(&self) -> &Headers {
+        &self.headers
+    }
+}
+
+impl AsMut<Headers> for Response {
+    fn as_mut(&mut self) -> &mut Headers {
+        &mut self.headers
+    }
+}
