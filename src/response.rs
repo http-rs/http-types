@@ -37,9 +37,12 @@ impl Response {
         &self.status
     }
 
-    /// Set the body.
+    /// Set the body reader to `body` and unset the length.
+    ///
+    /// This will make the body a chunked stream.
     pub fn set_body_reader(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
         self.body_reader = Box::new(body);
+        self.length = None;
         self
     }
 
