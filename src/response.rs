@@ -154,6 +154,17 @@ impl AsMut<Headers> for Response {
     }
 }
 
+impl IntoIterator for Response {
+    type Item = (String, String);
+    type IntoIter = headers::IntoIter;
+
+    /// Returns a iterator of references over the remaining items.
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.into_iter()
+    }
+}
+
 impl<'a> IntoIterator for &'a Response {
     type Item = (&'a String, &'a String);
     type IntoIter = headers::Iter<'a>;
