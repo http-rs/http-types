@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        rust: [nightly-2019-11-25]
+        rust: [nightly]
 
     steps:
     - uses: actions/checkout@master
@@ -55,7 +55,7 @@ jobs:
     - id: component
       uses: actions-rs/components-nightly@v1
       with:
-        component: rustfmt
+        component: rustfmt, clippy
 
     - uses: actions-rs/toolchain@v1
       with:
