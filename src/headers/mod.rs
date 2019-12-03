@@ -2,13 +2,15 @@
 
 use async_std::io;
 
-use std::iter::IntoIterator;
 use std::borrow::Borrow;
 use std::collections::HashMap;
+use std::iter::IntoIterator;
 
+mod into_iter;
 mod iter;
 mod iter_mut;
 
+pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
 
@@ -55,6 +57,19 @@ impl Headers {
     pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a> {
         IterMut {
             internal: self.headers.iter_mut(),
+        }
+    }
+}
+
+impl IntoIterator for Headers {
+    type Item = (String, String);
+    type IntoIter = IntoIter;
+
+    /// Returns a iterator of references over the remaining items.
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter {
+            internal: self.headers.into_iter(),
         }
     }
 }
