@@ -6,13 +6,19 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::iter::IntoIterator;
 
+mod header_name;
+mod header_value;
 mod into_iter;
 mod iter;
 mod iter_mut;
+mod to_header_values;
 
+pub use header_name::HeaderName;
+pub use header_value::HeaderValue;
 pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
+pub use to_header_values::ToHeaderValues;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]
