@@ -23,13 +23,6 @@ pub mod url {
 pub mod headers;
 pub mod mime;
 
-/// Security headers.
-pub mod secure {
-    /// An HTTP security policy.
-    #[derive(Debug)]
-    pub struct Policy {}
-}
-
 mod method;
 mod request;
 mod response;

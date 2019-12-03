@@ -1,4 +1,4 @@
-/// The version of the HTTP protocol in use
+/// The version of the HTTP protocol in use.
 #[derive(Copy, Clone, Debug)]
 #[non_exhaustive]
 pub enum Version {
