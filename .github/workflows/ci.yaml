@@ -55,7 +55,7 @@ jobs:
     - id: component
       uses: actions-rs/components-nightly@v1
       with:
-        component: rustfmt, clippy
+        components: rustfmt, clippy
 
     - uses: actions-rs/toolchain@v1
       with:
