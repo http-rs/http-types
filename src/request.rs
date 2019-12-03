@@ -155,3 +155,15 @@ impl BufRead for Request {
         Pin::new(&mut self.body_reader).consume(amt)
     }
 }
+
+impl AsRef<Headers> for Request {
+    fn as_ref(&self) -> &Headers {
+        &self.headers
+    }
+}
+
+impl AsMut<Headers> for Request {
+    fn as_mut(&mut self) -> &mut Headers {
+        &mut self.headers
+    }
+}
