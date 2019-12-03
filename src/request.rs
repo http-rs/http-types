@@ -6,7 +6,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::mime::{self, Mime};
-use crate::{Headers, Method, Url};
+use crate::{headers, Headers, Method, Url};
 
 type BodyReader = dyn BufRead + Unpin + Send + 'static;
 
@@ -120,6 +120,17 @@ impl Request {
         self.length = Some(len);
         self
     }
+
+    /// An iterator visiting all header pairs in arbitrary order.
+    pub fn iter<'a>(&'a self) -> headers::Iter<'a> {
+        self.headers.iter()
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
+    /// values.
+    pub fn iter_mut<'a>(&'a mut self) -> headers::IterMut<'a> {
+        self.headers.iter_mut()
+    }
 }
 
 impl Debug for Request {
@@ -165,5 +176,25 @@ impl AsRef<Headers> for Request {
 impl AsMut<Headers> for Request {
     fn as_mut(&mut self) -> &mut Headers {
         &mut self.headers
+    }
+}
+
+impl<'a> IntoIterator for &'a Request {
+    type Item = (&'a String, &'a String);
+    type IntoIter = headers::Iter<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Request {
+    type Item = (&'a String, &'a mut String);
+    type IntoIter = headers::IterMut<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.iter_mut()
     }
 }

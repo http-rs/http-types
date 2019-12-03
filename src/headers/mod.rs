@@ -1,12 +1,16 @@
 //! HTTP headers.
 
 use async_std::io;
+
+use std::iter::IntoIterator;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 
 mod iter;
+mod iter_mut;
 
 pub use iter::Iter;
+pub use iter_mut::IterMut;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]
@@ -39,10 +43,38 @@ impl Headers {
         self.headers.get(key.borrow())
     }
 
-    /// Get an iterator over the headers.
+    /// An iterator visiting all header pairs in arbitrary order.
     pub fn iter<'a>(&'a self) -> Iter<'a> {
         Iter {
             internal: self.headers.iter(),
         }
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
+    /// values.
+    pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a> {
+        IterMut {
+            internal: self.headers.iter_mut(),
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Headers {
+    type Item = (&'a String, &'a String);
+    type IntoIter = Iter<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Headers {
+    type Item = (&'a String, &'a mut String);
+    type IntoIter = IterMut<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
     }
 }
