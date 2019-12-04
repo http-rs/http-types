@@ -90,8 +90,10 @@ impl Response {
     }
 
     /// Set the response MIME.
-    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<HeaderValue>>{
-        let header = HeaderName { inner: "content-type" };
+    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<HeaderValue>> {
+        let header = HeaderName {
+            string: "content-type".to_string(),
+        };
         self.set_header(header, mime.into())
     }
 

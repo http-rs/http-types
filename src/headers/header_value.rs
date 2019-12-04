@@ -7,7 +7,7 @@ use crate::Mime;
 /// A header value.
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HeaderValue {
-    inner: &'static str,
+    inner: String,
 }
 
 impl HeaderValue {
@@ -23,7 +23,7 @@ impl HeaderValue {
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
         let string = unsafe { String::from_utf8_unchecked(bytes.to_ascii_lowercase()) };
-        Ok(Self { inner: &string })
+        Ok(Self { inner: string })
     }
 
     /// Converts a vector of bytes to a `HeaderValue` without checking that the string contains
@@ -35,16 +35,20 @@ impl HeaderValue {
     /// ASCII. If this constraint is violated, it may cause memory
     /// unsafety issues with future users of the HeaderValue, as the rest of the library assumes
     /// that Strings are valid ASCII.
-    pub const unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
+    pub unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
         let string = String::from_utf8_unchecked(bytes);
-        Self { inner: &string }
+        Self { inner: string }
     }
 }
 
 impl From<Mime> for HeaderValue {
     fn from(mime: Mime) -> Self {
-        HeaderValue {
-            inner: mime.inner
+        if let Some(string) = mime.static_str {
+            HeaderValue {
+                inner: string.to_string(),
+            }
+        } else {
+            HeaderValue { inner: mime.string }
         }
     }
 }
@@ -74,7 +78,7 @@ impl FromStr for HeaderValue {
             return Err(ParseError { _private: () });
         }
         Ok(Self {
-            inner: &s.to_ascii_lowercase(),
+            inner: s.to_ascii_lowercase(),
         })
     }
 }
