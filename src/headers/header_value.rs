@@ -10,15 +10,19 @@ pub struct HeaderValue {
     inner: &'static str,
 }
 
-
 impl HeaderValue {
-    /// Create a new `HeaderValue`.
+    /// Create a new `HeaderValue` from ASCII bytes.
+    ///
+    /// # Error
+    ///
+    /// This function will error if the string
     pub fn from_ascii(bytes: &[u8]) -> Result<Self, ParseError> {
         if !bytes.is_ascii() {
             return Err(ParseError { _private: () });
         }
-        let string = String::from_utf8(bytes.to_ascii_lowercase())
-            .map_err(|_| ParseError { _private: () })?;
+
+        // This is permitted because ASCII is valid UTF-8, and we just checked that.
+        let string = unsafe { String::from_utf8_unchecked(bytes.to_ascii_lowercase()) };
         Ok(Self { inner: &string })
     }
 

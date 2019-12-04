@@ -39,7 +39,7 @@ impl Response {
     }
 
     /// Set the body.
-    pub fn set_body(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
+    pub fn set_body_reader(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
         self.body = Box::new(body);
         self
     }
@@ -52,7 +52,9 @@ impl Response {
     pub fn set_body_string(mut self, string: String) -> io::Result<Self> {
         self.length = Some(string.len());
         let reader = io::Cursor::new(string.into_bytes());
-        self.set_body(reader).set_mime(mime::PLAIN)
+        let this = self.set_body_reader(reader);
+        this.set_mime(mime::PLAIN)?;
+        Ok(self)
     }
 
     /// Pass bytes as the request body.
@@ -64,7 +66,9 @@ impl Response {
         let bytes = bytes.as_ref().to_owned();
         self.length = Some(bytes.len());
         let reader = io::Cursor::new(bytes);
-        self.set_body(reader).set_mime(mime::BYTE_STREAM)
+        let this = self.set_body_reader(reader);
+        this.set_mime(mime::BYTE_STREAM)?;
+        Ok(this)
     }
 
     /// Get HTTP headers.
@@ -73,21 +77,23 @@ impl Response {
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, key: impl Borrow<str>) -> Option<&String> {
-        self.headers.get(key)
+    pub fn header(&self, name: impl Borrow<HeaderName>) -> Option<&HeaderValue> {
+        self.headers.get(name.borrow())
     }
 
     /// Set an HTTP header.
-    pub fn set_header(mut self, key: impl AsRef<str>, value: impl AsRef<str>) -> io::Result<Self> {
-        let key = key.as_ref().to_owned();
-        let value = value.as_ref().to_owned();
-        self.headers.insert(key, value)?; // TODO: this should be a Result because only ASCII values are allowed
-        Ok(self)
+    pub fn set_header(
+        &mut self,
+        name: HeaderName,
+        value: HeaderValue,
+    ) -> io::Result<Option<HeaderValue>> {
+        self.headers.insert(name, value)
     }
 
     /// Set the response MIME.
-    pub fn set_mime(self, mime: Mime) -> io::Result<Self> {
-        self.set_header("Content-Type", format!("{}", mime))
+    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<HeaderValue>>{
+        let header = HeaderName { inner: "content-type" };
+        self.set_header(header, mime.into())
     }
 
     /// Get the length of the body stream, if it has been set.
