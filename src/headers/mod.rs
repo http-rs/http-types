@@ -10,6 +10,7 @@ mod header_value;
 mod into_iter;
 mod iter;
 mod iter_mut;
+mod names;
 mod parse_error;
 mod to_header_values;
 
@@ -18,6 +19,7 @@ pub use header_value::HeaderValue;
 pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
+pub use names::Names;
 pub use parse_error::ParseError;
 pub use to_header_values::ToHeaderValues;
 
@@ -67,6 +69,13 @@ impl Headers {
     pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a> {
         IterMut {
             internal: self.headers.iter_mut(),
+        }
+    }
+
+    /// An iterator visiting all header names in arbitrary order.
+    pub fn names<'a>(&'a self) -> Names<'a> {
+        Names {
+            internal: self.headers.keys(),
         }
     }
 }
