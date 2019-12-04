@@ -111,8 +111,8 @@ impl Request {
 
     /// Set the response MIME.
     pub fn set_mime(self, mime: Mime) -> io::Result<Self> {
-        let name = HeaderName::new("content-type".to_string().as_ref());
-        self.set_header(name, mime.into())
+        let header = Mime { inner: "content-type" };
+        self.set_header(header, mime.into())
     }
 
     /// Get the length of the body stream, if it has been set.

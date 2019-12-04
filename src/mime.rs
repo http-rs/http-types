@@ -7,7 +7,7 @@ use std::fmt::{self, Display};
 /// An IANA media type.
 #[derive(Debug)]
 pub struct Mime {
-    inner: &'static str,
+    pub(crate) inner: &'static str,
 }
 
 impl Mime {
