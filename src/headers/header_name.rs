@@ -5,7 +5,7 @@ use std::str::FromStr;
 /// A header name.
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HeaderName {
-    inner: &'static str,
+    pub(crate) string: String,
 }
 
 impl HeaderName {
@@ -16,7 +16,7 @@ impl HeaderName {
         }
         let string = String::from_utf8(bytes.to_ascii_lowercase())
             .map_err(|_| ParseError { _private: () })?;
-        Ok(Self { inner: &string })
+        Ok(Self { string: string })
     }
 
     /// Converts a vector of bytes to a `HeaderName` without checking that the string contains
@@ -28,9 +28,9 @@ impl HeaderName {
     /// ASCII. If this constraint is violated, it may cause memory
     /// unsafety issues with future users of the HeaderName, as the rest of the library assumes
     /// that Strings are valid ASCII.
-    pub const unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
+    pub unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
         let string = String::from_utf8_unchecked(bytes);
-        Self { inner: &string }
+        Self { string }
     }
 }
 
@@ -59,7 +59,7 @@ impl FromStr for HeaderName {
             return Err(ParseError { _private: () });
         }
         Ok(Self {
-            inner: &s.to_ascii_lowercase(),
+            string: s.to_ascii_lowercase(),
         })
     }
 }
