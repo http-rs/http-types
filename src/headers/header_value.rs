@@ -1,11 +1,10 @@
-use std::error::Error;
-use std::fmt::{self, Display};
 use std::str::FromStr;
 
+use crate::headers::ParseError;
 use crate::Mime;
 
 /// A header value.
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HeaderValue {
     inner: String,
 }
@@ -18,7 +17,7 @@ impl HeaderValue {
     /// This function will error if the string
     pub fn from_ascii(bytes: &[u8]) -> Result<Self, ParseError> {
         if !bytes.is_ascii() {
-            return Err(ParseError { _private: () });
+            return Err(ParseError::new());
         }
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
@@ -53,20 +52,6 @@ impl From<Mime> for HeaderValue {
     }
 }
 
-/// An error returned when failing to convert into a header.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ParseError {
-    _private: (),
-}
-
-impl Error for ParseError {}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        "Error parsing a string into a status code".fmt(f)
-    }
-}
-
 impl FromStr for HeaderValue {
     type Err = ParseError;
 
@@ -75,7 +60,7 @@ impl FromStr for HeaderValue {
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if !s.is_ascii() {
-            return Err(ParseError { _private: () });
+            return Err(ParseError::new());
         }
         Ok(Self {
             inner: s.to_ascii_lowercase(),

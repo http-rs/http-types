@@ -2,9 +2,9 @@
 //!
 //! [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types).
 
-use std::error::Error;
-use std::fmt::{self, Display};
+use crate::headers::ParseError;
 use std::str::FromStr;
+use std::fmt::{self, Display};
 
 /// An IANA media type.
 #[derive(Debug)]
@@ -25,20 +25,6 @@ impl Display for Mime {
     }
 }
 
-/// An error returned when failing to convert into a header.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ParseError {
-    _private: (),
-}
-
-impl Error for ParseError {}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        "Error parsing a string into a mime type".fmt(f)
-    }
-}
-
 impl FromStr for Mime {
     type Err = ParseError;
 
@@ -47,7 +33,7 @@ impl FromStr for Mime {
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if !s.is_ascii() {
-            return Err(ParseError { _private: () });
+            return Err(ParseError::new());
         }
         Ok(Self {
             string: s.to_ascii_lowercase(),

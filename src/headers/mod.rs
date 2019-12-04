@@ -10,6 +10,7 @@ mod header_value;
 mod into_iter;
 mod iter;
 mod iter_mut;
+mod parse_error;
 mod to_header_values;
 
 pub use header_name::HeaderName;
@@ -18,6 +19,7 @@ pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
 pub use to_header_values::ToHeaderValues;
+pub use parse_error::ParseError;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]
