@@ -74,7 +74,9 @@ impl Request {
     pub fn set_body_string(mut self, string: String) -> io::Result<Self> {
         self.length = Some(string.len());
         let reader = io::Cursor::new(string.into_bytes());
-        self.set_body_reader(reader).set_mime(mime::PLAIN)
+        let this = self.set_body_reader(reader);
+        this.set_mime(mime::PLAIN)?;
+        Ok(self)
     }
 
     /// Pass bytes as the request body.
@@ -86,10 +88,12 @@ impl Request {
         let bytes = bytes.as_ref().to_owned();
         self.length = Some(bytes.len());
         let reader = io::Cursor::new(bytes);
-        self.set_body_reader(reader).set_mime(mime::BYTE_STREAM)
+        let this = self.set_body_reader(reader);
+        this.set_mime(mime::BYTE_STREAM)?;
+        Ok(this)
     }
 
-    /// Get an HTTP header..
+    /// Get an HTTP header.
     pub fn header(&self, name: impl Borrow<HeaderName>) -> Option<&HeaderValue> {
         self.headers.get(name.borrow())
     }
@@ -100,12 +104,12 @@ impl Request {
         name: HeaderName,
         value: HeaderValue,
     ) -> io::Result<Option<HeaderValue>> {
-        Ok(self.headers.insert(name, value))
+        self.headers.insert(name, value)
     }
 
     /// Set the response MIME.
-    pub fn set_mime(self, mime: Mime) -> io::Result<Self> {
-        let header = Mime { inner: "content-type" };
+    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<HeaderValue>>{
+        let header = HeaderName { inner: "content-type" };
         self.set_header(header, mime.into())
     }
 
