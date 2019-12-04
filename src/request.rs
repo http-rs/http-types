@@ -103,6 +103,11 @@ impl Request {
         self.headers.get(name.borrow())
     }
 
+    /// Get a mutable reference to a header.
+    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+        self.headers.get_mut(name)
+    }
+
     /// Set an HTTP header.
     pub fn set_header(
         &mut self,

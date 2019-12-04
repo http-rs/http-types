@@ -44,9 +44,14 @@ impl Headers {
         Ok(self.headers.insert(name, vec![value]))
     }
 
-    /// Get a header.
+    /// Get a reference to a header.
     pub fn get(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
         self.headers.get(name)
+    }
+
+    /// Get a mutable reference to a header.
+    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+        self.headers.get_mut(name)
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
