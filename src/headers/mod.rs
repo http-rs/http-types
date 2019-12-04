@@ -23,32 +23,29 @@ pub use to_header_values::ToHeaderValues;
 /// A collection of HTTP Headers.
 #[derive(Debug)]
 pub struct Headers {
-    headers: HashMap<String, String>,
+    headers: HashMap<HeaderName, HeaderValue>,
 }
 
 impl Headers {
     /// Create a new instance.
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             headers: HashMap::new(),
         }
     }
 
     /// Insert a header into the headers.
-    // TODO: enforce this key - values are ASCII only, and return a result
     pub fn insert(
         &mut self,
-        name: impl AsRef<str>,
-        value: impl AsRef<str>,
-    ) -> io::Result<Option<String>> {
-        let name = name.as_ref().to_owned();
-        let value = value.as_ref().to_owned();
+        name: HeaderName,
+        value: HeaderValue,
+    ) -> io::Result<Option<HeaderValue>> {
         Ok(self.headers.insert(name, value))
     }
 
     /// Get a header.
-    pub fn get(&self, key: impl Borrow<str>) -> Option<&String> {
-        self.headers.get(key.borrow())
+    pub fn get(&self, name: impl Borrow<HeaderName>) -> Option<&HeaderValue> {
+        self.headers.get(name.borrow())
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -68,7 +65,7 @@ impl Headers {
 }
 
 impl IntoIterator for Headers {
-    type Item = (String, String);
+    type Item = (HeaderName, HeaderValue);
     type IntoIter = IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -81,7 +78,7 @@ impl IntoIterator for Headers {
 }
 
 impl<'a> IntoIterator for &'a Headers {
-    type Item = (&'a String, &'a String);
+    type Item = (&'a HeaderName, &'a HeaderValue);
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -91,7 +88,7 @@ impl<'a> IntoIterator for &'a Headers {
 }
 
 impl<'a> IntoIterator for &'a mut Headers {
-    type Item = (&'a String, &'a mut String);
+    type Item = (&'a HeaderName, &'a mut HeaderValue);
     type IntoIter = IterMut<'a>;
 
     #[inline]

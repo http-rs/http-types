@@ -19,3 +19,4 @@ pin-project-lite = "0.1.0"
 pin-utils = "0.1.0-alpha.4"
 
 [dev-dependencies]
+http = "0.2.0"
