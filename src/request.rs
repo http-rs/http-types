@@ -65,51 +65,6 @@ impl Request {
         self
     }
 
-    /// Create a new GET request.
-    pub fn get(url: Url) -> Self {
-        Self::new(Method::Get, url)
-    }
-
-    /// Create a new HEAD request.
-    pub fn head(url: Url) -> Self {
-        Self::new(Method::Head, url)
-    }
-
-    /// Create a new POST request.
-    pub fn post(url: Url) -> Self {
-        Self::new(Method::Post, url)
-    }
-
-    /// Create a new PUT request.
-    pub fn put(url: Url) -> Self {
-        Self::new(Method::Put, url)
-    }
-
-    /// Create a new DELETE request.
-    pub fn delete(url: Url) -> Self {
-        Self::new(Method::Delete, url)
-    }
-
-    /// Create a new CONNECT request.
-    pub fn connect(url: Url) -> Self {
-        Self::new(Method::Connect, url)
-    }
-
-    /// Create a new OPTIONS request.
-    pub fn options(url: Url) -> Self {
-        Self::new(Method::Options, url)
-    }
-
-    /// Create a new TRACE request.
-    pub fn trace(url: Url) -> Self {
-        Self::new(Method::Trace, url)
-    }
-
-    /// Create a new PATCH request.
-    pub fn patch(url: Url) -> Self {
-        Self::new(Method::Patch, url)
-    }
-
     /// Set the lengths of the body.
     pub fn set_length(mut self, length: usize) -> Self {
         self.length = Some(length);
