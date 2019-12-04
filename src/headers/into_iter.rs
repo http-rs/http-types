@@ -1,14 +1,16 @@
 use std::collections::hash_map;
 use std::iter::Iterator;
 
+use crate::headers::{HeaderName, HeaderValue};
+
 /// An owning iterator over the entries of `Headers`.
 #[derive(Debug)]
 pub struct IntoIter {
-    pub(super) internal: hash_map::IntoIter<String, String>,
+    pub(super) internal: hash_map::IntoIter<HeaderName, HeaderValue>,
 }
 
 impl Iterator for IntoIter {
-    type Item = (String, String);
+    type Item = (HeaderName, HeaderValue);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.internal.next()

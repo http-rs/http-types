@@ -62,7 +62,7 @@ pub struct ParseError {
 
 impl Error for ParseError {}
 
-impl fmt::Display for ParseError {
+impl Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         "Error parsing a string into a status code".fmt(f)
     }

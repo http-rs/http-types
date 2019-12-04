@@ -13,6 +13,9 @@ pub struct Mime {
 impl Mime {
     /// Create a new instance.
     pub const fn new(mime: &'static str) -> Self {
+        if !mime.is_ascii() {
+            panic!("mime must be valid ascii -- this should be an error not a panic oops");
+        }
         Self { inner: mime }
     }
 }

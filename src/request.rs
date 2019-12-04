@@ -5,8 +5,9 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use crate::headers::{self, HeaderName, HeaderValue, Headers};
 use crate::mime::{self, Mime};
-use crate::{headers, Headers, Method, Url};
+use crate::{Method, Url};
 
 type BodyReader = dyn BufRead + Unpin + Send + 'static;
 
@@ -94,22 +95,24 @@ impl Request {
         self.set_body_reader(reader).set_mime(mime::BYTE_STREAM)
     }
 
-    /// Get an HTTP header.
-    pub fn header(&self, key: impl Borrow<str>) -> Option<&String> {
-        self.headers.get(key)
+    /// Get an HTTP header..
+    pub fn header(&self, name: impl Borrow<HeaderName>) -> Option<&HeaderValue> {
+        self.headers.get(name.borrow())
     }
 
     /// Set an HTTP header.
-    pub fn set_header(mut self, key: impl AsRef<str>, value: impl AsRef<str>) -> io::Result<Self> {
-        let key = key.as_ref().to_owned();
-        let value = value.as_ref().to_owned();
-        self.headers.insert(key, value)?; // TODO: this should be a Result because only ASCII values are allowed
-        Ok(self)
+    pub fn set_header(
+        &mut self,
+        name: HeaderName,
+        value: HeaderValue,
+    ) -> io::Result<Option<HeaderValue>> {
+        Ok(self.headers.insert(name, value))
     }
 
     /// Set the response MIME.
     pub fn set_mime(self, mime: Mime) -> io::Result<Self> {
-        self.set_header("Content-Type", format!("{}", mime))
+        let name = HeaderName::new("content-type".to_string().as_ref());
+        self.set_header(name, mime.into())
     }
 
     /// Get the length of the body stream, if it has been set.
@@ -186,7 +189,7 @@ impl AsMut<Headers> for Request {
 }
 
 impl IntoIterator for Request {
-    type Item = (String, String);
+    type Item = (HeaderName, HeaderValue);
     type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -197,7 +200,7 @@ impl IntoIterator for Request {
 }
 
 impl<'a> IntoIterator for &'a Request {
-    type Item = (&'a String, &'a String);
+    type Item = (&'a HeaderName, &'a HeaderValue);
     type IntoIter = headers::Iter<'a>;
 
     #[inline]
@@ -207,7 +210,7 @@ impl<'a> IntoIterator for &'a Request {
 }
 
 impl<'a> IntoIterator for &'a mut Request {
-    type Item = (&'a String, &'a mut String);
+    type Item = (&'a HeaderName, &'a mut HeaderValue);
     type IntoIter = headers::IterMut<'a>;
 
     #[inline]

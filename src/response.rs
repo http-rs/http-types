@@ -5,8 +5,9 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use crate::headers::{self, HeaderName, HeaderValue, Headers};
 use crate::mime::{self, Mime};
-use crate::{headers, Headers, StatusCode};
+use crate::StatusCode;
 
 type Body = dyn BufRead + Unpin + Send + 'static;
 
@@ -155,7 +156,7 @@ impl AsMut<Headers> for Response {
 }
 
 impl IntoIterator for Response {
-    type Item = (String, String);
+    type Item = (HeaderName, HeaderValue);
     type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -166,7 +167,7 @@ impl IntoIterator for Response {
 }
 
 impl<'a> IntoIterator for &'a Response {
-    type Item = (&'a String, &'a String);
+    type Item = (&'a HeaderName, &'a HeaderValue);
     type IntoIter = headers::Iter<'a>;
 
     #[inline]
@@ -176,7 +177,7 @@ impl<'a> IntoIterator for &'a Response {
 }
 
 impl<'a> IntoIterator for &'a mut Response {
-    type Item = (&'a String, &'a mut String);
+    type Item = (&'a HeaderName, &'a mut HeaderValue);
     type IntoIter = headers::IterMut<'a>;
 
     #[inline]
