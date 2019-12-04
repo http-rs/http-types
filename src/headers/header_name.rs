@@ -14,8 +14,8 @@ impl HeaderName {
         if !bytes.is_ascii() {
             return Err(ParseError::new());
         }
-        let string = String::from_utf8(bytes.to_ascii_lowercase())
-            .map_err(|_| ParseError::new())?;
+        let string =
+            String::from_utf8(bytes.to_ascii_lowercase()).map_err(|_| ParseError::new())?;
         Ok(Self { string: string })
     }
 

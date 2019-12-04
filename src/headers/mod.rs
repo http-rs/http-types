@@ -18,8 +18,8 @@ pub use header_value::HeaderValue;
 pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
-pub use to_header_values::ToHeaderValues;
 pub use parse_error::ParseError;
+pub use to_header_values::ToHeaderValues;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]

@@ -3,8 +3,8 @@
 //! [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types).
 
 use crate::headers::ParseError;
-use std::str::FromStr;
 use std::fmt::{self, Display};
+use std::str::FromStr;
 
 /// An IANA media type.
 #[derive(Debug)]
