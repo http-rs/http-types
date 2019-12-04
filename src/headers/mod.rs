@@ -39,9 +39,10 @@ impl Headers {
     pub fn insert(
         &mut self,
         name: HeaderName,
-        value: HeaderValue,
+        values: impl ToHeaderValues,
     ) -> io::Result<Option<Vec<HeaderValue>>> {
-        Ok(self.headers.insert(name, vec![value]))
+        let values: Vec<HeaderValue> = values.to_header_values()?.collect();
+        Ok(self.headers.insert(name, values))
     }
 
     /// Get a reference to a header.

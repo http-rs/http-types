@@ -5,7 +5,7 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers};
+use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues};
 use crate::mime::{self, Mime};
 use crate::{Method, Url};
 
@@ -112,9 +112,9 @@ impl Request {
     pub fn set_header(
         &mut self,
         name: HeaderName,
-        value: HeaderValue,
+        values: impl ToHeaderValues,
     ) -> io::Result<Option<Vec<HeaderValue>>> {
-        self.headers.insert(name, value)
+        self.headers.insert(name, values)
     }
 
     /// Set the response MIME.
@@ -123,7 +123,8 @@ impl Request {
         let header = HeaderName {
             string: "content-type".to_string(),
         };
-        self.set_header(header, mime.into())
+        let value: HeaderValue = mime.into();
+        self.set_header(header, value)
     }
 
     /// Get the length of the body stream, if it has been set.
