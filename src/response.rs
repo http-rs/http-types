@@ -39,9 +39,8 @@ impl Response {
     }
 
     /// Set the body.
-    pub fn set_body_reader(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
+    pub fn set_body_reader(&mut self, body: impl BufRead + Unpin + Send + 'static) {
         self.body = Box::new(body);
-        self
     }
 
     /// Set the body as a string.
@@ -49,12 +48,12 @@ impl Response {
     /// # Mime
     ///
     /// The encoding is set to `text/plain; charset=utf-8`.
-    pub fn set_body_string(mut self, string: String) -> io::Result<Self> {
+    pub fn set_body_string(&mut self, string: String) -> io::Result<()> {
         self.length = Some(string.len());
         let reader = io::Cursor::new(string.into_bytes());
-        let this = self.set_body_reader(reader);
-        this.set_mime(mime::PLAIN)?;
-        Ok(self)
+        self.set_body_reader(reader);
+        self.set_mime(mime::PLAIN)?;
+        Ok(())
     }
 
     /// Pass bytes as the request body.
@@ -62,13 +61,13 @@ impl Response {
     /// # Mime
     ///
     /// The encoding is set to `application/octet-stream`.
-    pub fn set_body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
+    pub fn set_body_bytes(&mut self, bytes: impl AsRef<[u8]>) -> io::Result<()> {
         let bytes = bytes.as_ref().to_owned();
         self.length = Some(bytes.len());
         let reader = io::Cursor::new(bytes);
-        let this = self.set_body_reader(reader);
-        this.set_mime(mime::BYTE_STREAM)?;
-        Ok(this)
+        self.set_body_reader(reader);
+        self.set_mime(mime::BYTE_STREAM)?;
+        Ok(())
     }
 
     /// Get HTTP headers.
