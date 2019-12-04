@@ -1,6 +1,5 @@
 use async_std::io::{self, BufRead, Read};
 
-use std::borrow::Borrow;
 use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -79,8 +78,8 @@ impl Response {
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: impl Borrow<HeaderName>) -> Option<&HeaderValue> {
-        self.headers.get(name.borrow())
+    pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
+        self.headers.get(name)
     }
 
     /// Set an HTTP header.
@@ -88,12 +87,12 @@ impl Response {
         &mut self,
         name: HeaderName,
         value: HeaderValue,
-    ) -> io::Result<Option<HeaderValue>> {
+    ) -> io::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, value)
     }
 
     /// Set the response MIME.
-    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<HeaderValue>> {
+    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<Vec<HeaderValue>>> {
         let header = HeaderName {
             string: "content-type".to_string(),
         };
@@ -166,7 +165,7 @@ impl AsMut<Headers> for Response {
 }
 
 impl IntoIterator for Response {
-    type Item = (HeaderName, HeaderValue);
+    type Item = (HeaderName, Vec<HeaderValue>);
     type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -177,7 +176,7 @@ impl IntoIterator for Response {
 }
 
 impl<'a> IntoIterator for &'a Response {
-    type Item = (&'a HeaderName, &'a HeaderValue);
+    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
     type IntoIter = headers::Iter<'a>;
 
     #[inline]
@@ -187,7 +186,7 @@ impl<'a> IntoIterator for &'a Response {
 }
 
 impl<'a> IntoIterator for &'a mut Response {
-    type Item = (&'a HeaderName, &'a mut HeaderValue);
+    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
     type IntoIter = headers::IterMut<'a>;
 
     #[inline]

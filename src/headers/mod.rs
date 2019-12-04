@@ -2,7 +2,6 @@
 
 use async_std::io;
 
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::iter::IntoIterator;
 
@@ -23,7 +22,7 @@ pub use to_header_values::ToHeaderValues;
 /// A collection of HTTP Headers.
 #[derive(Debug)]
 pub struct Headers {
-    headers: HashMap<HeaderName, HeaderValue>,
+    headers: HashMap<HeaderName, Vec<HeaderValue>>,
 }
 
 impl Headers {
@@ -39,13 +38,13 @@ impl Headers {
         &mut self,
         name: HeaderName,
         value: HeaderValue,
-    ) -> io::Result<Option<HeaderValue>> {
-        Ok(self.headers.insert(name, value))
+    ) -> io::Result<Option<Vec<HeaderValue>>> {
+        Ok(self.headers.insert(name, vec![value]))
     }
 
     /// Get a header.
-    pub fn get(&self, name: impl Borrow<HeaderName>) -> Option<&HeaderValue> {
-        self.headers.get(name.borrow())
+    pub fn get(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
+        self.headers.get(name)
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -65,7 +64,7 @@ impl Headers {
 }
 
 impl IntoIterator for Headers {
-    type Item = (HeaderName, HeaderValue);
+    type Item = (HeaderName, Vec<HeaderValue>);
     type IntoIter = IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -78,7 +77,7 @@ impl IntoIterator for Headers {
 }
 
 impl<'a> IntoIterator for &'a Headers {
-    type Item = (&'a HeaderName, &'a HeaderValue);
+    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -88,7 +87,7 @@ impl<'a> IntoIterator for &'a Headers {
 }
 
 impl<'a> IntoIterator for &'a mut Headers {
-    type Item = (&'a HeaderName, &'a mut HeaderValue);
+    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
     type IntoIter = IterMut<'a>;
 
     #[inline]

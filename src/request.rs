@@ -93,7 +93,7 @@ impl Request {
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: impl Borrow<HeaderName>) -> Option<&HeaderValue> {
+    pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
         self.headers.get(name.borrow())
     }
 
@@ -102,12 +102,13 @@ impl Request {
         &mut self,
         name: HeaderName,
         value: HeaderValue,
-    ) -> io::Result<Option<HeaderValue>> {
+    ) -> io::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, value)
     }
 
     /// Set the response MIME.
-    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<HeaderValue>> {
+    // TODO: return a parsed MIME
+    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<Vec<HeaderValue>>> {
         let header = HeaderName {
             string: "content-type".to_string(),
         };
@@ -188,7 +189,7 @@ impl AsMut<Headers> for Request {
 }
 
 impl IntoIterator for Request {
-    type Item = (HeaderName, HeaderValue);
+    type Item = (HeaderName, Vec<HeaderValue>);
     type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -199,7 +200,7 @@ impl IntoIterator for Request {
 }
 
 impl<'a> IntoIterator for &'a Request {
-    type Item = (&'a HeaderName, &'a HeaderValue);
+    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
     type IntoIter = headers::Iter<'a>;
 
     #[inline]
@@ -209,7 +210,7 @@ impl<'a> IntoIterator for &'a Request {
 }
 
 impl<'a> IntoIterator for &'a mut Request {
-    type Item = (&'a HeaderName, &'a mut HeaderValue);
+    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
     type IntoIter = headers::IterMut<'a>;
 
     #[inline]

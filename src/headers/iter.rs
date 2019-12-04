@@ -6,11 +6,11 @@ use crate::headers::{HeaderName, HeaderValue};
 /// Iterator over the headers.
 #[derive(Debug)]
 pub struct Iter<'a> {
-    pub(super) internal: hash_map::Iter<'a, HeaderName, HeaderValue>,
+    pub(super) internal: hash_map::Iter<'a, HeaderName, Vec<HeaderValue>>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (&'a HeaderName, &'a HeaderValue);
+    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.internal.next()
