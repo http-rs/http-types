@@ -77,6 +77,11 @@ impl Response {
         &self.headers
     }
 
+    /// Get a mutable reference to a header.
+    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+        self.headers.get_mut(name)
+    }
+
     /// Get an HTTP header.
     pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
         self.headers.get(name)
