@@ -8,13 +8,13 @@ use std::task::{Context, Poll};
 use crate::mime::{self, Mime};
 use crate::{Headers, StatusCode};
 
-type Body = dyn BufRead + Unpin + Send + 'static;
+type BodyReader = dyn BufRead + Unpin + Send + 'static;
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
     pub struct Response {
         #[pin]
-        body: Box<Body>,
+        body_reader: Box<BodyReader>,
         status: StatusCode,
         headers: Headers,
         length: Option<usize>,
@@ -27,8 +27,8 @@ impl Response {
         Self {
             status,
             headers: Headers::new(),
-            body: Box::new(io::empty()),
-            length: None,
+            body_reader: Box::new(io::empty()),
+            length: Some(0),
         }
     }
 
@@ -37,9 +37,12 @@ impl Response {
         &self.status
     }
 
-    /// Set the body.
-    pub fn set_body(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
-        self.body = Box::new(body);
+    /// Set the body reader to `body` and unset the length.
+    ///
+    /// This will make the body a chunked stream.
+    pub fn set_body_reader(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
+        self.body_reader = Box::new(body);
+        self.length = None;
         self
     }
 
@@ -51,7 +54,7 @@ impl Response {
     pub fn set_body_string(mut self, string: String) -> io::Result<Self> {
         self.length = Some(string.len());
         let reader = io::Cursor::new(string.into_bytes());
-        self.set_body(reader).set_mime(mime::PLAIN)
+        self.set_body_reader(reader).set_mime(mime::PLAIN)
     }
 
     /// Pass bytes as the request body.
@@ -63,7 +66,7 @@ impl Response {
         let bytes = bytes.as_ref().to_owned();
         self.length = Some(bytes.len());
         let reader = io::Cursor::new(bytes);
-        self.set_body(reader).set_mime(mime::BYTE_STREAM)
+        self.set_body_reader(reader).set_mime(mime::BYTE_STREAM)
     }
 
     /// Get HTTP headers.
@@ -121,7 +124,7 @@ impl Read for Response {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.body).poll_read(cx, buf)
+        Pin::new(&mut self.body_reader).poll_read(cx, buf)
     }
 }
 
@@ -129,10 +132,10 @@ impl BufRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.body.poll_fill_buf(cx)
+        this.body_reader.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body).consume(amt)
+        Pin::new(&mut self.body_reader).consume(amt)
     }
 }

@@ -30,7 +30,7 @@ impl Request {
             url,
             headers: Headers::new(),
             body_reader: Box::new(io::empty()),
-            length: None,
+            length: Some(0),
         }
     }
 
