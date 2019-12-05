@@ -97,6 +97,12 @@ impl Response {
     pub fn len(&self) -> Option<usize> {
         self.length
     }
+
+    /// Set the length of the body stream.
+    pub fn set_len(mut self, len: usize) -> Self {
+        self.length = Some(len);
+        self
+    }
 }
 
 impl Debug for Response {

@@ -65,12 +65,6 @@ impl Request {
         self
     }
 
-    /// Set the lengths of the body.
-    pub fn set_length(mut self, length: usize) -> Self {
-        self.length = Some(length);
-        self
-    }
-
     /// Set the body as a string.
     ///
     /// # Mime
