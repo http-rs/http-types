@@ -78,6 +78,16 @@ impl From<String> for Body {
     }
 }
 
+impl From<Vec<u8>> for Body {
+    fn from(b: Vec<u8>) -> Self {
+        Self {
+            length: Some(b.len()),
+            reader: Box::new(io::Cursor::new(b)),
+            mime: Some(mime::BYTE_STREAM),
+        }
+    }
+}
+
 impl Read for Body {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
