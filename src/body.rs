@@ -10,8 +10,7 @@ pin_project_lite::pin_project! {
     /// A streaming HTTP body.
     pub struct Body {
         #[pin]
-        body_reader: Box<dyn BufRead + Unpin + Send + 'static>,
-        buf: Option<Vec<u8>>,
+        reader: Box<dyn BufRead + Unpin + Send + 'static>,
         mime: Option<Mime>,
         length: Option<usize>,
     }
@@ -29,8 +28,7 @@ impl Body {
     /// ```
     pub fn empty() -> Self {
         Self {
-            body_reader: Box::new(io::empty()),
-            buf: None,
+            reader: Box::new(io::empty()),
             mime: Some(mime::BYTE_STREAM),
             length: Some(0),
         }
@@ -39,8 +37,7 @@ impl Body {
     /// Create a `Body` from a reader.
     pub fn from_reader(reader: impl BufRead + Unpin + Send + 'static) -> Self {
         Self {
-            body_reader: Box::new(reader),
-            buf: None,
+            reader: Box::new(reader),
             mime: Some(mime::BYTE_STREAM),
             length: None,
         }
@@ -65,8 +62,18 @@ impl Body {
 impl Debug for Body {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Body")
-            .field("body_reader", &"<hidden>")
+            .field("reader", &"<hidden>")
             .finish()
+    }
+}
+
+impl From<String> for Body {
+    fn from(s: String) -> Self {
+        Self {
+            length: Some(s.len()),
+            reader: Box::new(io::Cursor::new(s.into_bytes())),
+            mime: Some(mime::PLAIN),
+        }
     }
 }
 
@@ -77,7 +84,7 @@ impl Read for Body {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.body_reader).poll_read(cx, buf)
+        Pin::new(&mut self.reader).poll_read(cx, buf)
     }
 }
 
@@ -85,10 +92,10 @@ impl BufRead for Body {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.body_reader.poll_fill_buf(cx)
+        this.reader.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body_reader).consume(amt)
+        Pin::new(&mut self.reader).consume(amt)
     }
 }
