@@ -1,5 +1,5 @@
-use std::str::FromStr;
 use std::fmt::{self, Debug, Display};
+use std::str::FromStr;
 
 use crate::headers::ParseError;
 
@@ -20,7 +20,10 @@ impl HeaderName {
         }
         let string =
             String::from_utf8(bytes.to_ascii_lowercase()).map_err(|_| ParseError::new())?;
-        Ok(Self { string: string, static_str: None })
+        Ok(Self {
+            string: string,
+            static_str: None,
+        })
     }
 
     /// Converts a vector of bytes to a `HeaderName` without checking that the string contains
@@ -34,7 +37,10 @@ impl HeaderName {
     /// that Strings are valid ASCII.
     pub unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
         let string = String::from_utf8_unchecked(bytes);
-        Self { string, static_str: None }
+        Self {
+            string,
+            static_str: None,
+        }
     }
 }
 
