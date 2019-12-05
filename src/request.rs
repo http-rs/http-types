@@ -12,6 +12,17 @@ type BodyReader = dyn BufRead + Unpin + Send + 'static;
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let url = Url::parse("https://example.com")?;
+    /// let mut req = Request::new(Method::Get, url)?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub struct Request {
         method: Method,
         url: Url,
@@ -24,14 +35,17 @@ pin_project_lite::pin_project! {
 
 impl Request {
     /// Create a new request.
-    pub fn new(method: Method, url: Url) -> Self {
-        Self {
-            method,
+    pub fn new(
+        method: impl Into<Method>,
+        url: Url,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        Ok(Self {
+            method: method.into(),
             url,
             headers: Headers::new(),
             body_reader: Box::new(io::empty()),
             length: Some(0),
-        }
+        })
     }
 
     /// Get the HTTP method
