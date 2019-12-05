@@ -5,10 +5,8 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues};
-use crate::mime::{self, Mime};
-use crate::{Method, Url};
-
-type BodyReader = dyn BufRead + Unpin + Send + 'static;
+use crate::mime::Mime;
+use crate::{Body, Method, Url};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -17,8 +15,7 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         #[pin]
-        body_reader: Box<BodyReader>,
-        length: Option<usize>,
+        body: Body,
     }
 }
 
@@ -29,8 +26,7 @@ impl Request {
             method,
             url,
             headers: Headers::new(),
-            body_reader: Box::new(io::empty()),
-            length: Some(0),
+            body: Body::empty(),
         }
     }
 
@@ -39,56 +35,21 @@ impl Request {
         &self.method
     }
 
-    /// Get the url
+    /// Get the url.
     pub fn url(&self) -> &Url {
         &self.url
     }
 
-    /// Get the headers
-    pub fn headers(&self) -> &Headers {
-        &self.headers
-    }
-
-    /// Get the body
-    pub fn body_reader(&self) -> &Box<BodyReader> {
-        &self.body_reader
-    }
-
-    /// Consume self and get body
-    pub fn into_body_reader(self) -> Box<BodyReader> {
-        self.body_reader
+    /// Get the body.
+    pub fn body(&self) -> &Body {
+        &self.body
     }
 
     /// Set the body reader.
-    pub fn set_body_reader(&mut self, body: impl BufRead + Unpin + Send + 'static) {
-        self.body_reader = Box::new(body);
-    }
-
-    /// Set the body as a string.
-    ///
-    /// # Mime
-    ///
-    /// The encoding is set to `text/plain; charset=utf-8`.
-    pub fn set_body_string(&mut self, string: String) -> io::Result<()> {
-        self.length = Some(string.len());
-        let reader = io::Cursor::new(string.into_bytes());
-        self.set_body_reader(reader);
-        self.set_mime(mime::PLAIN)?;
-        Ok(())
-    }
-
-    /// Pass bytes as the request body.
-    ///
-    /// # Mime
-    ///
-    /// The encoding is set to `application/octet-stream`.
-    pub fn set_body_bytes(&mut self, bytes: impl AsRef<[u8]>) -> io::Result<()> {
-        let bytes = bytes.as_ref().to_owned();
-        self.length = Some(bytes.len());
-        let reader = io::Cursor::new(bytes);
-        self.set_body_reader(reader);
-        self.set_mime(mime::BYTE_STREAM)?;
-        Ok(())
+    pub fn set_body(&mut self, body: impl BufRead + Unpin + Send + 'static) {
+        self.body = Body::from_reader(body);
+        let mime = self.body.take_mime();
+        self.set_mime(mime).unwrap();
     }
 
     /// Get an HTTP header.
@@ -127,13 +88,12 @@ impl Request {
     /// buffer. Consumers of this API should check this value to decide whether to use `Chunked`
     /// encoding, or set the response length.
     pub fn len(&self) -> Option<usize> {
-        self.length
+        self.body.len()
     }
 
     /// Set the length of the body stream
-    pub fn set_len(mut self, len: usize) -> Self {
-        self.length = Some(len);
-        self
+    pub fn set_len(mut self, len: usize) {
+        self.body.set_len(len);
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -166,7 +126,7 @@ impl Read for Request {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.body_reader).poll_read(cx, buf)
+        Pin::new(&mut self.body).poll_read(cx, buf)
     }
 }
 
@@ -174,11 +134,11 @@ impl BufRead for Request {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.body_reader.poll_fill_buf(cx)
+        this.body.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body_reader).consume(amt)
+        Pin::new(&mut self.body).consume(amt)
     }
 }
 
@@ -191,6 +151,12 @@ impl AsRef<Headers> for Request {
 impl AsMut<Headers> for Request {
     fn as_mut(&mut self) -> &mut Headers {
         &mut self.headers
+    }
+}
+
+impl Into<Body> for Request {
+    fn into(self) -> Body {
+        self.body
     }
 }
 

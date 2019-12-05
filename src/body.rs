@@ -12,7 +12,7 @@ pin_project_lite::pin_project! {
         #[pin]
         body_reader: Box<dyn BufRead + Unpin + Send + 'static>,
         buf: Option<Vec<u8>>,
-        mime: Mime,
+        mime: Option<Mime>,
         length: Option<usize>,
     }
 }
@@ -31,7 +31,7 @@ impl Body {
         Self {
             body_reader: Box::new(io::empty()),
             buf: None,
-            mime: mime::BYTE_STREAM,
+            mime: Some(mime::BYTE_STREAM),
             length: Some(0),
         }
     }
@@ -41,14 +41,14 @@ impl Body {
         Self {
             body_reader: Box::new(reader),
             buf: None,
-            mime: mime::BYTE_STREAM,
+            mime: Some(mime::BYTE_STREAM),
             length: None,
         }
     }
 
     /// Get the recommended mime type.
-    pub(crate) fn mime(&self) -> &Mime {
-        &self.mime
+    pub(crate) fn take_mime(&mut self) -> Mime {
+        self.mime.take().unwrap()
     }
 
     /// Get the length of the body in bytes.
