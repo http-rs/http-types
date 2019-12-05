@@ -1,6 +1,5 @@
 use async_std::io::{self, BufRead, Read};
 
-use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -10,6 +9,7 @@ use crate::{Body, Method, Url};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
+    #[derive(Debug)]
     pub struct Request {
         method: Method,
         url: Url,
@@ -46,8 +46,8 @@ impl Request {
     }
 
     /// Set the body reader.
-    pub fn set_body(&mut self, body: impl BufRead + Unpin + Send + 'static) {
-        self.body = Body::from_reader(body);
+    pub fn set_body(&mut self, body: impl Into<Body>) {
+        self.body = body.into();
         let mime = self.body.take_mime();
         self.set_mime(mime).unwrap();
     }
@@ -58,7 +58,7 @@ impl Request {
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
         self.headers.get_mut(name)
     }
 
@@ -91,7 +91,7 @@ impl Request {
         self.body.len()
     }
 
-    /// Set the length of the body stream
+    /// Set the length of the body stream.
     pub fn set_len(mut self, len: usize) {
         self.body.set_len(len);
     }
@@ -105,17 +105,6 @@ impl Request {
     /// values.
     pub fn iter_mut<'a>(&'a mut self) -> headers::IterMut<'a> {
         self.headers.iter_mut()
-    }
-}
-
-impl Debug for Request {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Request")
-            .field("method", &self.method)
-            .field("url", &self.url)
-            .field("headers", &self.headers)
-            .field("body", &"<hidden>")
-            .finish()
     }
 }
 
