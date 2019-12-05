@@ -13,6 +13,7 @@ mod iter_mut;
 mod names;
 mod parse_error;
 mod to_header_values;
+mod values;
 
 pub use header_name::HeaderName;
 pub use header_value::HeaderValue;
@@ -22,6 +23,7 @@ pub use iter_mut::IterMut;
 pub use names::Names;
 pub use parse_error::ParseError;
 pub use to_header_values::ToHeaderValues;
+pub use values::Values;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]
@@ -77,6 +79,11 @@ impl Headers {
         Names {
             internal: self.headers.keys(),
         }
+    }
+
+    /// An iterator visiting all header values in arbitrary order.
+    pub fn values<'a>(&'a self) -> Values<'a> {
+        Values::new(self.headers.values())
     }
 }
 
