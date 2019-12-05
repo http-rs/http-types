@@ -1,6 +1,7 @@
 use async_std::io::{self, BufRead, Read};
 
 use std::borrow::Borrow;
+use std::convert::TryInto;
 use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -35,12 +36,16 @@ pin_project_lite::pin_project! {
 
 impl Request {
     /// Create a new request.
-    pub fn new(
-        method: impl Into<Method>,
+    pub fn new<M>(
+        method: M,
         url: Url,
-    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>>
+    where
+        M: TryInto<Method>,
+        <M as TryInto<Method>>::Error: Sync + Send + std::error::Error + 'static,
+    {
         Ok(Self {
-            method: method.into(),
+            method: method.try_into()?,
             url,
             headers: Headers::new(),
             body_reader: Box::new(io::empty()),

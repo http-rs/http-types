@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{self, Display};
 use std::str::FromStr;
@@ -84,5 +85,12 @@ impl FromStr for Method {
             "PATCH" => Ok(Self::Patch),
             _ => Err(ParseError { _private: () }),
         }
+    }
+}
+
+impl<'a> TryFrom<&'a str> for Method {
+    type Error = ParseError;
+    fn try_from(s: &'a str) -> Result<Self, Self::Error> {
+        s.parse()
     }
 }
