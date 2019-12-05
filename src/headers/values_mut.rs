@@ -5,14 +5,14 @@ use crate::headers::{HeaderName, HeaderValue};
 
 /// Iterator over the headers.
 #[derive(Debug)]
-pub struct Values<'a> {
-    pub(super) inner: hash_map::Values<'a, HeaderName, Vec<HeaderValue>>,
-    slot: Option<&'a Vec<HeaderValue>>,
+pub struct ValuesMut<'a> {
+    pub(super) inner: hash_map::ValuesMut<'a, HeaderName, Vec<HeaderValue>>,
+    slot: Option<&'a mut Vec<HeaderValue>>,
     cursor: usize,
 }
 
-impl<'a> Values<'a> {
-    pub(crate) fn new(inner: hash_map::Values<'a, HeaderName, Vec<HeaderValue>>) -> Self {
+impl<'a> ValuesMut<'a> {
+    pub(crate) fn new(inner: hash_map::ValuesMut<'a, HeaderName, Vec<HeaderValue>>) -> Self {
         Self {
             inner,
             slot: None,
@@ -21,8 +21,8 @@ impl<'a> Values<'a> {
     }
 }
 
-impl<'a> Iterator for Values<'a> {
-    type Item = &'a HeaderValue;
+impl<'a> Iterator for ValuesMut<'a> {
+    type Item = &'a mut HeaderValue;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -37,7 +37,7 @@ impl<'a> Iterator for Values<'a> {
             }
 
             // Get the next item
-            match self.slot.unwrap().get(self.cursor) {
+            match self.slot.as_mut().unwrap().get_mut(self.cursor) {
                 // If an item is found, increment the cursor and return the item.
                 Some(item) => {
                     self.cursor += 1;
@@ -50,5 +50,9 @@ impl<'a> Iterator for Values<'a> {
                 }
             }
         }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
     }
 }

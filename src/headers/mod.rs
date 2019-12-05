@@ -14,6 +14,7 @@ mod names;
 mod parse_error;
 mod to_header_values;
 mod values;
+mod values_mut;
 
 pub use header_name::HeaderName;
 pub use header_value::HeaderValue;
@@ -24,6 +25,7 @@ pub use names::Names;
 pub use parse_error::ParseError;
 pub use to_header_values::ToHeaderValues;
 pub use values::Values;
+pub use values_mut::ValuesMut;
 
 /// A collection of HTTP Headers.
 #[derive(Debug)]
@@ -62,7 +64,7 @@ impl Headers {
     /// An iterator visiting all header pairs in arbitrary order.
     pub fn iter<'a>(&'a self) -> Iter<'a> {
         Iter {
-            internal: self.headers.iter(),
+            inner: self.headers.iter(),
         }
     }
 
@@ -70,20 +72,25 @@ impl Headers {
     /// values.
     pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a> {
         IterMut {
-            internal: self.headers.iter_mut(),
+            inner: self.headers.iter_mut(),
         }
     }
 
     /// An iterator visiting all header names in arbitrary order.
     pub fn names<'a>(&'a self) -> Names<'a> {
         Names {
-            internal: self.headers.keys(),
+            inner: self.headers.keys(),
         }
     }
 
     /// An iterator visiting all header values in arbitrary order.
     pub fn values<'a>(&'a self) -> Values<'a> {
         Values::new(self.headers.values())
+    }
+
+    /// An iterator mutably visiting all header values in arbitrary order.
+    pub fn values_mut<'a>(&'a mut self) -> ValuesMut<'a> {
+        ValuesMut::new(self.headers.values_mut())
     }
 }
 
@@ -95,7 +102,7 @@ impl IntoIterator for Headers {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         IntoIter {
-            internal: self.headers.into_iter(),
+            inner: self.headers.into_iter(),
         }
     }
 }
