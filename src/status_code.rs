@@ -2,6 +2,7 @@ use std::fmt::{self, Display};
 
 /// HTTP response status codes.
 ///
+/// As defined by [rfc7231 section 6](https://tools.ietf.org/html/rfc7231#section-6).
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 #[repr(u16)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -355,6 +356,50 @@ pub enum StatusCode {
 }
 
 impl StatusCode {
+    /// Returns `true` if the status code is `1xx` range.
+    ///
+    /// If this returns `true` it indicates that the request was received, continuing process.
+    pub fn is_informational(&self) -> bool {
+        let num: u16 = self.clone().into();
+        num >= 100 && num < 200
+    }
+
+    /// Returns `true` if the status code is the `2xx` range.
+    ///
+    /// If this returns `true` it indicates that the request was successfully received, understood,
+    /// and accepted.
+    pub fn is_success(&self) -> bool {
+        let num: u16 = self.clone().into();
+        num >= 200 && num < 300
+    }
+
+    /// Returns `true` if the status code is the `3xx` range.
+    ///
+    /// If this returns `true` it indicates that further action needs to be taken in order to
+    /// complete the request.
+    pub fn is_redirection(&self) -> bool {
+        let num: u16 = self.clone().into();
+        num >= 300 && num < 400
+    }
+
+    /// Returns `true` if the status code is the `4xx` range.
+    ///
+    /// If this returns `true` it indicates that the request contains bad syntax or cannot be
+    /// fulfilled.
+    pub fn is_client_error(&self) -> bool {
+        let num: u16 = self.clone().into();
+        num >= 400 && num < 500
+    }
+
+    /// Returns `true` if the status code is the `5xx` range.
+    ///
+    /// If this returns `true` it indicates that the server failed to fulfill an apparently valid
+    /// request.
+    pub fn is_server_error(&self) -> bool {
+        let num: u16 = self.clone().into();
+        num >= 500 && num < 600
+    }
+
     /// The canonical reason for a given status code
     pub fn canonical_reason(&self) -> &'static str {
         match self {
