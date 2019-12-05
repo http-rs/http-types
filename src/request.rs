@@ -1,6 +1,5 @@
 use async_std::io::{self, BufRead, Read};
 
-use std::borrow::Borrow;
 use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -94,7 +93,7 @@ impl Request {
 
     /// Get an HTTP header.
     pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
-        self.headers.get(name.borrow())
+        self.headers.get(name)
     }
 
     /// Get a mutable reference to a header.
