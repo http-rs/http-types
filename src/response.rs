@@ -99,7 +99,8 @@ impl Response {
     /// Set the response MIME.
     pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<Vec<HeaderValue>>> {
         let header = HeaderName {
-            string: "content-type".to_string(),
+            string: String::new(),
+            static_str: Some("content-type"),
         };
         let value: HeaderValue = mime.into();
         self.set_header(header, value)

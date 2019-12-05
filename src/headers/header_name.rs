@@ -1,11 +1,15 @@
 use std::str::FromStr;
+use std::fmt::{self, Debug, Display};
 
 use crate::headers::ParseError;
 
 /// A header name.
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Eq, PartialEq, Hash)]
 pub struct HeaderName {
+    /// The inner representation of the string.
     pub(crate) string: String,
+    /// A const-friendly string. Useful because `String::from` cannot be used in const contexts.
+    pub(crate) static_str: Option<&'static str>,
 }
 
 impl HeaderName {
@@ -16,7 +20,7 @@ impl HeaderName {
         }
         let string =
             String::from_utf8(bytes.to_ascii_lowercase()).map_err(|_| ParseError::new())?;
-        Ok(Self { string: string })
+        Ok(Self { string: string, static_str: None })
     }
 
     /// Converts a vector of bytes to a `HeaderName` without checking that the string contains
@@ -30,9 +34,30 @@ impl HeaderName {
     /// that Strings are valid ASCII.
     pub unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
         let string = String::from_utf8_unchecked(bytes);
-        Self { string }
+        Self { string, static_str: None }
     }
 }
+
+impl Display for HeaderName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(string) = self.static_str {
+            Display::fmt(string, f)
+        } else {
+            Display::fmt(&self.string, f)
+        }
+    }
+}
+
+impl Debug for HeaderName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(string) = self.static_str {
+            Debug::fmt(string, f)
+        } else {
+            Debug::fmt(&self.string, f)
+        }
+    }
+}
+
 impl FromStr for HeaderName {
     type Err = ParseError;
 
@@ -45,6 +70,7 @@ impl FromStr for HeaderName {
         }
         Ok(Self {
             string: s.to_ascii_lowercase(),
+            static_str: None,
         })
     }
 }
