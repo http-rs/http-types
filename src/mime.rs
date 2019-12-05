@@ -3,11 +3,10 @@
 //! [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types).
 
 use crate::headers::ParseError;
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
 /// An IANA media type.
-#[derive(Debug)]
 pub struct Mime {
     /// The inner representation of the string.
     pub(crate) string: String,
@@ -18,9 +17,19 @@ pub struct Mime {
 impl Display for Mime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(string) = self.static_str {
-            write!(f, "{}", string)
+            Display::fmt(string, f)
         } else {
-            write!(f, "{}", self.string)
+            Display::fmt(&self.string, f)
+        }
+    }
+}
+
+impl Debug for Mime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(string) = self.static_str {
+            Debug::fmt(string, f)
+        } else {
+            Debug::fmt(&self.string, f)
         }
     }
 }
