@@ -9,6 +9,15 @@ use crate::{Body, Method, Url};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://google.com").unwrap());
+    /// req.set_body("hello world");
+    /// ```
     #[derive(Debug)]
     pub struct Request {
         method: Method,

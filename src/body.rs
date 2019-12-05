@@ -78,6 +78,16 @@ impl From<String> for Body {
     }
 }
 
+impl<'a> From<&'a str> for Body {
+    fn from(s: &'a str) -> Self {
+        Self {
+            length: Some(s.len()),
+            reader: Box::new(io::Cursor::new(s.to_owned().into_bytes())),
+            mime: Some(mime::PLAIN),
+        }
+    }
+}
+
 impl From<Vec<u8>> for Body {
     fn from(b: Vec<u8>) -> Self {
         Self {
