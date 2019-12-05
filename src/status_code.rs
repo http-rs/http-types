@@ -466,6 +466,14 @@ impl Into<u16> for StatusCode {
     }
 }
 
+impl std::convert::TryFrom<i32> for StatusCode {
+    type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        Self::try_from(value as u16)
+    }
+}
+
 impl std::convert::TryFrom<u16> for StatusCode {
     type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
 

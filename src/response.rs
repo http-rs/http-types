@@ -1,6 +1,7 @@
 use async_std::io::{self, BufRead, Read};
 
 use std::borrow::Borrow;
+use std::convert::TryInto;
 use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -12,6 +13,16 @@ type BodyReader = dyn BufRead + Unpin + Send + 'static;
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::{Response, StatusCode};
+    ///
+    /// let mut req = Response::new(200)?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub struct Response {
         #[pin]
         body_reader: Box<BodyReader>,
@@ -23,13 +34,17 @@ pin_project_lite::pin_project! {
 
 impl Response {
     /// Create a new response.
-    pub fn new(status: StatusCode) -> Self {
-        Self {
-            status,
+    pub fn new<S>(status: S) -> Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>>
+    where
+        S: TryInto<StatusCode>,
+        <S as TryInto<StatusCode>>::Error: Sync + Send + std::error::Error + 'static,
+    {
+        Ok(Self {
+            status: status.try_into()?,
             headers: Headers::new(),
             body_reader: Box::new(io::empty()),
             length: Some(0),
-        }
+        })
     }
 
     /// Get the status
