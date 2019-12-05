@@ -63,6 +63,7 @@ impl Debug for Body {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Body")
             .field("reader", &"<hidden>")
+            .field("length", &self.length)
             .finish()
     }
 }
