@@ -16,7 +16,7 @@ pub enum StatusCode {
     ///
     /// This code is sent in response to an Upgrade request header from the client, and
     /// indicates the protocol the server is switching to.
-    SwitchingProtocol = 101,
+    SwitchingProtocols = 101,
 
     /// 103 Early Hints
     ///
@@ -101,7 +101,7 @@ pub enum StatusCode {
     /// URI with a GET request.
     SeeOther = 303,
 
-    /// 304 Modified
+    /// 304 Not Modified
     ///
     /// This is used for caching purposes. It tells the client that the response has not been
     /// modified, so the client can continue to use the same cached version of the response.
@@ -257,7 +257,7 @@ pub enum StatusCode {
     /// The request was directed at a server that is not able to produce a response. This can be
     /// sent by a server that is not configured to produce responses for the combination of scheme
     /// and authority that are included in the request URI.
-    MisDirectedRequest = 421,
+    MisdirectedRequest = 421,
 
     /// 425 Too Early
     ///
@@ -334,7 +334,7 @@ pub enum StatusCode {
     /// 505 HTTP Version Not Supported
     ///
     /// The HTTP version used in the request is not supported by the server.
-    VersionNotSupported = 505,
+    HttpVersionNotSupported = 505,
 
     /// 506 Variant Also Negotiates
     ///
@@ -358,8 +358,59 @@ impl StatusCode {
     /// The canonical reason for a given status code
     pub fn canonical_reason(&self) -> &'static str {
         match self {
-            StatusCode::Ok => "OK",
-            _ => unimplemented!(),
+            StatusCode::Continue => "Continue",
+            StatusCode::SwitchingProtocols => "Switching Protocols",
+            StatusCode::EarlyHints => "Early Hints",
+            StatusCode::Ok => "Ok",
+            StatusCode::Created => "Created",
+            StatusCode::Accepted => "Accepted",
+            StatusCode::NonAuthoritativeInformation => "Non Authoritative Information",
+            StatusCode::NoContent => "No Content",
+            StatusCode::ResetContent => "Reset Content",
+            StatusCode::PartialContent => "Partial Content",
+            StatusCode::ImUsed => "Im Used",
+            StatusCode::MultipleChoice => "Multiple Choice",
+            StatusCode::MovedPermanently => "Moved Permanently",
+            StatusCode::Found => "Found",
+            StatusCode::SeeOther => "See Other",
+            StatusCode::NotModified => "Modified",
+            StatusCode::TemporaryRedirect => "Temporary Redirect",
+            StatusCode::PermanentRedirect => "Permanent Redirect",
+            StatusCode::BadRequest => "Bad Request",
+            StatusCode::Unauthorized => "Unauthorized",
+            StatusCode::PaymentRequired => "Payment Required",
+            StatusCode::Forbidden => "Forbidden",
+            StatusCode::NotFound => "Not Found",
+            StatusCode::MethodNotAllowed => "Method Not Allowed",
+            StatusCode::NotAcceptable => "Not Acceptable",
+            StatusCode::ProxyAuthenticationRequired => "Proxy Authentication Required",
+            StatusCode::RequestTimeout => "Request Timeout",
+            StatusCode::Conflict => "Conflict",
+            StatusCode::Gone => "Gone",
+            StatusCode::LengthRequired => "Length Required",
+            StatusCode::PreconditionFailed => "Precondition Failed",
+            StatusCode::PayloadTooLarge => "Payload Too Large",
+            StatusCode::UriTooLong => "URI Too Long",
+            StatusCode::UnsupportedMediaType => "Unsupported Media Type",
+            StatusCode::RequestedRangeNotSatisfiable => "Requested Range Not Satisfiable",
+            StatusCode::ExpectationFailed => "Expectation Failed",
+            StatusCode::ImATeapot => "I'm a teapot",
+            StatusCode::MisdirectedRequest => "Misdirected Request",
+            StatusCode::TooEarly => "Too Early",
+            StatusCode::UpgradeRequired => "Upgrade Required",
+            StatusCode::PreconditionRequired => "Precondition Required",
+            StatusCode::TooManyRequests => "Too Many Requests",
+            StatusCode::RequestHeaderFieldsTooLarge => "Request Header Fields Too Large",
+            StatusCode::UnavailableForLegalReasons => "Unavailable For Legal Reasons",
+            StatusCode::InternalServerError => "Internal Server Error",
+            StatusCode::NotImplemented => "Not Implemented",
+            StatusCode::BadGateway => "Bad Gateway",
+            StatusCode::ServiceUnavailable => "Service Unavailable",
+            StatusCode::GatewayTimeout => "Gateway Timeout",
+            StatusCode::HttpVersionNotSupported => "HTTP Version Not Supported",
+            StatusCode::VariantAlsoNegotiates => "Variant Also Negotiates",
+            StatusCode::NotExtended => "Not Extended",
+            StatusCode::NetworkAuthenticationRequired => "Network Authentication Required",
         }
     }
 }
@@ -372,10 +423,63 @@ impl Into<u16> for StatusCode {
 
 impl std::convert::TryFrom<u16> for StatusCode {
     type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         match value {
+            100 => Ok(StatusCode::Continue),
+            101 => Ok(StatusCode::SwitchingProtocols),
+            103 => Ok(StatusCode::EarlyHints),
             200 => Ok(StatusCode::Ok),
-            _ => unimplemented!(),
+            201 => Ok(StatusCode::Created),
+            202 => Ok(StatusCode::Accepted),
+            203 => Ok(StatusCode::NonAuthoritativeInformation),
+            204 => Ok(StatusCode::NoContent),
+            205 => Ok(StatusCode::ResetContent),
+            206 => Ok(StatusCode::PartialContent),
+            226 => Ok(StatusCode::ImUsed),
+            300 => Ok(StatusCode::MultipleChoice),
+            301 => Ok(StatusCode::MovedPermanently),
+            302 => Ok(StatusCode::Found),
+            303 => Ok(StatusCode::SeeOther),
+            304 => Ok(StatusCode::NotModified),
+            307 => Ok(StatusCode::TemporaryRedirect),
+            308 => Ok(StatusCode::PermanentRedirect),
+            400 => Ok(StatusCode::BadRequest),
+            401 => Ok(StatusCode::Unauthorized),
+            402 => Ok(StatusCode::PaymentRequired),
+            403 => Ok(StatusCode::Forbidden),
+            404 => Ok(StatusCode::NotFound),
+            405 => Ok(StatusCode::MethodNotAllowed),
+            406 => Ok(StatusCode::NotAcceptable),
+            407 => Ok(StatusCode::ProxyAuthenticationRequired),
+            408 => Ok(StatusCode::RequestTimeout),
+            409 => Ok(StatusCode::Conflict),
+            410 => Ok(StatusCode::Gone),
+            411 => Ok(StatusCode::LengthRequired),
+            412 => Ok(StatusCode::PreconditionFailed),
+            413 => Ok(StatusCode::PayloadTooLarge),
+            414 => Ok(StatusCode::UriTooLong),
+            415 => Ok(StatusCode::UnsupportedMediaType),
+            416 => Ok(StatusCode::RequestedRangeNotSatisfiable),
+            417 => Ok(StatusCode::ExpectationFailed),
+            418 => Ok(StatusCode::ImATeapot),
+            421 => Ok(StatusCode::MisdirectedRequest),
+            425 => Ok(StatusCode::TooEarly),
+            426 => Ok(StatusCode::UpgradeRequired),
+            428 => Ok(StatusCode::PreconditionRequired),
+            429 => Ok(StatusCode::TooManyRequests),
+            431 => Ok(StatusCode::RequestHeaderFieldsTooLarge),
+            451 => Ok(StatusCode::UnavailableForLegalReasons),
+            500 => Ok(StatusCode::InternalServerError),
+            501 => Ok(StatusCode::NotImplemented),
+            502 => Ok(StatusCode::BadGateway),
+            503 => Ok(StatusCode::ServiceUnavailable),
+            504 => Ok(StatusCode::GatewayTimeout),
+            505 => Ok(StatusCode::HttpVersionNotSupported),
+            506 => Ok(StatusCode::VariantAlsoNegotiates),
+            510 => Ok(StatusCode::NotExtended),
+            511 => Ok(StatusCode::NetworkAuthenticationRequired),
+            _ => unimplemented!(), // TODO: return parser error
         }
     }
 }
