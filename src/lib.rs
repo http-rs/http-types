@@ -26,12 +26,14 @@ pub mod url {
 pub mod headers;
 pub mod mime;
 
+mod body;
 mod method;
 mod request;
 mod response;
 mod status_code;
 mod version;
 
+pub use body::Body;
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;
