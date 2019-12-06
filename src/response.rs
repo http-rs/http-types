@@ -33,11 +33,6 @@ impl Response {
         &self.status
     }
 
-    /// Get HTTP headers.
-    pub fn headers(&self) -> &Headers {
-        &self.headers
-    }
-
     /// Get a mutable reference to a header.
     pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
         self.headers.get_mut(name)
