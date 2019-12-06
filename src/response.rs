@@ -3,7 +3,7 @@ use async_std::io::{self, BufRead, Read};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues};
+use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues, Values, Names};
 use crate::mime::Mime;
 use crate::{Body, StatusCode};
 
@@ -102,6 +102,16 @@ impl Response {
     /// values.
     pub fn iter_mut<'a>(&'a mut self) -> headers::IterMut<'a> {
         self.headers.iter_mut()
+    }
+
+    /// An iterator visiting all header names in arbitrary order.
+    pub fn names<'a>(&'a self) -> Names<'a> {
+        self.headers.names()
+    }
+
+    /// An iterator visiting all header values in arbitrary order.
+    pub fn values<'a>(&'a self) -> Values<'a> {
+        self.headers.values()
     }
 }
 
