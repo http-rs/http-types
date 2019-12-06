@@ -44,7 +44,7 @@ impl Response {
     }
 
     /// Set an HTTP header.
-    pub fn set_header(
+    pub fn insert_header(
         &mut self,
         name: HeaderName,
         values: impl ToHeaderValues,
@@ -71,7 +71,7 @@ impl Response {
             static_str: Some("content-type"),
         };
         let value: HeaderValue = mime.into();
-        self.set_header(header, value)
+        self.insert_header(header, value)
     }
 
     /// Get the length of the body stream, if it has been set.
