@@ -112,7 +112,7 @@ impl Read for Response {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.body_reader).poll_read(cx, buf)
+        Pin::new(&mut self.body).poll_read(cx, buf)
     }
 }
 
@@ -120,11 +120,11 @@ impl BufRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.body_reader.poll_fill_buf(cx)
+        this.body.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body_reader).consume(amt)
+        Pin::new(&mut self.body).consume(amt)
     }
 }
 
