@@ -2,9 +2,13 @@
 //!
 //! [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types).
 
-use crate::headers::ParseError;
 use std::fmt::{self, Debug, Display};
+use std::io::{self, Error, ErrorKind};
 use std::str::FromStr;
+
+use crate::headers::ParseError;
+
+use infer::Infer;
 
 /// An IANA media type.
 pub struct Mime {
@@ -12,6 +16,27 @@ pub struct Mime {
     pub(crate) string: String,
     /// A const-friendly string. Useful because `String::from` cannot be used in const contexts.
     pub(crate) static_str: Option<&'static str>,
+}
+
+impl Mime {
+    /// Sniff the mime type from a byte slice.
+    pub fn sniff(bytes: &[u8]) -> io::Result<Self> {
+        let info = Infer::new();
+        let mime = match info.get(&bytes) {
+            Some(info) => info.mime,
+            None => {
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    "Could not sniff the mime type",
+                ))
+            }
+        };
+
+        Ok(Self {
+            string: mime,
+            static_str: None,
+        })
+    }
 }
 
 impl Display for Mime {
