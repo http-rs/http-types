@@ -83,6 +83,8 @@ impl ToHeaderValues for Mime {
     fn to_header_values(&self) -> io::Result<Self::Iter> {
         let mime = self.clone();
         let header: HeaderValue = mime.into();
+
+        // A HeaderValue will always convert into itself.
         Ok(header.to_header_values().unwrap())
     }
 }

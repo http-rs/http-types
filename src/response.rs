@@ -61,11 +61,11 @@ impl Response {
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         let mime = self.body.take_mime();
-        self.set_encoding(mime);
+        self.set_content_type(mime);
     }
 
     /// Set the response MIME.
-    pub fn set_encoding(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
+    pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
         let header = HeaderName {
             string: String::new(),
             static_str: Some("content-type"),
