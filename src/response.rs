@@ -146,6 +146,30 @@ impl Into<Body> for Response {
     }
 }
 
+impl From<String> for Response {
+    fn from(s: String) -> Self {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(s);
+        res
+    }
+}
+
+impl<'a> From<&'a str> for Response {
+    fn from(s: &'a str) -> Self {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(s);
+        res
+    }
+}
+
+impl From<Vec<u8>> for Response {
+    fn from(b: Vec<u8>) -> Self {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(b);
+        res
+    }
+}
+
 impl IntoIterator for Response {
     type Item = (HeaderName, Vec<HeaderValue>);
     type IntoIter = headers::IntoIter;

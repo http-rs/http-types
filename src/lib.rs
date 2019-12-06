@@ -3,6 +3,13 @@
 //! ## Example
 //!
 //! ```
+//! use http_types::{Url, Method, Request, Response, StatusCode};
+//!
+//! let mut req = Request::new(Method::Get, Url::parse("https://google.com").unwrap());
+//! req.set_body("hello world");
+//!
+//! let mut res = Response::new(StatusCode::Ok);
+//! res.set_body("hello world");
 //! ```
 
 #![forbid(rust_2018_idioms)]
