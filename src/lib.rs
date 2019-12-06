@@ -5,7 +5,7 @@
 //! ```
 //! use http_types::{Url, Method, Request, Response, StatusCode};
 //!
-//! let mut req = Request::new(Method::Get, Url::parse("https://google.com").unwrap());
+//! let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
 //! req.set_body("hello world");
 //!
 //! let mut res = Response::new(StatusCode::Ok);

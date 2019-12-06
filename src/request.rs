@@ -3,7 +3,7 @@ use async_std::io::{self, BufRead, Read};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues, Values, Names};
+use crate::headers::{self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
 use crate::mime::Mime;
 use crate::{Body, Method, Url};
 
@@ -15,7 +15,7 @@ pin_project_lite::pin_project! {
     /// ```
     /// use http_types::{Url, Method, Request};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://google.com").unwrap());
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("hello world");
     /// ```
     #[derive(Debug)]
