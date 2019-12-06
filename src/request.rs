@@ -54,7 +54,7 @@ impl Request {
         &self.body
     }
 
-    /// Set the body reader.
+    /// Set the request body.
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         let mime = self.body.take_mime();
