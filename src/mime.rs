@@ -5,8 +5,9 @@
 use std::fmt::{self, Debug, Display};
 use std::io::{self, Error, ErrorKind};
 use std::str::FromStr;
+use std::option;
 
-use crate::headers::ParseError;
+use crate::headers::{ToHeaderValues, ParseError, HeaderValue};
 
 use infer::Infer;
 
@@ -73,6 +74,16 @@ impl FromStr for Mime {
             string: s.to_ascii_lowercase(),
             static_str: None,
         })
+    }
+}
+
+impl ToHeaderValues for Mime {
+    type Iter = option::IntoIter<HeaderValue>;
+
+    fn to_header_values(&self) -> io::Result<Self::Iter> {
+        let mime = self.clone();
+        let header: HeaderValue = mime.into();
+        Ok(header.to_header_values().unwrap())
     }
 }
 

@@ -52,6 +52,20 @@ impl From<Mime> for HeaderValue {
     }
 }
 
+impl From<&Mime> for HeaderValue {
+    fn from(mime: &Mime) -> Self {
+        if let Some(string) = mime.static_str {
+            HeaderValue {
+                inner: string.to_string(),
+            }
+        } else {
+            HeaderValue {
+                inner: mime.string.clone(),
+            }
+        }
+    }
+}
+
 impl FromStr for HeaderValue {
     type Err = ParseError;
 

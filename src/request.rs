@@ -58,7 +58,7 @@ impl Request {
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         let mime = self.body.take_mime();
-        self.set_encoding(mime).unwrap();
+        self.set_encoding(mime);
     }
 
     /// Get an HTTP header.
@@ -82,13 +82,15 @@ impl Request {
 
     /// Set the response MIME.
     // TODO: return a parsed MIME
-    pub fn set_encoding(&mut self, mime: Mime) -> io::Result<Option<Vec<HeaderValue>>> {
+    pub fn set_encoding(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
         let header = HeaderName {
             string: String::new(),
             static_str: Some("content-type"),
         };
         let value: HeaderValue = mime.into();
-        self.insert_header(header, value)
+
+        // A Mime instance is guaranteed to be valid header name.
+        self.insert_header(header, value).unwrap()
     }
 
     /// Get the length of the body stream, if it has been set.
