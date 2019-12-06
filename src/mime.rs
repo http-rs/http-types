@@ -4,10 +4,10 @@
 
 use std::fmt::{self, Debug, Display};
 use std::io::{self, Error, ErrorKind};
-use std::str::FromStr;
 use std::option;
+use std::str::FromStr;
 
-use crate::headers::{ToHeaderValues, ParseError, HeaderValue};
+use crate::headers::{HeaderValue, ParseError, ToHeaderValues};
 
 use infer::Infer;
 
