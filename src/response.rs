@@ -3,7 +3,7 @@ use async_std::io::{self, BufRead, Read};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues, Values, Names};
+use crate::headers::{self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
 use crate::mime::Mime;
 use crate::{Body, StatusCode};
 
@@ -61,11 +61,11 @@ impl Response {
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         let mime = self.body.take_mime();
-        self.set_mime(mime).unwrap();
+        self.set_encoding(mime).unwrap();
     }
 
     /// Set the response MIME.
-    pub fn set_mime(&mut self, mime: Mime) -> io::Result<Option<Vec<HeaderValue>>> {
+    pub fn set_encoding(&mut self, mime: Mime) -> io::Result<Option<Vec<HeaderValue>>> {
         let header = HeaderName {
             string: String::new(),
             static_str: Some("content-type"),
