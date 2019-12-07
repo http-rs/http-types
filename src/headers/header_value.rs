@@ -42,25 +42,27 @@ impl HeaderValue {
 
 impl From<Mime> for HeaderValue {
     fn from(mime: Mime) -> Self {
-        if let Some(string) = mime.static_str {
+        if let Some(string) = mime.static_essence {
             HeaderValue {
                 inner: string.to_string(),
             }
         } else {
-            HeaderValue { inner: mime.string }
+            HeaderValue {
+                inner: mime.essence,
+            }
         }
     }
 }
 
 impl From<&Mime> for HeaderValue {
     fn from(mime: &Mime) -> Self {
-        if let Some(string) = mime.static_str {
+        if let Some(string) = mime.static_essence {
             HeaderValue {
                 inner: string.to_string(),
             }
         } else {
             HeaderValue {
-                inner: mime.string.clone(),
+                inner: mime.essence.clone(),
             }
         }
     }
