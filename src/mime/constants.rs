@@ -8,13 +8,13 @@ use crate::Mime;
 /// */*
 /// ```
 pub const ANY: Mime = Mime {
-    static_essence: Some("*/*"),
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
+    parameters: None,
+    static_essence: Some("*/*"),
     static_basetype: Some("*"),
     static_subtype: Some("*"),
-    parameters: None,
 };
 
 /// Content-Type for JavaScript.

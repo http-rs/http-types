@@ -18,20 +18,15 @@ use crate::headers::{HeaderValue, ParseError, ToHeaderValues};
 use infer::Infer;
 
 /// An IANA media type.
+// NOTE: we cannot statically initialize Strings with values yet, so we keep dedicated static
+// fields for the static strings.
 pub struct Mime {
-    /// The inner representation of the essence.
     pub(crate) essence: String,
-    /// A const-friendly essence. Useful because `String::from` cannot be used in const contexts.
-    pub(crate) static_essence: Option<&'static str>,
-    /// The MIME "type".
     pub(crate) basetype: String,
-    /// The MIME base "type", for defining from const fns.
-    pub(crate) static_basetype: Option<&'static str>,
-    /// The MIME "subtype".
     pub(crate) subtype: String,
-    /// The MIME "subtype", for defining from const fns.
+    pub(crate) static_essence: Option<&'static str>,
+    pub(crate) static_basetype: Option<&'static str>,
     pub(crate) static_subtype: Option<&'static str>,
-    /// The MIME "parameters".
     pub(crate) parameters: Option<HashMap<String, String>>,
 }
 
@@ -88,6 +83,16 @@ impl Mime {
         } else {
             &self.essence
         }
+    }
+
+    /// Get a reference to a param.
+    pub fn param(&self, s: &str) -> Option<&String> {
+        self.parameters.as_ref().map(|hm| hm.get(s)).flatten()
+    }
+
+    /// Get a mutable reference to a param.
+    pub fn param_mut(&mut self, s: &str) -> Option<&mut String> {
+        self.parameters.as_mut().map(|hm| hm.get_mut(s)).flatten()
     }
 }
 

@@ -76,12 +76,12 @@ pub(crate) fn parse(s: &str) -> io::Result<Mime> {
 
     let mut mime = Mime {
         essence: s[0..subtype_cursor].to_string(),
-        static_essence: None,
         basetype,
         subtype,
+        parameters: None,
+        static_essence: None,
         static_basetype: None,
         static_subtype: None,
-        parameters: None,
     };
 
     panic!();
