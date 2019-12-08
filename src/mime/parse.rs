@@ -170,6 +170,11 @@ fn test() {
     assert_eq!(mime.basetype(), "text");
     assert_eq!(mime.subtype(), "html");
 
+    // technically invalid mime, but allow anyway
+    let mime = parse("text/html;").unwrap();
+    assert_eq!(mime.basetype(), "text");
+    assert_eq!(mime.subtype(), "html");
+
     let mime = parse("text/html; charset=utf-8").unwrap();
     assert_eq!(mime.basetype(), "text");
     assert_eq!(mime.subtype(), "html");
