@@ -1,81 +1,56 @@
-// Adapted from hyperium/mime and jsdom/whatwg-mimetype:
+// Adapted from jsdom/whatwg-mimetype:
 //
 // - https://github.com/hyperium/mime/blob/8b04bcac22bb687b57704a7121b8c2765ed2dcaa/src/parse.rs
 // - https://github.com/jsdom/whatwg-mimetype/blob/98408de520084336b4b17ec196a311e71d53e8e4/lib/parser.js
 
-use std::io::{self, Error, ErrorKind};
+use omnom::prelude::*;
+use std::collections::HashMap;
+use std::io::prelude::*;
+use std::io::{self, Cursor};
 
 use super::Mime;
+
+macro_rules! bail {
+    ($fmt:expr) => {
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, $fmt));
+    };
+}
 
 /// Parse a string into a mime type.
 #[allow(dead_code)]
 pub(crate) fn parse(s: &str) -> io::Result<Mime> {
-    // We don't strip leading + trailing `\r\n`s and whitespaces here because we assume
-    // the header parser has already taken care of this.
-    let s = s.trim();
-    let mut cursor = 0;
-    let str_len = s.len();
+    // parse the "type"
+    //
+    // ```txt
+    // text/html; charset=utf-8;
+    // ^^^^^
+    // ```
+    let mut s = Cursor::new(s);
+    let mut base_type = vec![];
+    match s.read_until(b'/', &mut base_type).unwrap() {
+        0 => bail!("mime types must contain a slash"),
+        _ => base_type.pop(),
+    };
+    validate_code_points(&base_type)?;
 
-    // Parse the mime's "type"; this is everything before the `/`.
-    // Values must be valid HTTP code points, and the "type" cannot be empty.
-    for b in s.bytes() {
-        if b == b'/' {
-            break;
-        } else if (cursor + 1) == str_len {
-            return Err(Error::new(
-                ErrorKind::Other,
-                "a slash (/) was missing between the type and subtype",
-            ));
-        } else if !validate_code_point(b) {
-            return Err(Error::new(
-                ErrorKind::Other,
-                "an invalid token was encountered",
-            ));
-        }
-        cursor += 1;
+    // parse the "subtype"
+    //
+    // ```txt
+    // text/html; charset=utf-8;
+    //      ^^^^^
+    // ```
+    let mut sub_type = vec![];
+    s.read_until(b';', &mut sub_type).unwrap();
+    if let Some(b';') = sub_type.last() {
+        sub_type.pop();
     }
+    validate_code_points(&sub_type)?;
 
-    // Ensure the "type" is not empty.
-    if cursor == 0 {
-        return Err(Error::new(
-            ErrorKind::Other,
-            "an invalid token was encountered",
-        ));
-    }
-
-    // Save the "type" and move the cursor to the next position.
-    let basetype_cursor = cursor;
-    let basetype = s[0..basetype_cursor].to_string();
-    cursor += 1;
-
-    // Parse the "subtype"
-    for b in s[cursor..].bytes() {
-        if b == b';' {
-            break;
-        } else if !validate_code_point(b) {
-            return Err(Error::new(
-                ErrorKind::Other,
-                "an invalid token was encountered",
-            ));
-        }
-        cursor += 1;
-    }
-
-    // Ensure the "subtype" is not empty.
-    if cursor == basetype_cursor {
-        return Err(Error::new(
-            ErrorKind::Other,
-            "an invalid token was encountered",
-        ));
-    }
-
-    // Save the "type" and move the cursor to the next position.
-    let subtype_cursor = cursor;
-    let subtype = s[basetype_cursor..subtype_cursor].to_string();
-    cursor += 1;
-
+    // instantiate our mime struct
+    let basetype = String::from_utf8(base_type).unwrap();
+    let subtype = String::from_utf8(sub_type).unwrap();
     let mut mime = Mime {
-        essence: s[0..subtype_cursor].to_string(),
+        essence: format!("{}/{}", &basetype, &subtype),
         basetype,
         subtype,
         parameters: None,
@@ -84,37 +59,94 @@ pub(crate) fn parse(s: &str) -> io::Result<Mime> {
         static_subtype: None,
     };
 
-    // Parse the "subtype"
-    for b in s[cursor..].bytes() {
-        if is_http_whitespace_char(b) {
-            cursor += 1;
+    // parse parameters into a hashmap
+    //
+    // ```txt
+    // text/html; charset=utf-8;
+    //           ^^^^^^^^^^^^^^^
+    // ```
+    loop {
+        // Stop parsing if there's no more bytes to consume.
+        if s.fill_buf().unwrap().len() == 0 {
+            break;
+        }
+
+        // Trim any whitespace.
+        //
+        // ```txt
+        // text/html; charset=utf-8;
+        //           ^
+        // ```
+        s.skip_while(is_http_whitespace_char)?;
+
+        // Get the param name.
+        //
+        // ```txt
+        // text/html; charset=utf-8;
+        //            ^^^^^^^
+        // ```
+        let mut param_name = vec![];
+        s.read_while(&mut param_name, |b| b != b';' && b != b'=')?;
+        validate_code_points(&param_name)?;
+        let mut param_name = String::from_utf8(param_name).unwrap();
+        param_name.make_ascii_lowercase();
+
+        // Ignore param names without values.
+        //
+        // ```txt
+        // text/html; charset=utf-8;
+        //                   ^
+        // ```
+        let mut token = vec![0; 1];
+        s.read_exact(&mut token).unwrap();
+        if token[0] == b';' {
             continue;
         }
+
+        // Get the param value.
+        //
+        // ```txt
+        // text/html; charset=utf-8;
+        //                    ^^^^^^
+        // ```
+        let mut param_value = vec![];
+        s.read_until(b';', &mut param_value).unwrap();
+        if let Some(b';') = param_value.last() {
+            param_value.pop();
+        }
+
+        validate_code_points(&param_value)?;
+        let mut param_value = String::from_utf8(param_value).unwrap();
+        param_value.make_ascii_lowercase();
+
+        // Insert attribute pair into hashmap.
+        if let None = mime.parameters {
+            mime.parameters = Some(HashMap::new());
+        }
+        mime.parameters
+            .as_mut()
+            .unwrap()
+            .insert(param_name, param_value);
     }
 
-    panic!();
+    Ok(mime)
 }
 
-fn validate_code_point(b: u8) -> bool {
-    match b {
-        b'a'..=b'z'
-        | b'A'..=b'Z'
-        | b'0'..=b'9'
-        | b'!'
-        | b'#'
-        | b'$'
-        | b'%'
-        | b'&'
-        | b'\''
-        | b'+'
-        | b'-'
-        | b'.'
-        | b'^'
-        | b'_'
-        | b'`'
-        | b'|'
-        | b'~' => true,
+fn validate_code_points(buf: &[u8]) -> io::Result<()> {
+    let all = buf.iter().all(|b| match b {
+        b'-' | b'!' | b'#' | b'$' | b'%' => true,
+        b'&' | b'\'' | b'*' | b'+' | b'.' => true,
+        b'^' | b'_' | b'`' | b'|' | b'~' => true,
+        b'A'..=b'Z' => true,
+        b'a'..=b'z' => true,
+        b'0'..=b'9' => true,
         _ => false,
+    });
+
+    if all {
+        Ok(())
+    } else {
+        bail!("invalid HTTP code points found in mime")
     }
 }
 
@@ -123,4 +155,21 @@ fn is_http_whitespace_char(b: u8) -> bool {
         b' ' | b'\t' | b'\n' | b'\r' => true,
         _ => false,
     }
+}
+
+#[test]
+fn test() {
+    let mime = parse("text/html").unwrap();
+    assert_eq!(mime.basetype(), "text");
+    assert_eq!(mime.subtype(), "html");
+
+    let mime = parse("text/html; charset=utf-8").unwrap();
+    assert_eq!(mime.basetype(), "text");
+    assert_eq!(mime.subtype(), "html");
+    assert_eq!(mime.param("charset"), Some(&"utf-8".to_string()));
+
+    let mime = parse("text/html; charset=utf-8;").unwrap();
+    assert_eq!(mime.basetype(), "text");
+    assert_eq!(mime.subtype(), "html");
+    assert_eq!(mime.param("charset"), Some(&"utf-8".to_string()));
 }
