@@ -27,10 +27,14 @@ pub(crate) fn parse(s: &str) -> io::Result<Mime> {
     // ```
     let mut s = Cursor::new(s);
     let mut base_type = vec![];
-    match s.read_until(b'/', &mut base_type).unwrap() {
-        0 => bail!("mime types must contain a slash"),
-        _ => base_type.pop(),
-    };
+    let read = s.read_until(b'/', &mut base_type).unwrap();
+    if read == 0 || read == 1 {
+        bail!("mime must be a type followed by a slash");
+    } else if let Some(b'/') = base_type.last() {
+        base_type.pop();
+    } else {
+        bail!("mime must be a type followed by a slash");
+    }
     validate_code_points(&base_type)?;
 
     // parse the "subtype"
@@ -40,7 +44,10 @@ pub(crate) fn parse(s: &str) -> io::Result<Mime> {
     //      ^^^^^
     // ```
     let mut sub_type = vec![];
-    s.read_until(b';', &mut sub_type).unwrap();
+    let read = s.read_until(b';', &mut sub_type).unwrap();
+    if read == 0 {
+        bail!("no subtype found");
+    }
     if let Some(b';') = sub_type.last() {
         sub_type.pop();
     }
@@ -172,4 +179,9 @@ fn test() {
     assert_eq!(mime.basetype(), "text");
     assert_eq!(mime.subtype(), "html");
     assert_eq!(mime.param("charset"), Some(&"utf-8".to_string()));
+
+    assert!(parse("text").is_err());
+    assert!(parse("text/").is_err());
+    assert!(parse("t/").is_err());
+    assert!(parse("t/h").is_ok());
 }
