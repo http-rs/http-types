@@ -7,11 +7,11 @@ mod parse;
 
 pub use constants::*;
 
+use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use std::io::{self, Error, ErrorKind};
 use std::option;
 use std::str::FromStr;
-use std::collections::HashMap;
 
 use crate::headers::{HeaderValue, ParseError, ToHeaderValues};
 
@@ -48,8 +48,8 @@ impl Mime {
             essence: mime,
             static_essence: None,
             basetype: String::new(), // TODO: fill in.
-            subtype: String::new(), // TODO: fill in.
-            static_basetype: None,  // TODO: fill in
+            subtype: String::new(),  // TODO: fill in.
+            static_basetype: None,   // TODO: fill in
             static_subtype: None,
             parameters: None, // TODO: fill in.
         })
@@ -130,10 +130,10 @@ impl FromStr for Mime {
             essence: s.to_ascii_lowercase(),
             static_essence: None,
             basetype: String::new(), // TODO: fill in.
-            subtype: String::new(), // TODO: fill in.
-            static_basetype: None,  // TODO: fill in
-            static_subtype: None, // TODO: fill in
-            parameters: None, // TODO: fill in.
+            subtype: String::new(),  // TODO: fill in.
+            static_basetype: None,   // TODO: fill in
+            static_subtype: None,    // TODO: fill in
+            parameters: None,        // TODO: fill in.
         })
     }
 }

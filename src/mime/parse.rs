@@ -84,6 +84,14 @@ pub(crate) fn parse(s: &str) -> io::Result<Mime> {
         static_subtype: None,
     };
 
+    // Parse the "subtype"
+    for b in s[cursor..].bytes() {
+        if is_http_whitespace_char(b) {
+            cursor += 1;
+            continue;
+        }
+    }
+
     panic!();
 }
 
@@ -106,6 +114,13 @@ fn validate_code_point(b: u8) -> bool {
         | b'`'
         | b'|'
         | b'~' => true,
+        _ => false,
+    }
+}
+
+fn is_http_whitespace_char(b: u8) -> bool {
+    match b {
+        b' ' | b'\t' | b'\n' | b'\r' => true,
         _ => false,
     }
 }
