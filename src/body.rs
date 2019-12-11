@@ -44,6 +44,9 @@ impl Body {
     }
 
     /// Get the recommended mime type.
+    ///
+    /// This methods exists because Body is instantiated with a MIME type,
+    /// and when passing it to the request / response we don't want to clone it.
     pub(crate) fn take_mime(&mut self) -> Mime {
         self.mime.take().unwrap()
     }
