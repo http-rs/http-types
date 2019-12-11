@@ -34,6 +34,7 @@ pub mod headers;
 pub mod mime;
 
 mod body;
+mod error;
 mod method;
 mod request;
 mod response;
@@ -41,6 +42,7 @@ mod status_code;
 mod version;
 
 pub use body::Body;
+pub use error::{Error, ErrorKind, Result};
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;

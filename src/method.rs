@@ -5,7 +5,7 @@ use std::str::FromStr;
 /// HTTP request methods.
 ///
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods)
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Method {
     /// The GET method requests a representation of the specified resource. Requests using GET
     /// should only retrieve data.
