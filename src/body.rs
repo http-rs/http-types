@@ -61,7 +61,7 @@ impl Body {
         self.length = Some(length);
     }
 
-    /// Get the length of the body in bytes.
+    /// Get the inner reader from the `Body`
     pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
         self.reader
     }
