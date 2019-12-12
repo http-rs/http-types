@@ -14,12 +14,12 @@ pub struct HeaderName {
 
 impl HeaderName {
     /// Create a new `HeaderName`.
-    pub fn from_ascii(bytes: &[u8]) -> Result<Self, ParseError> {
+    pub fn from_ascii(mut bytes: Vec<u8>) -> Result<Self, ParseError> {
         if !bytes.is_ascii() {
             return Err(ParseError::new());
         }
-        let string =
-            String::from_utf8(bytes.to_ascii_lowercase()).map_err(|_| ParseError::new())?;
+        bytes.make_ascii_lowercase();
+        let string = String::from_utf8(bytes).map_err(|_| ParseError::new())?;
         Ok(Self {
             string: string,
             static_str: None,
@@ -35,7 +35,8 @@ impl HeaderName {
     /// ASCII. If this constraint is violated, it may cause memory
     /// unsafety issues with future users of the HeaderName, as the rest of the library assumes
     /// that Strings are valid ASCII.
-    pub unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
+    pub unsafe fn from_ascii_unchecked(mut bytes: Vec<u8>) -> Self {
+        bytes.make_ascii_lowercase();
         let string = String::from_utf8_unchecked(bytes);
         Self {
             string,
