@@ -99,10 +99,21 @@ impl Mime {
 impl Display for Mime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(essence) = self.static_essence {
-            Display::fmt(essence, f)
+            write!(f, "{}", essence)?
         } else {
-            Display::fmt(&self.essence, f)
+            write!(f, "{}", &self.essence)?
         }
+        if let Some(parameters) = &self.parameters {
+            assert!(!parameters.is_empty());
+            write!(f, "; ")?;
+            for (i, (key, value)) in parameters.iter().enumerate() {
+                write!(f, "{}={}", key, value)?;
+                if i != parameters.len() - 1 {
+                    write!(f, ",")?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 

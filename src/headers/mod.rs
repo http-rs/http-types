@@ -5,6 +5,7 @@ use async_std::io;
 use std::collections::HashMap;
 use std::iter::IntoIterator;
 
+mod constants;
 mod header_name;
 mod header_value;
 mod into_iter;
@@ -15,6 +16,7 @@ mod parse_error;
 mod to_header_values;
 mod values;
 
+pub use constants::*;
 pub use header_name::HeaderName;
 pub use header_value::HeaderValue;
 pub use into_iter::IntoIter;

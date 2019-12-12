@@ -1,3 +1,4 @@
+use std::fmt::{self, Display};
 use std::str::FromStr;
 
 use crate::headers::ParseError;
@@ -38,32 +39,25 @@ impl HeaderValue {
         let string = String::from_utf8_unchecked(bytes);
         Self { inner: string }
     }
+
+    /// Get the header value as a `&str`
+    pub fn as_str(&self) -> &str {
+        &self.inner
+    }
 }
 
 impl From<Mime> for HeaderValue {
     fn from(mime: Mime) -> Self {
-        if let Some(string) = mime.static_essence {
-            HeaderValue {
-                inner: string.to_string(),
-            }
-        } else {
-            HeaderValue {
-                inner: mime.essence,
-            }
+        HeaderValue {
+            inner: format!("{}", mime),
         }
     }
 }
 
 impl From<&Mime> for HeaderValue {
     fn from(mime: &Mime) -> Self {
-        if let Some(string) = mime.static_essence {
-            HeaderValue {
-                inner: string.to_string(),
-            }
-        } else {
-            HeaderValue {
-                inner: mime.essence.clone(),
-            }
+        HeaderValue {
+            inner: format!("{}", mime),
         }
     }
 }
@@ -81,5 +75,11 @@ impl FromStr for HeaderValue {
         Ok(Self {
             inner: s.to_ascii_lowercase(),
         })
+    }
+}
+
+impl Display for HeaderValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.inner)
     }
 }

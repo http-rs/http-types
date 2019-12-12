@@ -43,6 +43,14 @@ impl HeaderName {
             static_str: None,
         }
     }
+
+    /// Converts a string assumed to lowercase into a `HeaderName`
+    pub(crate) const fn from_lowercase_str(str: &'static str) -> Self {
+        Self {
+            string: String::new(),
+            static_str: Some(str),
+        }
+    }
 }
 
 impl Display for HeaderName {

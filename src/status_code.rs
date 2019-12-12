@@ -406,7 +406,7 @@ impl StatusCode {
             StatusCode::Continue => "Continue",
             StatusCode::SwitchingProtocols => "Switching Protocols",
             StatusCode::EarlyHints => "Early Hints",
-            StatusCode::Ok => "Ok",
+            StatusCode::Ok => "OK",
             StatusCode::Created => "Created",
             StatusCode::Accepted => "Accepted",
             StatusCode::NonAuthoritativeInformation => "Non Authoritative Information",

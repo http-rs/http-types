@@ -54,6 +54,11 @@ impl Request {
         &self.body
     }
 
+    /// Consume self and get ownership of the body.
+    pub fn into_body(self) -> Body {
+        self.body
+    }
+
     /// Set the request body.
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
@@ -103,7 +108,7 @@ impl Request {
     }
 
     /// Set the length of the body stream.
-    pub fn set_len(mut self, len: usize) {
+    pub fn set_len(&mut self, len: usize) {
         self.body.set_len(len);
     }
 
