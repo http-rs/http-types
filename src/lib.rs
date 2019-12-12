@@ -3,6 +3,13 @@
 //! ## Example
 //!
 //! ```
+//! use http_types::{Url, Method, Request, Response, StatusCode};
+//!
+//! let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+//! req.set_body("hello world");
+//!
+//! let mut res = Response::new(StatusCode::Ok);
+//! res.set_body("hello world");
 //! ```
 
 #![forbid(rust_2018_idioms)]
@@ -26,6 +33,7 @@ pub mod url {
 pub mod headers;
 pub mod mime;
 
+mod body;
 mod error;
 mod method;
 mod request;
@@ -33,6 +41,7 @@ mod response;
 mod status_code;
 mod version;
 
+pub use body::Body;
 pub use error::{Error, ErrorKind, Result};
 pub use method::Method;
 pub use request::Request;

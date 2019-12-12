@@ -1,23 +1,20 @@
 use async_std::io::{self, BufRead, Read};
 
-use std::borrow::Borrow;
-use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::mime::{self, Mime};
-use crate::{Headers, StatusCode};
-
-type BodyReader = dyn BufRead + Unpin + Send + 'static;
+use crate::headers::{self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
+use crate::mime::Mime;
+use crate::{Body, StatusCode};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
+    #[derive(Debug)]
     pub struct Response {
-        #[pin]
-        body_reader: Box<BodyReader>,
         status: StatusCode,
         headers: Headers,
-        length: Option<usize>,
+        #[pin]
+        body: Body,
     }
 }
 
@@ -27,8 +24,7 @@ impl Response {
         Self {
             status,
             headers: Headers::new(),
-            body_reader: Box::new(io::empty()),
-            length: Some(0),
+            body: Body::empty(),
         }
     }
 
@@ -37,59 +33,47 @@ impl Response {
         &self.status
     }
 
-    /// Set the body reader to `body` and unset the length.
-    ///
-    /// This will make the body a chunked stream.
-    pub fn set_body_reader(mut self, body: impl BufRead + Unpin + Send + 'static) -> Self {
-        self.body_reader = Box::new(body);
-        self.length = None;
-        self
-    }
-
-    /// Set the body as a string.
-    ///
-    /// # Mime
-    ///
-    /// The encoding is set to `text/plain; charset=utf-8`.
-    pub fn set_body_string(mut self, string: String) -> io::Result<Self> {
-        self.length = Some(string.len());
-        let reader = io::Cursor::new(string.into_bytes());
-        self.set_body_reader(reader).set_mime(mime::PLAIN)
-    }
-
-    /// Pass bytes as the request body.
-    ///
-    /// # Mime
-    ///
-    /// The encoding is set to `application/octet-stream`.
-    pub fn set_body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
-        let bytes = bytes.as_ref().to_owned();
-        self.length = Some(bytes.len());
-        let reader = io::Cursor::new(bytes);
-        self.set_body_reader(reader).set_mime(mime::BYTE_STREAM)
-    }
-
-    /// Get HTTP headers.
-    pub fn headers(&self) -> &Headers {
-        &self.headers
+    /// Get a mutable reference to a header.
+    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+        self.headers.get_mut(name)
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, key: impl Borrow<str>) -> Option<&String> {
-        self.headers.get(key)
+    pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
+        self.headers.get(name)
     }
 
     /// Set an HTTP header.
-    pub fn set_header(mut self, key: impl AsRef<str>, value: impl AsRef<str>) -> io::Result<Self> {
-        let key = key.as_ref().to_owned();
-        let value = value.as_ref().to_owned();
-        self.headers.insert(key, value)?; // TODO: this should be a Result because only ASCII values are allowed
-        Ok(self)
+    pub fn insert_header(
+        &mut self,
+        name: HeaderName,
+        values: impl ToHeaderValues,
+    ) -> io::Result<Option<Vec<HeaderValue>>> {
+        self.headers.insert(name, values)
+    }
+
+    /// Get the body.
+    pub fn body(&self) -> &Body {
+        &self.body
+    }
+
+    /// Set the body reader.
+    pub fn set_body(&mut self, body: impl Into<Body>) {
+        self.body = body.into();
+        let mime = self.body.take_mime();
+        self.set_content_type(mime);
     }
 
     /// Set the response MIME.
-    pub fn set_mime(self, mime: Mime) -> io::Result<Self> {
-        self.set_header("Content-Type", format!("{}", mime))
+    pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
+        let header = HeaderName {
+            string: String::new(),
+            static_str: Some("content-type"),
+        };
+        let value: HeaderValue = mime.into();
+
+        // A Mime instance is guaranteed to be valid header name.
+        self.insert_header(header, value).unwrap()
     }
 
     /// Get the length of the body stream, if it has been set.
@@ -98,22 +82,33 @@ impl Response {
     /// buffer. Consumers of this API should check this value to decide whether to use `Chunked`
     /// encoding, or set the response length.
     pub fn len(&self) -> Option<usize> {
-        self.length
+        self.body.len()
     }
 
     /// Set the length of the body stream.
-    pub fn set_len(mut self, len: usize) -> Self {
-        self.length = Some(len);
-        self
+    pub fn set_len(mut self, len: usize) {
+        self.body.set_len(len);
     }
-}
 
-impl Debug for Response {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Response")
-            .field("headers", &self.headers)
-            .field("body", &"<hidden>")
-            .finish()
+    /// An iterator visiting all header pairs in arbitrary order.
+    pub fn iter<'a>(&'a self) -> headers::Iter<'a> {
+        self.headers.iter()
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
+    /// values.
+    pub fn iter_mut<'a>(&'a mut self) -> headers::IterMut<'a> {
+        self.headers.iter_mut()
+    }
+
+    /// An iterator visiting all header names in arbitrary order.
+    pub fn names<'a>(&'a self) -> Names<'a> {
+        self.headers.names()
+    }
+
+    /// An iterator visiting all header values in arbitrary order.
+    pub fn values<'a>(&'a self) -> Values<'a> {
+        self.headers.values()
     }
 }
 
@@ -124,7 +119,7 @@ impl Read for Response {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.body_reader).poll_read(cx, buf)
+        Pin::new(&mut self.body).poll_read(cx, buf)
     }
 }
 
@@ -132,10 +127,83 @@ impl BufRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.body_reader.poll_fill_buf(cx)
+        this.body.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body_reader).consume(amt)
+        Pin::new(&mut self.body).consume(amt)
+    }
+}
+
+impl AsRef<Headers> for Response {
+    fn as_ref(&self) -> &Headers {
+        &self.headers
+    }
+}
+
+impl AsMut<Headers> for Response {
+    fn as_mut(&mut self) -> &mut Headers {
+        &mut self.headers
+    }
+}
+
+impl Into<Body> for Response {
+    fn into(self) -> Body {
+        self.body
+    }
+}
+
+impl From<String> for Response {
+    fn from(s: String) -> Self {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(s);
+        res
+    }
+}
+
+impl<'a> From<&'a str> for Response {
+    fn from(s: &'a str) -> Self {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(s);
+        res
+    }
+}
+
+impl From<Vec<u8>> for Response {
+    fn from(b: Vec<u8>) -> Self {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(b);
+        res
+    }
+}
+
+impl IntoIterator for Response {
+    type Item = (HeaderName, Vec<HeaderValue>);
+    type IntoIter = headers::IntoIter;
+
+    /// Returns a iterator of references over the remaining items.
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a Response {
+    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type IntoIter = headers::Iter<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Response {
+    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type IntoIter = headers::IterMut<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.headers.iter_mut()
     }
 }
