@@ -60,6 +60,11 @@ impl Body {
     pub fn set_len(&mut self, length: usize) {
         self.length = Some(length);
     }
+
+    /// Get the inner reader from the `Body`
+    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
+        self.reader
+    }
 }
 
 impl Debug for Body {
@@ -76,7 +81,7 @@ impl From<String> for Body {
         Self {
             length: Some(s.len()),
             reader: Box::new(io::Cursor::new(s.into_bytes())),
-            mime: Some(mime::PLAIN),
+            mime: Some(string_mime()),
         }
     }
 }
@@ -86,9 +91,17 @@ impl<'a> From<&'a str> for Body {
         Self {
             length: Some(s.len()),
             reader: Box::new(io::Cursor::new(s.to_owned().into_bytes())),
-            mime: Some(mime::PLAIN),
+            mime: Some(string_mime()),
         }
     }
+}
+
+fn string_mime() -> mime::Mime {
+    let mut mime = mime::PLAIN;
+    let mut parameters = std::collections::HashMap::new();
+    parameters.insert("charset".to_owned(), "utf-8".to_owned());
+    mime.parameters = Some(parameters);
+    mime
 }
 
 impl From<Vec<u8>> for Body {

@@ -86,7 +86,7 @@ impl Response {
     }
 
     /// Set the length of the body stream.
-    pub fn set_len(mut self, len: usize) {
+    pub fn set_len(&mut self, len: usize) {
         self.body.set_len(len);
     }
 
