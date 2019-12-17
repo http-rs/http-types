@@ -466,6 +466,12 @@ impl Into<u16> for StatusCode {
     }
 }
 
+impl Into<u16> for &StatusCode {
+    fn into(self) -> u16 {
+        *self as u16
+    }
+}
+
 impl std::convert::TryFrom<u16> for StatusCode {
     type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
 
