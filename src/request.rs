@@ -89,7 +89,11 @@ impl Request {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append_header(&mut self, name: HeaderName, values: impl ToHeaderValues) -> io::Result<()> {
+    pub fn append_header(
+        &mut self,
+        name: HeaderName,
+        values: impl ToHeaderValues,
+    ) -> io::Result<()> {
         self.headers.append(name, values)
     }
 
