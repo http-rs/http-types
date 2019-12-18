@@ -96,7 +96,7 @@ impl TryFrom<http::Request<Body>> for Request {
         let url = from_uri_to_url(parts.uri)?;
         let mut req = Request::new(method, url);
         req.set_body(body);
-        req.set_version(parts.version.into());
+        req.set_version(Some(parts.version.into()));
         hyperium_headers_to_headers(parts.headers, req.as_mut());
         Ok(req)
     }
@@ -121,7 +121,7 @@ impl From<http::Response<Body>> for Response {
         let status = parts.status.into();
         let mut res = Response::new(status);
         res.set_body(body);
-        res.set_version(parts.version.into());
+        res.set_version(Some(parts.version.into()));
         hyperium_headers_to_headers(parts.headers, res.as_mut());
         res
     }

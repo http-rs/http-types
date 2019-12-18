@@ -143,7 +143,7 @@ impl Request {
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// assert_eq!(req.version(), None);
     ///
-    /// req.set_version(Version::Http2_0);
+    /// req.set_version(Some(Version::Http2_0));
     /// assert_eq!(req.version(), Some(Version::Http2_0));
     /// #
     /// # Ok(()) }
@@ -162,12 +162,12 @@ impl Request {
     /// # fn main() -> Result<(), http_types::url::ParseError> {
     /// #
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
-    /// req.set_version(Version::Http2_0);
+    /// req.set_version(Some(Version::Http2_0));
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn set_version(&mut self, version: Version) {
-        self.version = Some(version);
+    pub fn set_version(&mut self, version: Option<Version>) {
+        self.version = version;
     }
 
     /// An iterator visiting all header pairs in arbitrary order.

@@ -121,7 +121,7 @@ impl Response {
     /// let mut res = Response::new(StatusCode::Ok);
     /// assert_eq!(res.version(), None);
     ///
-    /// res.set_version(Version::Http2_0);
+    /// res.set_version(Some(Version::Http2_0));
     /// assert_eq!(res.version(), Some(Version::Http2_0));
     /// #
     /// # Ok(()) }
@@ -140,12 +140,12 @@ impl Response {
     /// use http_types::{Response, StatusCode, Version};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
-    /// res.set_version(Version::Http2_0);
+    /// res.set_version(Some(Version::Http2_0));
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn set_version(&mut self, version: Version) {
-        self.version = Some(version);
+    pub fn set_version(&mut self, version: Option<Version>) {
+        self.version = version;
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
