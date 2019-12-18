@@ -114,20 +114,38 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Url, Method, Request, Version};
-    ///
     /// # fn main() -> Result<(), http_types::url::ParseError> {
     /// #
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
-    /// assert_eq!(req.version(), None);
+    /// use http_types::{Response, StatusCode, Version};
     ///
-    /// req.set_version(Version::Http2_0);
-    /// assert_eq!(req.version(), Some(Version::Http2_0));
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// assert_eq!(res.version(), None);
+    ///
+    /// res.set_version(Version::Http2_0);
+    /// assert_eq!(res.version(), Some(Version::Http2_0));
     /// #
     /// # Ok(()) }
     /// ```
     pub fn version(&self) -> Option<Version> {
         self.version
+    }
+
+    /// Set the HTTP version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Response, StatusCode, Version};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_version(Version::Http2_0);
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn set_version(&mut self, version: Version) {
+        self.version = Some(version);
     }
 
     /// An iterator visiting all header pairs in arbitrary order.

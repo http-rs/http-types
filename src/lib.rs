@@ -57,3 +57,6 @@ pub use headers::Headers;
 
 #[doc(inline)]
 pub use crate::url::Url;
+
+#[cfg(feature = "hyperium_http")]
+mod hyperium_http;
