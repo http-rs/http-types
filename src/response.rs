@@ -59,6 +59,18 @@ impl Response {
         self.headers.insert(name, values)
     }
 
+    /// Append a header to the headers.
+    ///
+    /// Unlike `insert` this function will not override the contents of a header, but insert a
+    /// header if there aren't any. Or else append to the existing list of headers.
+    pub fn append_header(
+        &mut self,
+        name: HeaderName,
+        values: impl ToHeaderValues,
+    ) -> io::Result<()> {
+        self.headers.append(name, values)
+    }
+
     /// Get the body.
     pub fn body(&self) -> &Body {
         &self.body
