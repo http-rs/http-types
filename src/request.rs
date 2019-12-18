@@ -85,6 +85,14 @@ impl Request {
         self.headers.insert(name, values)
     }
 
+    /// Append a header to the headers.
+    ///
+    /// Unlike `insert` this function will not override the contents of a header, but insert a
+    /// header if there aren't any. Or else append to the existing list of headers.
+    pub fn append_header(&mut self, name: HeaderName, values: impl ToHeaderValues) -> io::Result<()> {
+        self.headers.append(name, values)
+    }
+
     /// Set the response MIME.
     // TODO: return a parsed MIME
     pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {

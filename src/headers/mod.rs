@@ -51,6 +51,23 @@ impl Headers {
         Ok(self.headers.insert(name, values))
     }
 
+    /// Append a header to the headers.
+    ///
+    /// Unlike `insert` this function will not override the contents of a header, but insert a
+    /// header if there aren't any. Or else append to the existing list of headers.
+    pub fn append(&mut self, name: HeaderName, values: impl ToHeaderValues) -> io::Result<()> {
+        match self.get_mut(&name) {
+            Some(headers) => {
+                let mut values: Vec<HeaderValue> = values.to_header_values()?.collect();
+                headers.append(&mut values);
+            }
+            None => {
+                self.insert(name, values)?;
+            }
+        }
+        Ok(())
+    }
+
     /// Get a reference to a header.
     pub fn get(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
         self.headers.get(name)
