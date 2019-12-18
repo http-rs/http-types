@@ -3,7 +3,7 @@ use async_std::io::{self, BufRead, Read};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
+use crate::headers::{self, CONTENT_TYPE, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
 use crate::mime::Mime;
 use crate::{Body, Method, Url, Version};
 
@@ -55,7 +55,9 @@ impl Request {
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         let mime = self.body.take_mime();
-        self.set_content_type(mime);
+        if self.header(&CONTENT_TYPE).is_none() {
+            self.set_content_type(mime);
+        }
     }
 
     /// Get an HTTP header.

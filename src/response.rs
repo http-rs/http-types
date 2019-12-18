@@ -3,7 +3,9 @@ use async_std::io::{self, BufRead, Read};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
+use crate::headers::{
+    self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
+};
 use crate::mime::Mime;
 use crate::{Body, StatusCode, Version};
 
@@ -75,7 +77,9 @@ impl Response {
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         let mime = self.body.take_mime();
-        self.set_content_type(mime);
+        if self.header(&CONTENT_TYPE).is_none() {
+            self.set_content_type(mime);
+        }
     }
 
     /// Set the response MIME.
