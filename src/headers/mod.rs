@@ -61,6 +61,11 @@ impl Headers {
         self.headers.get_mut(name)
     }
 
+    /// Remove a header.
+    pub fn remove(&mut self, name: &HeaderName) -> Option<Vec<HeaderValue>> {
+        self.headers.remove(name)
+    }
+
     /// An iterator visiting all header pairs in arbitrary order.
     pub fn iter<'a>(&'a self) -> Iter<'a> {
         Iter {
