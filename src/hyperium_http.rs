@@ -42,7 +42,6 @@ impl From<http::Version> for Version {
     }
 }
 
-
 impl From<Version> for http::Version {
     fn from(version: Version) -> Self {
         match version {
@@ -88,7 +87,6 @@ fn from_url_to_uri(url: &Url) -> http::Uri {
     http::Uri::try_from(&format!("{}", url)).unwrap()
 }
 
-// TODO: move HTTP version over if it exists.
 impl TryFrom<http::Request<Body>> for Request {
     type Error = crate::url::ParseError;
 
@@ -104,7 +102,6 @@ impl TryFrom<http::Request<Body>> for Request {
     }
 }
 
-// TODO: move HTTP version over if it exists.
 impl From<Request> for http::Request<Body> {
     fn from(mut req: Request) -> Self {
         let method: http::Method = req.method().into();
@@ -118,7 +115,6 @@ impl From<Request> for http::Request<Body> {
     }
 }
 
-// TODO: move HTTP version over if it exists.
 impl From<http::Response<Body>> for Response {
     fn from(res: http::Response<Body>) -> Self {
         let (parts, body) = res.into_parts();
@@ -131,7 +127,6 @@ impl From<http::Response<Body>> for Response {
     }
 }
 
-// TODO: move HTTP version over if it exists.
 impl From<Response> for http::Response<Body> {
     fn from(mut res: Response) -> Self {
         let status: u16 = res.status().into();
