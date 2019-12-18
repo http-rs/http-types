@@ -3,7 +3,9 @@ use async_std::io::{self, BufRead, Read};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::headers::{self, CONTENT_TYPE, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
+use crate::headers::{
+    self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
+};
 use crate::mime::Mime;
 use crate::{Body, Method, Url, Version};
 
