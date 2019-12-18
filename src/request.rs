@@ -193,7 +193,7 @@ impl Request {
                 let cookie = Cookie::parse(h.as_str())?;
                 acc.push(cookie);
                 Ok(acc)
-            })
+            }),
         }
     }
 
@@ -235,7 +235,8 @@ impl Request {
     /// # Ok(()) }
     /// ```
     pub fn set_cookie(&mut self, cookie: Cookie<'_>) {
-        self.append_header(headers::COOKIE, HeaderValue::from(cookie)).unwrap();
+        self.append_header(headers::COOKIE, HeaderValue::from(cookie))
+            .unwrap();
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
