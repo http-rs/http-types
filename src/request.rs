@@ -76,6 +76,11 @@ impl Request {
         self.headers.get_mut(name)
     }
 
+    /// Remove a header.
+    pub fn remove_header(&mut self, name: &HeaderName) -> Option<Vec<HeaderValue>> {
+        self.headers.remove(name)
+    }
+
     /// Set an HTTP header.
     pub fn insert_header(
         &mut self,
