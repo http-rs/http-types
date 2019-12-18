@@ -5,7 +5,7 @@ use std::task::{Context, Poll};
 
 use crate::headers::{self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values};
 use crate::mime::Mime;
-use crate::{Body, StatusCode};
+use crate::{Body, StatusCode, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
@@ -13,6 +13,7 @@ pin_project_lite::pin_project! {
     pub struct Response {
         status: StatusCode,
         headers: Headers,
+        version: Option<Version>,
         #[pin]
         body: Body,
     }
@@ -24,6 +25,7 @@ impl Response {
         Self {
             status,
             headers: Headers::new(),
+            version: None,
             body: Body::empty(),
         }
     }
@@ -88,6 +90,27 @@ impl Response {
     /// Set the length of the body stream.
     pub fn set_len(&mut self, len: usize) {
         self.body.set_len(len);
+    }
+
+    /// Get the HTTP version, if one has been set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Url, Method, Request, Version};
+    ///
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// assert_eq!(req.version(), None);
+    ///
+    /// req.set_version(Version::Http2_0);
+    /// assert_eq!(req.version(), Some(Version::Http2_0));
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn version(&self) -> Option<Version> {
+        self.version
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
