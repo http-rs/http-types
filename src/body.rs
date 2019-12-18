@@ -43,6 +43,15 @@ impl Body {
         }
     }
 
+    /// Create a `Body` from a reader with a known length.
+    pub fn from_reader_with_len(reader: impl BufRead + Unpin + Send + 'static, len: usize) -> Self {
+        Self {
+            reader: Box::new(reader),
+            mime: Some(mime::BYTE_STREAM),
+            length: Some(len),
+        }
+    }
+
     /// Get the recommended mime type.
     ///
     /// This methods exists because Body is instantiated with a MIME type,
@@ -54,11 +63,6 @@ impl Body {
     /// Get the length of the body in bytes.
     pub fn len(&self) -> Option<usize> {
         self.length
-    }
-
-    /// Get the length of the body in bytes.
-    pub fn set_len(&mut self, length: usize) {
-        self.length = Some(length);
     }
 
     /// Get the inner reader from the `Body`

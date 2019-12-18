@@ -71,11 +71,6 @@ impl Response {
         self.headers.append(name, values)
     }
 
-    /// Get the body.
-    pub fn body(&self) -> &Body {
-        &self.body
-    }
-
     /// Set the body reader.
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
@@ -102,11 +97,6 @@ impl Response {
     /// encoding, or set the response length.
     pub fn len(&self) -> Option<usize> {
         self.body.len()
-    }
-
-    /// Set the length of the body stream.
-    pub fn set_len(&mut self, len: usize) {
-        self.body.set_len(len);
     }
 
     /// Get the HTTP version, if one has been set.
@@ -160,12 +150,12 @@ impl Response {
     }
 
     /// An iterator visiting all header names in arbitrary order.
-    pub fn names<'a>(&'a self) -> Names<'a> {
+    pub fn header_names<'a>(&'a self) -> Names<'a> {
         self.headers.names()
     }
 
     /// An iterator visiting all header values in arbitrary order.
-    pub fn values<'a>(&'a self) -> Values<'a> {
+    pub fn header_values<'a>(&'a self) -> Values<'a> {
         self.headers.values()
     }
 }
