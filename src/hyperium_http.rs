@@ -1,7 +1,7 @@
 // This is the compat file for the "hyperium/http" crate.
 
 use crate::headers::{HeaderName, HeaderValue};
-use crate::{Body, Headers, Method, Request, Response, StatusCode, Url};
+use crate::{Body, Headers, Method, Request, Response, StatusCode, Url, Version};
 use std::convert::TryFrom;
 use std::str::FromStr;
 
@@ -26,6 +26,32 @@ impl From<http::StatusCode> for StatusCode {
 impl From<StatusCode> for http::StatusCode {
     fn from(status: StatusCode) -> Self {
         http::StatusCode::from_u16(status.into()).unwrap()
+    }
+}
+
+impl From<http::Version> for Version {
+    fn from(version: http::Version) -> Self {
+        match version {
+            http::Version::HTTP_09 => Version::Http0_9,
+            http::Version::HTTP_10 => Version::Http1_0,
+            http::Version::HTTP_11 => Version::Http1_1,
+            http::Version::HTTP_2 => Version::Http2_0,
+            http::Version::HTTP_3 => Version::Http3_0,
+            _ => panic!("unknown HTTP version conversion"),
+        }
+    }
+}
+
+
+impl From<Version> for http::Version {
+    fn from(version: Version) -> Self {
+        match version {
+            Version::Http0_9 => http::Version::HTTP_09,
+            Version::Http1_0 => http::Version::HTTP_10,
+            Version::Http1_1 => http::Version::HTTP_11,
+            Version::Http2_0 => http::Version::HTTP_2,
+            Version::Http3_0 => http::Version::HTTP_3,
+        }
     }
 }
 
@@ -72,6 +98,7 @@ impl TryFrom<http::Request<Body>> for Request {
         let url = from_uri_to_url(parts.uri)?;
         let mut req = Request::new(method, url);
         req.set_body(body);
+        req.set_version(parts.version.into());
         hyperium_headers_to_headers(parts.headers, req.as_mut());
         Ok(req)
     }
@@ -81,10 +108,11 @@ impl TryFrom<http::Request<Body>> for Request {
 impl From<Request> for http::Request<Body> {
     fn from(mut req: Request) -> Self {
         let method: http::Method = req.method().into();
+        let version = req.version().map(|v| v.into()).unwrap_or_default();
         let mut builder = http::request::Builder::new()
             .method(method)
             .uri(from_url_to_uri(req.url()))
-            .version(http::version::Version::default());
+            .version(version);
         headers_to_hyperium_headers(req.as_mut(), builder.headers_mut().unwrap());
         builder.body(req.into()).unwrap()
     }
@@ -97,6 +125,7 @@ impl From<http::Response<Body>> for Response {
         let status = parts.status.into();
         let mut res = Response::new(status);
         res.set_body(body);
+        res.set_version(parts.version.into());
         hyperium_headers_to_headers(parts.headers, res.as_mut());
         res
     }
@@ -106,9 +135,10 @@ impl From<http::Response<Body>> for Response {
 impl From<Response> for http::Response<Body> {
     fn from(mut res: Response) -> Self {
         let status: u16 = res.status().into();
+        let version = res.version().map(|v| v.into()).unwrap_or_default();
         let mut builder = http::response::Builder::new()
             .status(status)
-            .version(http::version::Version::default());
+            .version(version);
         headers_to_hyperium_headers(res.as_mut(), builder.headers_mut().unwrap());
         builder.body(res.into()).unwrap()
     }
