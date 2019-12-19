@@ -48,9 +48,39 @@ impl Request {
         &self.method
     }
 
-    /// Get the url.
+    /// Get a reference to the url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Url, Method, Request, Response, StatusCode};
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// assert_eq!(req.url().scheme(), "https");
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn url(&self) -> &Url {
         &self.url
+    }
+
+    /// Get a mutable reference to the url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Url, Method, Request, Response, StatusCode};
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.url_mut().set_scheme("http");
+    /// assert_eq!(req.url().scheme(), "http");
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn url_mut(&mut self) -> &mut Url {
+        &mut self.url
     }
 
     /// Set the request body.
