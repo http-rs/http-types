@@ -8,6 +8,47 @@ use crate::{mime, Mime};
 
 pin_project_lite::pin_project! {
     /// A streaming HTTP body.
+    ///
+    /// `Body` represents the HTTP body of both `Request` and `Response`. It's completely
+    /// streaming, and implements `AsyncBufRead` to make reading from it both convenient and
+    /// performant.
+    ///
+    /// Both `Request` and `Response` take `Body` by `Into<Body>`, which means that passing string
+    /// literals, byte vectors, but also concrete `Body` instances are all valid. This makes it
+    /// easy to create both quick HTTP requests, but also have fine grained control over how bodies
+    /// are streamed out.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    /// req.set_body("Hello Chashu");
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let body = Body::from_reader(cursor, Some(10)); // set the body length
+    /// req.set_body(body);
+    /// ```
+    ///
+    /// # Length
+    ///
+    /// One of the details of `Body` to be aware of is the `length` parameter. The value of
+    /// `length` is used by HTTP implementations to determine how to treat the stream. If a length
+    /// is known ahead of time, it's _strongly_ recommended to pass it.
+    ///
+    /// Casting from `Vec<u8>`, `String`, or similar to `Body` will automatically set the value of
+    /// `length`.
+    ///
+    /// # Content Encoding
+    ///
+    /// By default `Body` will come with a fallback Mime type that is used by `Request` and
+    /// `Response` if no other type has been set, and no other Mime type can be inferred.
+    ///
+    /// It's _strongly_ recommended to always set a mime type on both the `Request` and `Response`,
+    /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
         reader: Box<dyn BufRead + Unpin + Send + 'static>,
@@ -19,12 +60,16 @@ pin_project_lite::pin_project! {
 impl Body {
     /// Create a new empty `Body`.
     ///
+    /// The body will have a length of `0`, and the Mime type set to `application/octet-stream` if
+    /// no other mime type has been set or can be sniffed.
+    ///
     /// # Examples
     ///
     /// ```
-    /// use http_types::Body;
+    /// use http_types::{Body, Response, StatusCode};
     ///
-    /// let _body = Body::empty();
+    /// let mut req = Response::new(StatusCode::Ok);
+    /// req.set_body(Body::empty());
     /// ```
     pub fn empty() -> Self {
         Self {
@@ -34,13 +79,69 @@ impl Body {
         }
     }
 
-    /// Create a `Body` from a reader.
-    pub fn from_reader(reader: impl BufRead + Unpin + Send + 'static) -> Self {
+    /// Create a `Body` from a reader with an optional length.
+    ///
+    /// The Mime type set to `application/octet-stream` if no other mime type has been set or can
+    /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
+    /// framed messages such as [Chunked
+    /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    ///
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let len = 10;
+    /// req.set_body(Body::from_reader(cursor, Some(len)));
+    /// ```
+    pub fn from_reader(reader: impl BufRead + Unpin + Send + 'static, len: Option<usize>) -> Self {
         Self {
             reader: Box::new(reader),
             mime: Some(mime::BYTE_STREAM),
-            length: None,
+            length: len,
         }
+    }
+
+    /// Get the length of the body in bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    ///
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let len = 10;
+    /// let body = Body::from_reader(cursor, Some(len));
+    /// assert_eq!(body.len(), Some(10));
+    /// ```
+    pub fn len(&self) -> Option<usize> {
+        self.length
+    }
+
+    /// Get the inner reader from the `Body`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::prelude::*;
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    ///
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let body = Body::from_reader(cursor, None);
+    /// let _ = body.into_reader();
+    /// ```
+    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
+        self.reader
     }
 
     /// Get the recommended mime type.
@@ -49,21 +150,6 @@ impl Body {
     /// and when passing it to the request / response we don't want to clone it.
     pub(crate) fn take_mime(&mut self) -> Mime {
         self.mime.take().unwrap()
-    }
-
-    /// Get the length of the body in bytes.
-    pub fn len(&self) -> Option<usize> {
-        self.length
-    }
-
-    /// Get the length of the body in bytes.
-    pub fn set_len(&mut self, length: usize) {
-        self.length = Some(length);
-    }
-
-    /// Get the inner reader from the `Body`
-    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
-        self.reader
     }
 }
 
