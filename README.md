@@ -31,7 +31,7 @@
       API Docs
     </a>
     <span> | </span>
-    <a href="https://github.com/async-rs/async-std/releases">
+    <a href="https://github.com/http-rs/http-types/releases">
       Releases
     </a>
     <span> | </span>
