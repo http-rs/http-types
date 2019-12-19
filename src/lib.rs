@@ -139,5 +139,8 @@ pub use headers::Headers;
 #[doc(inline)]
 pub use crate::url::Url;
 
+#[doc(inline)]
+pub use crate::cookies::Cookie;
+
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;

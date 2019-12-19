@@ -2,7 +2,7 @@ use std::fmt::{self, Display};
 use std::str::FromStr;
 
 use crate::headers::ParseError;
-use crate::Mime;
+use crate::{Cookie, Mime};
 
 /// A header value.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -50,6 +50,14 @@ impl From<Mime> for HeaderValue {
     fn from(mime: Mime) -> Self {
         HeaderValue {
             inner: format!("{}", mime),
+        }
+    }
+}
+
+impl From<Cookie<'_>> for HeaderValue {
+    fn from(cookie: Cookie<'_>) -> Self {
+        HeaderValue {
+            inner: cookie.to_string(),
         }
     }
 }

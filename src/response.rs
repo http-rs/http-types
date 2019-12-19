@@ -7,7 +7,7 @@ use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
-use crate::{Body, StatusCode, Version};
+use crate::{Body, Cookie, StatusCode, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
@@ -140,6 +140,74 @@ impl Response {
     /// ```
     pub fn set_version(&mut self, version: Option<Version>) {
         self.version = version;
+    }
+
+    /// Get all cookies.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Cookie, Response, StatusCode, Version};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_cookie(Cookie::new("name", "value"));
+    /// assert_eq!(res.cookies().unwrap(), vec![Cookie::new("name", "value")]);
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn cookies(&self) -> Result<Vec<Cookie<'_>>, cookie::ParseError> {
+        match self.header(&headers::SET_COOKIE) {
+            None => Ok(vec![]),
+            Some(h) => h.iter().try_fold(vec![], |mut acc, h| {
+                let cookie = Cookie::parse(h.as_str())?;
+                acc.push(cookie);
+                Ok(acc)
+            }),
+        }
+    }
+
+    /// Get a cookie by name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Cookie, Response, StatusCode, Version};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_cookie(Cookie::new("name", "value"));
+    /// assert_eq!(res.cookie("name").unwrap(), Some(Cookie::new("name", "value")));
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, cookie::ParseError> {
+        let cookies = self.cookies()?;
+        let cookie = cookies.into_iter().filter(|c| c.name() == name).next();
+        Ok(cookie)
+    }
+
+    /// Set a cookie.
+    ///
+    /// This will not override any existing cookies, and uses the `Cookies` header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Cookie, Response, StatusCode, Version};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_cookie(Cookie::new("name", "value"));
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn set_cookie(&mut self, cookie: Cookie<'_>) {
+        self.append_header(headers::SET_COOKIE, HeaderValue::from(cookie))
+            .unwrap();
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
