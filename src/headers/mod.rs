@@ -143,3 +143,55 @@ impl<'a> IntoIterator for &'a mut Headers {
         self.iter_mut()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    const STATIC_HEADER: HeaderName = HeaderName::from_lowercase_str("hello");
+
+    #[test]
+    fn test_header_name_static_non_static() {
+        let static_header = HeaderName::from_lowercase_str("hello");
+        let non_static_header = HeaderName::from_str("hello").unwrap();
+
+        let mut headers = Headers::new();
+        headers
+            .append(STATIC_HEADER, &["foo0".parse().unwrap()][..])
+            .unwrap();
+        headers
+            .append(static_header.clone(), &["foo1".parse().unwrap()][..])
+            .unwrap();
+        headers
+            .append(non_static_header.clone(), &["foo2".parse().unwrap()][..])
+            .unwrap();
+
+        assert_eq!(
+            &headers.get(&STATIC_HEADER).unwrap()[..],
+            &[
+                "foo0".parse().unwrap(),
+                "foo1".parse().unwrap(),
+                "foo2".parse().unwrap()
+            ][..]
+        );
+
+        assert_eq!(
+            &headers.get(&static_header).unwrap()[..],
+            &[
+                "foo0".parse().unwrap(),
+                "foo1".parse().unwrap(),
+                "foo2".parse().unwrap()
+            ][..]
+        );
+
+        assert_eq!(
+            &headers.get(&non_static_header).unwrap()[..],
+            &[
+                "foo0".parse().unwrap(),
+                "foo1".parse().unwrap(),
+                "foo2".parse().unwrap()
+            ][..]
+        );
+    }
+}

@@ -1,15 +1,46 @@
 use std::fmt::{self, Debug, Display};
+use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
 use crate::headers::ParseError;
 
 /// A header name.
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Clone)]
 pub struct HeaderName {
     /// The inner representation of the string.
     pub(crate) string: String,
     /// A const-friendly string. Useful because `String::from` cannot be used in const contexts.
     pub(crate) static_str: Option<&'static str>,
+}
+
+impl PartialEq for HeaderName {
+    fn eq(&self, other: &Self) -> bool {
+        if let Some(s1) = self.static_str {
+            if let Some(s2) = other.static_str {
+                s1 == s2
+            } else {
+                s1 == &other.string
+            }
+        } else {
+            if let Some(s2) = other.static_str {
+                &self.string == s2
+            } else {
+                &self.string == &other.string
+            }
+        }
+    }
+}
+
+impl Eq for HeaderName {}
+
+impl Hash for HeaderName {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        if let Some(s) = self.static_str {
+            s.hash(state);
+        } else {
+            self.string.hash(state)
+        }
+    }
 }
 
 impl HeaderName {
@@ -87,5 +118,24 @@ impl FromStr for HeaderName {
             string: s.to_ascii_lowercase(),
             static_str: None,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_header_name_static_non_static() {
+        let static_header = HeaderName::from_lowercase_str("hello");
+        let non_static_header = HeaderName::from_str("hello").unwrap();
+
+        assert_eq!(&static_header, &non_static_header);
+        assert_eq!(&static_header, &static_header);
+        assert_eq!(&non_static_header, &non_static_header);
+
+        assert_eq!(static_header, non_static_header);
+        assert_eq!(static_header, static_header);
+        assert_eq!(non_static_header, non_static_header);
     }
 }
