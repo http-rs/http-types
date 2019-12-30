@@ -152,6 +152,11 @@ impl Response {
         self.version = version;
     }
 
+    /// Set the status.
+    pub fn set_status(&mut self, status: StatusCode) {
+        self.status = status;
+    }
+
     /// Get all cookies.
     ///
     /// # Examples
