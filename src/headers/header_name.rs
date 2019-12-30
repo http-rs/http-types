@@ -57,6 +57,15 @@ impl HeaderName {
         })
     }
 
+    /// Returns the header name as a `&str`.
+    pub fn as_str(&self) -> &'_ str {
+        if let Some(s) = self.static_str {
+            return &s;
+        }
+
+        &self.string
+    }
+
     /// Converts a vector of bytes to a `HeaderName` without checking that the string contains
     /// valid ASCII.
     ///
