@@ -51,7 +51,12 @@ impl Request {
 
     /// Set the HTTP method.
     pub fn set_method(&mut self, method: Method) {
-        self.method = method
+        self.method = method;
+    }
+
+    /// Set the headers.
+    pub fn set_headers(&mut self, headers: Headers) {
+        self.headers = headers;
     }
 
     /// Get a reference to the url.

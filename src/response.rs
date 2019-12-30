@@ -33,8 +33,8 @@ impl Response {
     }
 
     /// Get the status
-    pub fn status(&self) -> &StatusCode {
-        &self.status
+    pub fn status(&self) -> StatusCode {
+        self.status
     }
 
     /// Get a reference to all headers.
