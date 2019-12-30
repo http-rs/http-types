@@ -45,8 +45,8 @@ impl Request {
     }
 
     /// Get the HTTP method
-    pub fn method(&self) -> &Method {
-        &self.method
+    pub fn method(&self) -> Method {
+        self.method
     }
 
     /// Set the HTTP method.
