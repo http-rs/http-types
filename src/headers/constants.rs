@@ -11,3 +11,6 @@ pub const COOKIE: HeaderName = HeaderName::from_lowercase_str("cookie");
 
 /// The `Set-Cookie` Header
 pub const SET_COOKIE: HeaderName = HeaderName::from_lowercase_str("set-cookie");
+
+/// The `Transfer-Encoding` Header
+pub const TRANSFER_ENCODING: HeaderName = HeaderName::from_lowercase_str("transfer-encoding");
