@@ -12,6 +12,7 @@ readme = "README.md"
 edition = "2018"
 
 [features]
+default = []
 hyperium_http = ["http"]
 
 [dependencies]
@@ -19,7 +20,6 @@ async-std = { version = "1.4.0", default-features = false, features = ["std"] }
 cookie = "0.12.0"
 infer = "0.1.2"
 pin-project-lite = "0.1.0"
-pin-utils = "0.1.0-alpha.4"
 url = "2.1.0"
 omnom = "2.1.1"
 
