@@ -88,7 +88,9 @@ impl Response {
         self.body = body.into();
         let mime = self.body.take_mime();
         if self.header(&CONTENT_TYPE).is_none() {
-            self.set_content_type(mime);
+            if let Some(ct) = mime {
+                self.set_content_type(ct);
+            }
         }
     }
 

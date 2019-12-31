@@ -99,7 +99,9 @@ impl Request {
         self.body = body.into();
         let mime = self.body.take_mime();
         if self.header(&CONTENT_TYPE).is_none() {
-            self.set_content_type(mime);
+            if let Some(ct) = mime {
+                self.set_content_type(ct);
+            }
         }
     }
 
@@ -160,6 +162,13 @@ impl Request {
 
         // A Mime instance is guaranteed to be valid header name.
         self.insert_header(header, value).unwrap()
+    }
+
+    /// Get the current content type
+    pub fn content_type(&self) -> Option<Mime> {
+        self.header(&CONTENT_TYPE)
+            .and_then(|v| v.last())
+            .and_then(|v| v.as_str().parse().ok())
     }
 
     /// Get the length of the body stream, if it has been set.
