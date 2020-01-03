@@ -52,7 +52,7 @@ pin_project_lite::pin_project! {
     pub struct Body {
         #[pin]
         reader: Box<dyn BufRead + Unpin + Send + Sync + 'static>,
-        mime: Option<Mime>,
+        mime: Mime,
         length: Option<usize>,
     }
 }
@@ -74,7 +74,7 @@ impl Body {
     pub fn empty() -> Self {
         Self {
             reader: Box::new(io::empty()),
-            mime: Some(mime::BYTE_STREAM),
+            mime: mime::BYTE_STREAM,
             length: Some(0),
         }
     }
@@ -104,7 +104,7 @@ impl Body {
     ) -> Self {
         Self {
             reader: Box::new(reader),
-            mime: Some(mime::BYTE_STREAM),
+            mime: mime::BYTE_STREAM,
             length: len,
         }
     }
@@ -147,12 +147,9 @@ impl Body {
         self.reader
     }
 
-    /// Get the recommended mime type.
-    ///
-    /// This methods exists because Body is instantiated with a MIME type,
-    /// and when passing it to the request / response we don't want to clone it.
-    pub(crate) fn take_mime(&mut self) -> Option<Mime> {
-        self.mime.take()
+    /// Return the mime type.
+    pub fn mime(&self) -> &Mime {
+        &self.mime
     }
 }
 
@@ -170,7 +167,7 @@ impl From<String> for Body {
         Self {
             length: Some(s.len()),
             reader: Box::new(io::Cursor::new(s.into_bytes())),
-            mime: Some(string_mime()),
+            mime: string_mime(),
         }
     }
 }
@@ -180,7 +177,7 @@ impl<'a> From<&'a str> for Body {
         Self {
             length: Some(s.len()),
             reader: Box::new(io::Cursor::new(s.to_owned().into_bytes())),
-            mime: Some(string_mime()),
+            mime: string_mime(),
         }
     }
 }
@@ -198,7 +195,7 @@ impl From<Vec<u8>> for Body {
         Self {
             length: Some(b.len()),
             reader: Box::new(io::Cursor::new(b)),
-            mime: Some(mime::BYTE_STREAM),
+            mime: mime::BYTE_STREAM,
         }
     }
 }

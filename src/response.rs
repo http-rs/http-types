@@ -86,24 +86,17 @@ impl Response {
     /// Set the body reader.
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
-        let mime = self.body.take_mime();
         if self.header(&CONTENT_TYPE).is_none() {
-            if let Some(ct) = mime {
-                self.set_content_type(ct);
-            }
+            self.set_content_type(self.body.mime().clone());
         }
     }
 
     /// Set the response MIME.
     pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
-        let header = HeaderName {
-            string: String::new(),
-            static_str: Some("content-type"),
-        };
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(header, value).unwrap()
+        self.insert_header(CONTENT_TYPE, value).unwrap()
     }
 
     /// Get the length of the body stream, if it has been set.

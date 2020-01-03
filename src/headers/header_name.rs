@@ -1,47 +1,12 @@
+use std::borrow::Cow;
 use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
 use crate::headers::ParseError;
 
 /// A header name.
-#[derive(Clone)]
-pub struct HeaderName {
-    /// The inner representation of the string.
-    pub(crate) string: String,
-    /// A const-friendly string. Useful because `String::from` cannot be used in const contexts.
-    pub(crate) static_str: Option<&'static str>,
-}
-
-impl PartialEq for HeaderName {
-    fn eq(&self, other: &Self) -> bool {
-        if let Some(s1) = self.static_str {
-            if let Some(s2) = other.static_str {
-                s1 == s2
-            } else {
-                s1 == &other.string
-            }
-        } else {
-            if let Some(s2) = other.static_str {
-                &self.string == s2
-            } else {
-                &self.string == &other.string
-            }
-        }
-    }
-}
-
-impl Eq for HeaderName {}
-
-impl Hash for HeaderName {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        if let Some(s) = self.static_str {
-            s.hash(state);
-        } else {
-            self.string.hash(state)
-        }
-    }
-}
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct HeaderName(Cow<'static, str>);
 
 impl HeaderName {
     /// Create a new `HeaderName`.
@@ -51,19 +16,12 @@ impl HeaderName {
         }
         bytes.make_ascii_lowercase();
         let string = String::from_utf8(bytes).map_err(|_| ParseError::new())?;
-        Ok(Self {
-            string: string,
-            static_str: None,
-        })
+        Ok(HeaderName(Cow::Owned(string)))
     }
 
     /// Returns the header name as a `&str`.
     pub fn as_str(&self) -> &'_ str {
-        if let Some(s) = self.static_str {
-            return &s;
-        }
-
-        &self.string
+        &self.0
     }
 
     /// Converts a vector of bytes to a `HeaderName` without checking that the string contains
@@ -78,38 +36,18 @@ impl HeaderName {
     pub unsafe fn from_ascii_unchecked(mut bytes: Vec<u8>) -> Self {
         bytes.make_ascii_lowercase();
         let string = String::from_utf8_unchecked(bytes);
-        Self {
-            string,
-            static_str: None,
-        }
+        HeaderName(Cow::Owned(string))
     }
 
     /// Converts a string assumed to lowercase into a `HeaderName`
     pub(crate) const fn from_lowercase_str(str: &'static str) -> Self {
-        Self {
-            string: String::new(),
-            static_str: Some(str),
-        }
+        HeaderName(Cow::Borrowed(str))
     }
 }
 
 impl Display for HeaderName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(string) = self.static_str {
-            Display::fmt(string, f)
-        } else {
-            Display::fmt(&self.string, f)
-        }
-    }
-}
-
-impl Debug for HeaderName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(string) = self.static_str {
-            Debug::fmt(string, f)
-        } else {
-            Debug::fmt(&self.string, f)
-        }
+        Display::fmt(&self, f)
     }
 }
 
@@ -123,10 +61,7 @@ impl FromStr for HeaderName {
         if !s.is_ascii() {
             return Err(ParseError::new());
         }
-        Ok(Self {
-            string: s.to_ascii_lowercase(),
-            static_str: None,
-        })
+        Ok(HeaderName(Cow::Owned(s.to_ascii_lowercase())))
     }
 }
 

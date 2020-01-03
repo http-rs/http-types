@@ -29,3 +29,14 @@ impl<'a> ToHeaderValues for &'a [HeaderValue] {
         Ok(self.iter().cloned())
     }
 }
+
+impl<'a> ToHeaderValues for &'a str {
+    type Iter = option::IntoIter<HeaderValue>;
+
+    fn to_header_values(&self) -> io::Result<Self::Iter> {
+        let value = self
+            .parse()
+            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+        Ok(Some(value).into_iter())
+    }
+}

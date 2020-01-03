@@ -20,6 +20,7 @@ use infer::Infer;
 /// An IANA media type.
 // NOTE: we cannot statically initialize Strings with values yet, so we keep dedicated static
 // fields for the static strings.
+#[derive(Clone)]
 pub struct Mime {
     pub(crate) essence: String,
     pub(crate) basetype: String,

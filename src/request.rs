@@ -97,11 +97,9 @@ impl Request {
     /// Set the request body.
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
-        let mime = self.body.take_mime();
         if self.header(&CONTENT_TYPE).is_none() {
-            if let Some(ct) = mime {
-                self.set_content_type(ct);
-            }
+            let mime = self.body.mime().clone();
+            self.set_content_type(mime);
         }
     }
 
@@ -154,21 +152,15 @@ impl Request {
     /// Set the response MIME.
     // TODO: return a parsed MIME
     pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
-        let header = HeaderName {
-            string: String::new(),
-            static_str: Some("content-type"),
-        };
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(header, value).unwrap()
+        self.insert_header(CONTENT_TYPE, value).unwrap()
     }
 
     /// Get the current content type
     pub fn content_type(&self) -> Option<Mime> {
-        self.header(&CONTENT_TYPE)
-            .and_then(|v| v.last())
-            .and_then(|v| v.as_str().parse().ok())
+        self.header(&CONTENT_TYPE)?.last()?.as_str().parse().ok()
     }
 
     /// Get the length of the body stream, if it has been set.
