@@ -47,7 +47,7 @@ impl HeaderName {
 
 impl Display for HeaderName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt(&self, f)
+        write!(f, "{}", self.0)
     }
 }
 

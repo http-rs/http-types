@@ -549,6 +549,6 @@ impl PartialEq<u16> for StatusCode {
 
 impl Display for StatusCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.clone() as u16)
+        write!(f, "{}", *self as u16)
     }
 }
