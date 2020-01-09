@@ -1,5 +1,6 @@
 use async_std::io::{self, BufRead, Read};
 
+use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -11,6 +12,19 @@ use crate::{Body, Cookie, StatusCode, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.set_body("Hello, Nori!");
+    /// #
+    /// # Ok(()) }
+    /// ```
     #[derive(Debug)]
     pub struct Response {
         status: StatusCode,
@@ -74,12 +88,66 @@ impl Response {
     }
 
     /// Set the body reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.set_body("Hello, Nori!");
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         if self.header(&CONTENT_TYPE).is_none() {
             let mime = self.body.take_mime();
             self.set_content_type(mime);
         }
+    }
+
+    /// Replace the request body with a new body, and return the old body.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.set_body("Hello, Nori!");
+    /// let _body: Body = req.swap_body("Hello, Chashu!");
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn swap_body(&mut self, body: impl Into<Body>) -> Body {
+        let mut body = body.into();
+        mem::swap(&mut self.body, &mut body);
+        body
+    }
+
+    /// Take the request body, replacing it with an empty body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.set_body("Hello, Nori!");
+    /// let _body: Body = req.take_body();
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn take_body(&mut self) -> Body {
+        self.swap_body(Body::empty())
     }
 
     /// Set the response MIME.

@@ -1,5 +1,6 @@
 use async_std::io::{self, BufRead, Read};
 
+use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -103,12 +104,53 @@ impl Request {
     }
 
     /// Set the request body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("hello world");
+    /// ```
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         if self.header(&CONTENT_TYPE).is_none() {
             let mime = self.body.take_mime();
             self.set_content_type(mime);
         }
+    }
+
+    /// Replace the request body with a new body, and return the old body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("hello world");
+    /// let _body: Body = req.swap_body("hello planet");
+    /// ```
+    pub fn swap_body(&mut self, body: impl Into<Body>) -> Body {
+        let mut body = body.into();
+        mem::swap(&mut self.body, &mut body);
+        body
+    }
+
+    /// Take the request body, replacing it with an empty body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("hello world");
+    /// let _body: Body = req.take_body();
+    /// ```
+    pub fn take_body(&mut self) -> Body {
+        self.swap_body(Body::empty())
     }
 
     /// Get an HTTP header.
