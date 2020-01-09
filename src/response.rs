@@ -114,16 +114,22 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # use async_std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_body("Hello, Nori!");
     ///
-    /// let body: Body = req.replace_body("Hello, Chashu");
+    /// let mut body: Body = req.replace_body("Hello, Chashu");
+    ///
+    /// let mut string = String::new();
+    /// body.read_to_string(&mut string).await?;
+    /// assert_eq!(&string, "Hello, Nori!");
     /// #
-    /// # Ok(()) }
+    /// # Ok(()) }) }
     /// ```
     pub fn replace_body(&mut self, body: impl Into<Body>) -> Body {
         mem::replace(&mut self.body, body.into())
@@ -135,17 +141,23 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # use async_std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_body("Hello, Nori!");
     ///
-    /// let mut body = "Hello, Chashu".into();
+    /// let mut body = "Hello, Chashu!".into();
     /// req.swap_body(&mut body);
+    ///
+    /// let mut string = String::new();
+    /// body.read_to_string(&mut string).await?;
+    /// assert_eq!(&string, "Hello, Nori!");
     /// #
-    /// # Ok(()) }
+    /// # Ok(()) }) }
     /// ```
     pub fn swap_body(&mut self, body: &mut Body) {
         mem::swap(&mut self.body, body);
@@ -156,15 +168,25 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # use async_std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_body("Hello, Nori!");
-    /// let _body: Body = req.take_body();
+    /// let mut body: Body = req.take_body();
+    ///
+    /// let mut string = String::new();
+    /// body.read_to_string(&mut string).await?;
+    /// assert_eq!(&string, "Hello, Nori!");
+    ///
+    /// # let mut string = String::new();
+    /// # req.read_to_string(&mut string).await?;
+    /// # assert_eq!(&string, "");
     /// #
-    /// # Ok(()) }
+    /// # Ok(()) }) }
     /// ```
     pub fn take_body(&mut self) -> Body {
         self.replace_body(Body::empty())
