@@ -33,8 +33,8 @@ impl Response {
     }
 
     /// Get the status
-    pub fn status(&self) -> &StatusCode {
-        &self.status
+    pub fn status(&self) -> StatusCode {
+        self.status
     }
 
     /// Get a mutable reference to a header.
@@ -76,22 +76,18 @@ impl Response {
     /// Set the body reader.
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
-        let mime = self.body.take_mime();
         if self.header(&CONTENT_TYPE).is_none() {
+            let mime = self.body.take_mime();
             self.set_content_type(mime);
         }
     }
 
     /// Set the response MIME.
     pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
-        let header = HeaderName {
-            string: String::new(),
-            static_str: Some("content-type"),
-        };
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(header, value).unwrap()
+        self.insert_header(CONTENT_TYPE, value).unwrap()
     }
 
     /// Get the length of the body stream, if it has been set.
@@ -140,6 +136,11 @@ impl Response {
     /// ```
     pub fn set_version(&mut self, version: Option<Version>) {
         self.version = version;
+    }
+
+    /// Set the status.
+    pub fn set_status(&mut self, status: StatusCode) {
+        self.status = status;
     }
 
     /// Get all cookies.

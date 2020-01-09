@@ -45,8 +45,26 @@ impl Request {
     }
 
     /// Get the HTTP method
-    pub fn method(&self) -> &Method {
-        &self.method
+    pub fn method(&self) -> Method {
+        self.method
+    }
+
+    /// Set the HTTP method.
+    pub fn set_method(&mut self, method: Method) {
+        self.method = method;
+    }
+
+    /// Set the headers.
+    pub fn set_headers<'a, T: IntoIterator<Item = (&'a HeaderName, &'a Vec<HeaderValue>)>>(
+        &mut self,
+        headers: T,
+    ) {
+        self.headers = Headers {
+            headers: headers
+                .into_iter()
+                .map(|(name, values)| (name.clone(), values.clone()))
+                .collect(),
+        };
     }
 
     /// Get a reference to the url.
@@ -87,8 +105,8 @@ impl Request {
     /// Set the request body.
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
-        let mime = self.body.take_mime();
         if self.header(&CONTENT_TYPE).is_none() {
+            let mime = self.body.take_mime();
             self.set_content_type(mime);
         }
     }
@@ -132,14 +150,15 @@ impl Request {
     /// Set the response MIME.
     // TODO: return a parsed MIME
     pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
-        let header = HeaderName {
-            string: String::new(),
-            static_str: Some("content-type"),
-        };
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(header, value).unwrap()
+        self.insert_header(CONTENT_TYPE, value).unwrap()
+    }
+
+    /// Get the current content type
+    pub fn content_type(&self) -> Option<Mime> {
+        self.header(&CONTENT_TYPE)?.last()?.as_str().parse().ok()
     }
 
     /// Get the length of the body stream, if it has been set.

@@ -51,7 +51,7 @@ pin_project_lite::pin_project! {
     /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
-        reader: Box<dyn BufRead + Unpin + Send + 'static>,
+        reader: Box<dyn BufRead + Unpin + Send + Sync + 'static>,
         mime: Option<Mime>,
         length: Option<usize>,
     }
@@ -98,7 +98,10 @@ impl Body {
     /// let len = 10;
     /// req.set_body(Body::from_reader(cursor, Some(len)));
     /// ```
-    pub fn from_reader(reader: impl BufRead + Unpin + Send + 'static, len: Option<usize>) -> Self {
+    pub fn from_reader(
+        reader: impl BufRead + Unpin + Send + Sync + 'static,
+        len: Option<usize>,
+    ) -> Self {
         Self {
             reader: Box::new(reader),
             mime: Some(mime::BYTE_STREAM),
@@ -144,12 +147,9 @@ impl Body {
         self.reader
     }
 
-    /// Get the recommended mime type.
-    ///
-    /// This methods exists because Body is instantiated with a MIME type,
-    /// and when passing it to the request / response we don't want to clone it.
+    /// Return the mime type.
     pub(crate) fn take_mime(&mut self) -> Mime {
-        self.mime.take().unwrap()
+        self.mime.take().expect("internal error: missing mime")
     }
 }
 

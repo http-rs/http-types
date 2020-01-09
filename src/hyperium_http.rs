@@ -11,8 +11,8 @@ impl From<http::Method> for Method {
     }
 }
 
-impl From<&Method> for http::Method {
-    fn from(method: &Method) -> Self {
+impl From<Method> for http::Method {
+    fn from(method: Method) -> Self {
         http::Method::from_str(&format!("{}", method)).unwrap()
     }
 }

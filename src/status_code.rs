@@ -535,8 +535,20 @@ impl std::convert::TryFrom<u16> for StatusCode {
     }
 }
 
+impl PartialEq<StatusCode> for u16 {
+    fn eq(&self, other: &StatusCode) -> bool {
+        *self == *other as u16
+    }
+}
+
+impl PartialEq<u16> for StatusCode {
+    fn eq(&self, other: &u16) -> bool {
+        *self as u16 == *other
+    }
+}
+
 impl Display for StatusCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.clone() as u16)
+        write!(f, "{}", *self as u16)
     }
 }
