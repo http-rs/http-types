@@ -37,16 +37,6 @@ impl Response {
         self.status
     }
 
-    /// Get a reference to all headers.
-    pub fn headers(&self) -> &headers::Headers {
-        &self.headers
-    }
-
-    /// Get a mutable reference to all headers.
-    pub fn headers_mut(&mut self) -> &mut headers::Headers {
-        &mut self.headers
-    }
-
     /// Get a mutable reference to a header.
     pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
         self.headers.get_mut(name)
