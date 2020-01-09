@@ -1,5 +1,6 @@
 use async_std::io::{self, BufRead, Read};
 
+use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -19,7 +20,7 @@ pin_project_lite::pin_project! {
     /// use http_types::{Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
-    /// req.set_body("hello world");
+    /// req.set_body("Hello, Nori!");
     /// ```
     #[derive(Debug)]
     pub struct Request {
@@ -103,12 +104,102 @@ impl Request {
     }
 
     /// Set the request body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("Hello, Nori!");
+    /// ```
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         if self.header(&CONTENT_TYPE).is_none() {
             let mime = self.body.take_mime();
             self.set_content_type(mime);
         }
+    }
+
+    /// Swaps the value of the body with another body, without deinitializing
+    /// either one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use async_std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// #
+    /// use http_types::{Body, Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("Hello, Nori!");
+    /// let mut body: Body = req.replace_body("Hello, Chashu!");
+    ///
+    /// let mut string = String::new();
+    /// body.read_to_string(&mut string).await?;
+    /// assert_eq!(&string, "Hello, Nori!");
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    pub fn replace_body(&mut self, body: impl Into<Body>) -> Body {
+        mem::replace(&mut self.body, body.into())
+    }
+
+    /// Replace the request body with a new body, and return the old body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use async_std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// #
+    /// use http_types::{Body, Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("Hello, Nori!");
+    /// let mut body = "Hello, Chashu!".into();
+    /// req.swap_body(&mut body);
+    ///
+    /// let mut string = String::new();
+    /// body.read_to_string(&mut string).await?;
+    /// assert_eq!(&string, "Hello, Nori!");
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    pub fn swap_body(&mut self, body: &mut Body) {
+        mem::swap(&mut self.body, body);
+    }
+
+    /// Take the request body, replacing it with an empty body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use async_std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// #
+    /// use http_types::{Body, Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("Hello, Nori!");
+    /// let mut body: Body = req.take_body();
+    ///
+    /// let mut string = String::new();
+    /// body.read_to_string(&mut string).await?;
+    /// assert_eq!(&string, "Hello, Nori!");
+    ///
+    /// # let mut string = String::new();
+    /// # req.read_to_string(&mut string).await?;
+    /// # assert_eq!(&string, "");
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    pub fn take_body(&mut self) -> Body {
+        self.replace_body(Body::empty())
     }
 
     /// Get an HTTP header.
