@@ -5,12 +5,12 @@ use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::Trailers;
 use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
 use crate::Cookie;
+use crate::Trailers;
 use crate::{Body, Method, Url, Version};
 
 pin_project_lite::pin_project! {
