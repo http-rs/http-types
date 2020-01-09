@@ -87,7 +87,8 @@ impl Response {
     pub fn set_body(&mut self, body: impl Into<Body>) {
         self.body = body.into();
         if self.header(&CONTENT_TYPE).is_none() {
-            self.set_content_type(self.body.mime().clone());
+            let mime = self.body.take_mime();
+            self.set_content_type(mime);
         }
     }
 
