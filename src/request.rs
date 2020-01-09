@@ -1,9 +1,11 @@
 use async_std::io::{self, BufRead, Read};
+use async_std::sync;
 
 use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use crate::Trailers;
 use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
 };
@@ -28,6 +30,8 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
+        sender: sync::Sender<io::Result<Trailers>>,
+        receiver: sync::Receiver<io::Result<Trailers>>,
         #[pin]
         body: Body,
     }
@@ -36,12 +40,15 @@ pin_project_lite::pin_project! {
 impl Request {
     /// Create a new request.
     pub fn new(method: Method, url: Url) -> Self {
+        let (sender, receiver) = sync::channel(1);
         Self {
             method,
             url,
             headers: Headers::new(),
             version: None,
             body: Body::empty(),
+            sender,
+            receiver,
         }
     }
 
@@ -366,6 +373,16 @@ impl Request {
     pub fn set_cookie(&mut self, cookie: Cookie<'_>) {
         self.append_header(headers::COOKIE, HeaderValue::from(cookie))
             .unwrap();
+    }
+
+    /// Sends trailers to the a receiver.
+    pub async fn send_trailers(&self, trailers: io::Result<Trailers>) {
+        self.sender.send(trailers).await;
+    }
+
+    /// Receive trailers from a sender.
+    pub async fn recv_trailers(&self) -> Option<io::Result<Trailers>> {
+        self.receiver.recv().await
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
