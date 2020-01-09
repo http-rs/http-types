@@ -126,16 +126,30 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Body, Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("hello world");
-    /// let _body: Body = req.swap_body("hello planet");
+    /// let _body: Body = req.replace_body("hello planet");
     /// ```
-    pub fn swap_body(&mut self, body: impl Into<Body>) -> Body {
-        let mut body = body.into();
-        mem::swap(&mut self.body, &mut body);
-        body
+    pub fn replace_body(&mut self, body: impl Into<Body>) -> Body {
+        mem::replace(&mut self.body, body.into())
+    }
+
+    /// Replace the request body with a new body, and return the old body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("hello world");
+    /// let mut body = "hello planet".into();
+    /// req.swap_body(&mut body);
+    /// ```
+    pub fn swap_body(&mut self, body: &mut Body) {
+        mem::swap(&mut self.body, body);
     }
 
     /// Take the request body, replacing it with an empty body.
@@ -143,14 +157,14 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Body, Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("hello world");
     /// let _body: Body = req.take_body();
     /// ```
     pub fn take_body(&mut self) -> Body {
-        self.swap_body(Body::empty())
+        self.replace_body(Body::empty())
     }
 
     /// Get an HTTP header.

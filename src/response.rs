@@ -109,26 +109,46 @@ impl Response {
         }
     }
 
-    /// Replace the request body with a new body, and return the old body.
-    ///
+    /// Replace the request body with a new body, returning the old body.
     ///
     /// # Examples
     ///
     /// ```
     /// # fn main() -> Result<(), http_types::url::ParseError> {
     /// #
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Body, Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_body("Hello, Nori!");
-    /// let _body: Body = req.swap_body("Hello, Chashu!");
+    ///
+    /// let body: Body = req.replace_body("Hello, Chashu");
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn swap_body(&mut self, body: impl Into<Body>) -> Body {
-        let mut body = body.into();
-        mem::swap(&mut self.body, &mut body);
-        body
+    pub fn replace_body(&mut self, body: impl Into<Body>) -> Body {
+        mem::replace(&mut self.body, body.into())
+    }
+
+    /// Swaps the value of the body with another body, without deinitializing
+    /// either one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// #
+    /// use http_types::{Body, Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.set_body("Hello, Nori!");
+    ///
+    /// let mut body = "Hello, Chashu".into();
+    /// req.swap_body(&mut body);
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn swap_body(&mut self, body: &mut Body) {
+        mem::swap(&mut self.body, body);
     }
 
     /// Take the request body, replacing it with an empty body.
@@ -138,7 +158,7 @@ impl Response {
     /// ```
     /// # fn main() -> Result<(), http_types::url::ParseError> {
     /// #
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Body, Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_body("Hello, Nori!");
@@ -147,7 +167,7 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub fn take_body(&mut self) -> Body {
-        self.swap_body(Body::empty())
+        self.replace_body(Body::empty())
     }
 
     /// Set the response MIME.
