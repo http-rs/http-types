@@ -30,7 +30,7 @@ pub use values::Values;
 /// A collection of HTTP Headers.
 #[derive(Debug)]
 pub struct Headers {
-    headers: HashMap<HeaderName, Vec<HeaderValue>>,
+    pub(crate) headers: HashMap<HeaderName, Vec<HeaderValue>>,
 }
 
 impl Headers {
@@ -141,25 +141,6 @@ impl<'a> IntoIterator for &'a mut Headers {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
-    }
-}
-
-impl std::iter::FromIterator<(HeaderName, Vec<HeaderValue>)> for Headers {
-    fn from_iter<I: IntoIterator<Item = (HeaderName, Vec<HeaderValue>)>>(iter: I) -> Self {
-        Headers {
-            headers: iter.into_iter().collect(),
-        }
-    }
-}
-
-impl<'a> std::iter::FromIterator<(&'a HeaderName, &'a Vec<HeaderValue>)> for Headers {
-    fn from_iter<I: IntoIterator<Item = (&'a HeaderName, &'a Vec<HeaderValue>)>>(iter: I) -> Self {
-        Headers {
-            headers: iter
-                .into_iter()
-                .map(|(name, values)| (name.clone(), values.clone()))
-                .collect(),
-        }
     }
 }
 

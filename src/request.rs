@@ -59,7 +59,12 @@ impl Request {
         &mut self,
         headers: T,
     ) {
-        self.headers = headers.into_iter().collect();
+        self.headers = Headers {
+            headers: headers
+                .into_iter()
+                .map(|(name, values)| (name.clone(), values.clone()))
+                .collect(),
+        };
     }
 
     /// Get a reference to the url.
