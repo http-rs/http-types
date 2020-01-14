@@ -15,14 +15,14 @@ impl HeaderValue {
     ///
     /// # Error
     ///
-    /// This function will error if the string
+    /// This function will error if the string is not a valid ASCII.
     pub fn from_ascii(bytes: &[u8]) -> Result<Self, ParseError> {
         if !bytes.is_ascii() {
             return Err(ParseError::new());
         }
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
-        let string = unsafe { String::from_utf8_unchecked(bytes.to_ascii_lowercase()) };
+        let string = unsafe { String::from_utf8_unchecked(bytes.to_vec()) };
         Ok(Self { inner: string })
     }
 
@@ -75,13 +75,13 @@ impl FromStr for HeaderValue {
 
     /// Create a new `HeaderValue`.
     ///
-    /// This checks it's valid ASCII, and lowercases it.
+    /// This checks it's valid ASCII.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if !s.is_ascii() {
             return Err(ParseError::new());
         }
         Ok(Self {
-            inner: s.to_ascii_lowercase(),
+            inner: String::from(s),
         })
     }
 }
