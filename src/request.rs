@@ -62,19 +62,6 @@ impl Request {
         self.method = method;
     }
 
-    /// Set the headers.
-    pub fn set_headers<'a, T: IntoIterator<Item = (&'a HeaderName, &'a Vec<HeaderValue>)>>(
-        &mut self,
-        headers: T,
-    ) {
-        self.headers = Headers {
-            headers: headers
-                .into_iter()
-                .map(|(name, values)| (name.clone(), values.clone()))
-                .collect(),
-        };
-    }
-
     /// Get a reference to the url.
     ///
     /// # Examples
