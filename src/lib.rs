@@ -120,7 +120,6 @@ mod method;
 mod request;
 mod response;
 mod status_code;
-mod trailers;
 mod version;
 
 pub use body::Body;
@@ -143,6 +142,9 @@ pub use crate::url::Url;
 
 #[doc(inline)]
 pub use crate::cookies::Cookie;
+
+#[doc(inline)]
+pub mod trailers;
 
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;
