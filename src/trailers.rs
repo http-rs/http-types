@@ -70,7 +70,7 @@ impl Trailers {
     }
 
     /// Insert a header into the headers.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -95,7 +95,7 @@ impl Trailers {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -108,7 +108,11 @@ impl Trailers {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn append(&mut self, name: impl TryInto<HeaderName>, values: impl ToHeaderValues) -> io::Result<()> {
+    pub fn append(
+        &mut self,
+        name: impl TryInto<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> io::Result<()> {
         self.headers.append(name, values)
     }
 

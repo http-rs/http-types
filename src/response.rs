@@ -1,10 +1,10 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
+use std::convert::TryInto;
 use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use std::convert::TryInto;
 
 use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
@@ -75,7 +75,7 @@ impl Response {
     }
 
     /// Set an HTTP header.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -100,7 +100,7 @@ impl Response {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
