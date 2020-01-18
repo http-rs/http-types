@@ -9,8 +9,8 @@ use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
-use crate::Cookie;
 use crate::trailers::{Trailers, TrailersSender};
+use crate::Cookie;
 use crate::{Body, Method, Url, Version};
 
 pin_project_lite::pin_project! {
@@ -377,7 +377,10 @@ impl Request {
 
     /// Sends trailers to the a receiver.
     pub fn send_trailers(&mut self) -> TrailersSender {
-        let sender = self.sender.take().expect("Trailers sender can only be constructed once");
+        let sender = self
+            .sender
+            .take()
+            .expect("Trailers sender can only be constructed once");
         TrailersSender::new(sender)
     }
 

@@ -1,23 +1,23 @@
 //! HTTP trailing headers.
-//! 
+//!
 //! Trailing headers are headers that are send *after* the body payload has
 //! been sent. This is for example useful for sending integrity checks of
 //! streamed payloads that are computed on the fly.
-//! 
+//!
 //! The way trailing headers are sent over the wire varies per protocol. But in
 //! `http-types` we provide a `Trailers` struct that's used to contain the headers.
-//! 
+//!
 //! To send trailing headers, see `Request::{`[`send_trailers, `][req_send]
 //! [`recv_trailers`][req_recv]`}` and
 //! `Response::{`[`send_trailers, `][res_send][`recv_trailers`][res_recv]`}`.
-//! 
+//!
 //! [req_send]: ../struct.Request.html#method.send_trailers
 //! [req_recv]: ../struct.Request.html#method.recv_trailers
 //! [res_send]: ../struct.Response.html#method.send_trailers
 //! [res_recv]: ../struct.Response.html#method.recv_trailers
-//! 
+//!
 //! ## Example
-//! 
+//!
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! # async_std::task::block_on(async {
@@ -28,31 +28,31 @@
 //! use std::str::FromStr;
 //!
 //! let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
-//! 
+//!
 //! let sender = req.send_trailers();
 //! let mut trailers = Trailers::new();
 //! trailers.insert(
 //!     HeaderName::from_str("Content-Type")?,
 //!     "text/plain",
 //! );
-//! 
+//!
 //! task::spawn(async move {
 //!     let _trailers = req.recv_trailers().await;
 //! });
-//! 
+//!
 //! sender.send(Ok(trailers)).await;
 //! #
 //! # Ok(()) })}
 //! ```
-//! 
+//!
 //! ## See Also
 //! - [MDN HTTP Headers: Trailer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Trailer)
 //! - [HTTP/2 spec: HTTP Sequence](https://http2.github.io/http2-spec/#HttpSequence)
 
-use async_std::sync::Sender;
 use crate::headers::{
     HeaderName, HeaderValue, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
+use async_std::sync::Sender;
 
 use std::io;
 use std::ops::{Deref, DerefMut};
@@ -150,7 +150,7 @@ impl DerefMut for Trailers {
 }
 
 /// The sending half of a channel to send trailers.
-/// 
+///
 /// Unlike `async_std::sync::channel` the `send` method on this type can only be
 /// called once, and cannot be cloned. That's because only a single instance of
 /// `Trailers` should be created.
@@ -166,7 +166,7 @@ impl TrailersSender {
     }
 
     /// Send a `Trailer`.
-    /// 
+    ///
     /// The channel will be consumed after having sent trailers.
     pub async fn send(self, trailers: io::Result<Trailers>) {
         self.sender.send(trailers).await

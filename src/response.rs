@@ -330,7 +330,10 @@ impl Response {
 
     /// Sends trailers to the a receiver.
     pub fn send_trailers(&mut self) -> TrailersSender {
-        let sender = self.sender.take().expect("Trailers sender can only be constructed once");
+        let sender = self
+            .sender
+            .take()
+            .expect("Trailers sender can only be constructed once");
         TrailersSender::new(sender)
     }
 
