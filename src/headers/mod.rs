@@ -3,6 +3,7 @@
 use async_std::io;
 
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::iter::IntoIterator;
 
 mod constants;
@@ -44,9 +45,12 @@ impl Headers {
     /// Insert a header into the headers.
     pub fn insert(
         &mut self,
-        name: HeaderName,
+        name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> io::Result<Option<Vec<HeaderValue>>> {
+        let name = name.try_into().map_err(|_| {
+            io::Error::new(io::ErrorKind::Other, "Could not convert into header name")
+        })?;
         let values: Vec<HeaderValue> = values.to_header_values()?.collect();
         Ok(self.headers.insert(name, values))
     }
@@ -55,7 +59,14 @@ impl Headers {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append(&mut self, name: HeaderName, values: impl ToHeaderValues) -> io::Result<()> {
+    pub fn append(
+        &mut self,
+        name: impl TryInto<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> io::Result<()> {
+        let name = name.try_into().map_err(|_| {
+            io::Error::new(io::ErrorKind::Other, "Could not convert into header name")
+        })?;
         match self.get_mut(&name) {
             Some(headers) => {
                 let mut values: Vec<HeaderValue> = values.to_header_values()?.collect();

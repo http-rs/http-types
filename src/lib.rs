@@ -128,8 +128,10 @@ pub use method::Method;
 pub use request::Request;
 pub use response::Response;
 pub use status_code::StatusCode;
-pub use trailers::Trailers;
 pub use version::Version;
+
+#[doc(inline)]
+pub use trailers::Trailers;
 
 #[doc(inline)]
 pub use mime::Mime;

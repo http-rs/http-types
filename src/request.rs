@@ -1,6 +1,7 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
+use std::convert::TryInto;
 use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -60,19 +61,6 @@ impl Request {
     /// Set the HTTP method.
     pub fn set_method(&mut self, method: Method) {
         self.method = method;
-    }
-
-    /// Set the headers.
-    pub fn set_headers<'a, T: IntoIterator<Item = (&'a HeaderName, &'a Vec<HeaderValue>)>>(
-        &mut self,
-        headers: T,
-    ) {
-        self.headers = Headers {
-            headers: headers
-                .into_iter()
-                .map(|(name, values)| (name.clone(), values.clone()))
-                .collect(),
-        };
     }
 
     /// Get a reference to the url.
@@ -225,9 +213,22 @@ impl Request {
     }
 
     /// Set an HTTP header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.insert_header("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn insert_header(
         &mut self,
-        name: HeaderName,
+        name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> io::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, values)
@@ -237,9 +238,22 @@ impl Request {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.append_header("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn append_header(
         &mut self,
-        name: HeaderName,
+        name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> io::Result<()> {
         self.headers.append(name, values)

@@ -31,10 +31,7 @@
 //!
 //! let sender = req.send_trailers();
 //! let mut trailers = Trailers::new();
-//! trailers.insert(
-//!     HeaderName::from_str("Content-Type")?,
-//!     "text/plain",
-//! );
+//! trailers.insert("Content-Type", "text/plain")?;
 //!
 //! task::spawn(async move {
 //!     let _trailers = req.recv_trailers().await;
@@ -54,6 +51,7 @@ use crate::headers::{
 };
 use async_std::sync::Sender;
 
+use std::convert::TryInto;
 use std::io;
 use std::ops::{Deref, DerefMut};
 
@@ -72,9 +70,22 @@ impl Trailers {
     }
 
     /// Insert a header into the headers.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::Trailers;
+    ///
+    /// let mut trailers = Trailers::new();
+    /// trailers.insert("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn insert(
         &mut self,
-        name: HeaderName,
+        name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> io::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, values)
@@ -84,7 +95,24 @@ impl Trailers {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append(&mut self, name: HeaderName, values: impl ToHeaderValues) -> io::Result<()> {
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::Trailers;
+    ///
+    /// let mut trailers = Trailers::new();
+    /// trailers.append("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
+    pub fn append(
+        &mut self,
+        name: impl TryInto<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> io::Result<()> {
         self.headers.append(name, values)
     }
 

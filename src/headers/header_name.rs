@@ -65,6 +65,14 @@ impl FromStr for HeaderName {
     }
 }
 
+impl<'a> std::convert::TryFrom<&'a str> for HeaderName {
+    type Error = ParseError;
+
+    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+        Self::from_str(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
