@@ -70,6 +70,19 @@ impl Trailers {
     }
 
     /// Insert a header into the headers.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::Trailers;
+    ///
+    /// let mut trailers = Trailers::new();
+    /// trailers.insert("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn insert(
         &mut self,
         name: impl TryInto<HeaderName>,
@@ -82,6 +95,19 @@ impl Trailers {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::Trailers;
+    ///
+    /// let mut trailers = Trailers::new();
+    /// trailers.append("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn append(&mut self, name: impl TryInto<HeaderName>, values: impl ToHeaderValues) -> io::Result<()> {
         self.headers.append(name, values)
     }

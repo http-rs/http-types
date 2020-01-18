@@ -21,10 +21,10 @@ pin_project_lite::pin_project! {
     /// ```
     /// # fn main() -> Result<(), http_types::url::ParseError> {
     /// #
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Response, StatusCode};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
-    /// req.set_body("Hello, Nori!");
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_body("Hello, Nori!");
     /// #
     /// # Ok(()) }
     /// ```
@@ -75,6 +75,19 @@ impl Response {
     }
 
     /// Set an HTTP header.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.insert_header("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn insert_header(
         &mut self,
         name: impl TryInto<HeaderName>,
@@ -87,6 +100,19 @@ impl Response {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #
+    /// use http_types::{Response, StatusCode};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.append_header("Content-Type", "text/plain")?;
+    /// #
+    /// # Ok(()) }
+    /// ```
     pub fn append_header(
         &mut self,
         name: impl TryInto<HeaderName>,
@@ -102,10 +128,10 @@ impl Response {
     /// ```
     /// # fn main() -> Result<(), http_types::url::ParseError> {
     /// #
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Response, StatusCode};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
-    /// req.set_body("Hello, Nori!");
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_body("Hello, Nori!");
     /// #
     /// # Ok(()) }
     /// ```
