@@ -7,18 +7,42 @@
 //! The way trailing headers are sent over the wire varies per protocol. But in
 //! `http-types` we provide a `Trailers` struct that's used to contain the headers.
 //! 
-//! To send trailing headers, see [`Request::send_trailers`],
-//! [`Request::recv_trailers`] and [`Respones::send_trailers`],
-//! [`Response::recv_trailers`].
+//! To send trailing headers, see `Request::{`[`send_trailers, `][req_send]
+//! [`recv_trailers`][req_recv]`}` and
+//! `Response::{`[`send_trailers, `][res_send][`recv_trailers`][res_recv]`}`.
 //! 
-//! [`Request::send_trailers`]: struct.Request.html#method.send_trailers
-//! [`Request::recv_trailers`]: struct.Request.html#method.recv_trailers
-//! [`Response::send_trailers`]: struct.Response.html#method.send_trailers
-//! [`Response::recv_trailers`]: struct.Response.html#method.recv_trailers
+//! [req_send]: ../struct.Request.html#method.send_trailers
+//! [req_recv]: ../struct.Request.html#method.recv_trailers
+//! [res_send]: ../struct.Response.html#method.send_trailers
+//! [res_recv]: ../struct.Response.html#method.recv_trailers
 //! 
 //! ## Example
 //! 
 //! ```
+//! # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async_std::task::block_on(async {
+//! #
+//! use http_types::{Url, Method, Request, Trailers};
+//! use http_types::headers::{HeaderName, HeaderValue};
+//! use async_std::task;
+//! use std::str::FromStr;
+//!
+//! let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+//! 
+//! let sender = req.send_trailers();
+//! let mut trailers = Trailers::new();
+//! trailers.insert(
+//!     HeaderName::from_str("Content-Type")?,
+//!     "text/plain",
+//! );
+//! 
+//! task::spawn(async move {
+//!     let _trailers = req.recv_trailers().await;
+//! });
+//! 
+//! sender.send(Ok(trailers)).await;
+//! #
+//! # Ok(()) })}
 //! ```
 //! 
 //! ## See Also
