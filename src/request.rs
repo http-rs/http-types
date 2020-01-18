@@ -9,8 +9,8 @@ use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
+use crate::trailers::{Trailers, TrailersSender};
 use crate::Cookie;
-use crate::Trailers;
 use crate::{Body, Method, Url, Version};
 
 pin_project_lite::pin_project! {
@@ -30,7 +30,7 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
-        sender: sync::Sender<io::Result<Trailers>>,
+        sender: Option<sync::Sender<io::Result<Trailers>>>,
         receiver: sync::Receiver<io::Result<Trailers>>,
         #[pin]
         body: Body,
@@ -47,7 +47,7 @@ impl Request {
             headers: Headers::new(),
             version: None,
             body: Body::empty(),
-            sender,
+            sender: Some(sender),
             receiver,
         }
     }
@@ -376,8 +376,12 @@ impl Request {
     }
 
     /// Sends trailers to the a receiver.
-    pub async fn send_trailers(&self, trailers: io::Result<Trailers>) {
-        self.sender.send(trailers).await;
+    pub fn send_trailers(&mut self) -> TrailersSender {
+        let sender = self
+            .sender
+            .take()
+            .expect("Trailers sender can only be constructed once");
+        TrailersSender::new(sender)
     }
 
     /// Receive trailers from a sender.
