@@ -4,6 +4,7 @@ use async_std::sync;
 use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use std::convert::TryInto;
 
 use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
@@ -76,7 +77,7 @@ impl Response {
     /// Set an HTTP header.
     pub fn insert_header(
         &mut self,
-        name: HeaderName,
+        name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> io::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, values)
@@ -88,7 +89,7 @@ impl Response {
     /// header if there aren't any. Or else append to the existing list of headers.
     pub fn append_header(
         &mut self,
-        name: HeaderName,
+        name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> io::Result<()> {
         self.headers.append(name, values)
