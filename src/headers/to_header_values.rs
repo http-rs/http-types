@@ -11,13 +11,13 @@ pub trait ToHeaderValues {
     type Iter: Iterator<Item = HeaderValue>;
 
     /// Converts this object to an iterator of resolved `HeaderValues`.
-    fn to_header_values(&self) -> io::Result<Self::Iter>;
+    fn to_header_values(&self) -> crate::Result<Self::Iter>;
 }
 
 impl ToHeaderValues for HeaderValue {
     type Iter = option::IntoIter<HeaderValue>;
 
-    fn to_header_values(&self) -> io::Result<Self::Iter> {
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
         Ok(Some(self.clone()).into_iter())
     }
 }
@@ -25,7 +25,7 @@ impl ToHeaderValues for HeaderValue {
 impl<'a> ToHeaderValues for &'a [HeaderValue] {
     type Iter = iter::Cloned<slice::Iter<'a, HeaderValue>>;
 
-    fn to_header_values(&self) -> io::Result<Self::Iter> {
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
         Ok(self.iter().cloned())
     }
 }
@@ -33,7 +33,7 @@ impl<'a> ToHeaderValues for &'a [HeaderValue] {
 impl<'a> ToHeaderValues for &'a str {
     type Iter = option::IntoIter<HeaderValue>;
 
-    fn to_header_values(&self) -> io::Result<Self::Iter> {
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
         let value = self
             .parse()
             .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;

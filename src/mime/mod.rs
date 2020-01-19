@@ -9,11 +9,13 @@ pub use constants::*;
 
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
-use std::io::{self, Error, ErrorKind};
+use std::io;
 use std::option;
 use std::str::FromStr;
 
 use crate::headers::{HeaderValue, ParseError, ToHeaderValues};
+use crate::Error;
+use crate::StatusCode;
 
 use infer::Infer;
 
@@ -33,15 +35,16 @@ pub struct Mime {
 
 impl Mime {
     /// Sniff the mime type from a byte slice.
-    pub fn sniff(bytes: &[u8]) -> io::Result<Self> {
+    pub fn sniff(bytes: &[u8]) -> crate::Result<Self> {
         let info = Infer::new();
         let mime = match info.get(&bytes) {
             Some(info) => info.mime,
             None => {
-                return Err(Error::new(
-                    ErrorKind::Other,
+let err = io::Error::new(
+                    io::ErrorKind::InvalidData,
                     "Could not sniff the mime type",
-                ))
+                );
+                return Err(Error::from_io(err, StatusCode::BadRequest))
             }
         };
 
@@ -153,7 +156,7 @@ impl FromStr for Mime {
 impl ToHeaderValues for Mime {
     type Iter = option::IntoIter<HeaderValue>;
 
-    fn to_header_values(&self) -> io::Result<Self::Iter> {
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
         let mime = self.clone();
         let header: HeaderValue = mime.into();
 

@@ -31,8 +31,8 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
-        sender: Option<sync::Sender<io::Result<Trailers>>>,
-        receiver: sync::Receiver<io::Result<Trailers>>,
+        sender: Option<sync::Sender<crate::Result<Trailers>>>,
+        receiver: sync::Receiver<crate::Result<Trailers>>,
         #[pin]
         body: Body,
     }
@@ -230,7 +230,7 @@ impl Request {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, values)
     }
 
@@ -255,7 +255,7 @@ impl Request {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<()> {
+    ) -> crate::Result<()> {
         self.headers.append(name, values)
     }
 
@@ -399,7 +399,7 @@ impl Request {
     }
 
     /// Receive trailers from a sender.
-    pub async fn recv_trailers(&self) -> Option<io::Result<Trailers>> {
+    pub async fn recv_trailers(&self) -> Option<crate::Result<Trailers>> {
         self.receiver.recv().await
     }
 
