@@ -313,3 +313,21 @@ impl AsRef<dyn StdError> for Error {
         }
     }
 }
+
+
+
+impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
+    fn from(error: Error) -> Self {
+        match error.repr {
+            Repr::Simple => todo!(),
+            Repr::Io(io) => io.into(),
+            Repr::Custom(err) => err.into()
+        }
+    }
+}
+
+impl From<Error> for Box<dyn StdError + 'static> {
+    fn from(error: Error) -> Self {
+        Box::<dyn StdError + Send + Sync>::from(error)
+    }
+}
