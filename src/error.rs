@@ -1,35 +1,16 @@
-use std::convert::From;
-use std::error;
-use std::fmt;
-use std::result;
+//! HTTP error types
+
+use std::error::Error as StdError;
+use std::fmt::{self, Debug, Display};
+use std::io;
+
+use crate::StatusCode;
 
 /// A specialized `Result` type for HTTP operations.
 ///
 /// This type is broadly used across `http_types` for any operation which may
 /// produce an error.
-pub type Result<T> = result::Result<T, Error>;
-
-/// The error type for HTTP operations.
-pub struct Error {
-    repr: Repr,
-}
-
-impl fmt::Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(&self.repr, f)
-    }
-}
-
-enum Repr {
-    Simple(ErrorKind),
-    Custom(Box<Custom>),
-}
-
-#[derive(Debug)]
-struct Custom {
-    kind: ErrorKind,
-    error: Box<dyn error::Error + Send + Sync>,
-}
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// A list specifying general categories of HTTP errors.
 ///
@@ -42,144 +23,293 @@ struct Custom {
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum ErrorKind {
-    /// The status code was invalid.
-    InvalidStatusCode,
-
-    /// The method was invalid.
-    InvalidMethod,
-
-    /// The url was invalid.
-    InvalidUrl,
-
-    /// The header name was invalid.
-    InvalidHeaderName,
-
-    /// The header value was invalid.
-    InvalidHeaderValue,
-
-    /// Other error.
+    /// An entity was not found, often a file.
+    NotFound,
+    /// The operation lacked the necessary privileges to complete.
+    PermissionDenied,
+    /// The connection was refused by the remote server.
+    ConnectionRefused,
+    /// The connection was reset by the remote server.
+    ConnectionReset,
+    /// The connection was aborted (terminated) by the remote server.
+    ConnectionAborted,
+    /// The network operation failed because it was not connected yet.
+    NotConnected,
+    /// A socket address could not be bound because the address is already in
+    /// use elsewhere.
+    AddrInUse,
+    /// A nonexistent interface was requested or the requested address was not
+    /// local.
+    AddrNotAvailable,
+    /// The operation failed because a pipe was closed.
+    BrokenPipe,
+    /// An entity already exists, often a file.
+    AlreadyExists,
+    /// The operation needs to block to complete, but the blocking operation was
+    /// requested to not occur.
+    WouldBlock,
+    /// A parameter was incorrect.
+    InvalidInput,
+    /// Data not valid for the operation were encountered.
+    ///
+    /// Unlike [`InvalidInput`], this typically means that the operation
+    /// parameters were valid, however the error was caused by malformed
+    /// input data.
+    ///
+    /// For example, a function that reads a file into a string will error with
+    /// `InvalidData` if the file's contents are not valid UTF-8.
+    ///
+    /// [`InvalidInput`]: #variant.InvalidInput
+    InvalidData,
+    /// The I/O operation's timeout expired, causing it to be canceled.
+    TimedOut,
+    /// An error returned when an operation could not be completed because a
+    /// call to [`write`] returned [`Ok(0)`].
+    ///
+    /// This typically means that an operation could only succeed if it wrote a
+    /// particular number of bytes but only a smaller number of bytes could be
+    /// written.
+    ///
+    /// [`write`]: ../../std/io/trait.Write.html#tymethod.write
+    /// [`Ok(0)`]: ../../std/io/type.Result.html
+    WriteZero,
+    /// This operation was interrupted.
+    ///
+    /// Interrupted operations can typically be retried.
+    Interrupted,
+    /// Any I/O error not part of this list.
     Other,
+
+    /// An error returned when an operation could not be completed because an
+    /// "end of file" was reached prematurely.
+    ///
+    /// This typically means that an operation could only succeed if it read a
+    /// particular number of bytes but only a smaller number of bytes could be
+    /// read.
+    UnexpectedEof,
 }
 
 impl ErrorKind {
     pub(crate) fn as_str(&self) -> &'static str {
         match *self {
-            ErrorKind::InvalidStatusCode => "The status code was invalid.",
-            ErrorKind::InvalidMethod => "The method was invalid.",
-            ErrorKind::InvalidUrl => "The url was invalid.",
-            ErrorKind::InvalidHeaderName => "The header name was invalid.",
-            ErrorKind::InvalidHeaderValue => "The header value was invalid.",
-            ErrorKind::Other => "other error",
+            ErrorKind::NotFound => "entity not found",
+            ErrorKind::PermissionDenied => "permission denied",
+            ErrorKind::ConnectionRefused => "connection refused",
+            ErrorKind::ConnectionReset => "connection reset",
+            ErrorKind::ConnectionAborted => "connection aborted",
+            ErrorKind::NotConnected => "not connected",
+            ErrorKind::AddrInUse => "address in use",
+            ErrorKind::AddrNotAvailable => "address not available",
+            ErrorKind::BrokenPipe => "broken pipe",
+            ErrorKind::AlreadyExists => "entity already exists",
+            ErrorKind::WouldBlock => "operation would block",
+            ErrorKind::InvalidInput => "invalid input parameter",
+            ErrorKind::InvalidData => "invalid data",
+            ErrorKind::TimedOut => "timed out",
+            ErrorKind::WriteZero => "write zero",
+            ErrorKind::Interrupted => "operation interrupted",
+            ErrorKind::Other => "other os error",
+            ErrorKind::UnexpectedEof => "unexpected end of file",
         }
     }
 }
 
-/// Intended for use for errors not exposed to the user, where allocating onto
-/// the heap (for normal construction via Error::new) is too costly.
-impl From<ErrorKind> for Error {
-    /// Converts an [`ErrorKind`] into an [`Error`].
-    #[inline]
-    fn from(kind: ErrorKind) -> Error {
-        Error {
-            repr: Repr::Simple(kind),
+impl From<io::ErrorKind> for ErrorKind {
+    fn from(kind: io::ErrorKind) -> Self {
+        match kind {
+            io::ErrorKind::NotFound => ErrorKind::NotFound,
+            io::ErrorKind::PermissionDenied => ErrorKind::PermissionDenied,
+            io::ErrorKind::ConnectionRefused => ErrorKind::ConnectionRefused,
+            io::ErrorKind::ConnectionReset => ErrorKind::ConnectionReset,
+            io::ErrorKind::ConnectionAborted => ErrorKind::ConnectionAborted,
+            io::ErrorKind::NotConnected => ErrorKind::NotConnected,
+            io::ErrorKind::AddrInUse => ErrorKind::AddrInUse,
+            io::ErrorKind::AddrNotAvailable => ErrorKind::AddrNotAvailable,
+            io::ErrorKind::BrokenPipe => ErrorKind::BrokenPipe,
+            io::ErrorKind::AlreadyExists => ErrorKind::AlreadyExists,
+            io::ErrorKind::WouldBlock => ErrorKind::WouldBlock,
+            io::ErrorKind::InvalidInput => ErrorKind::InvalidInput,
+            io::ErrorKind::InvalidData => ErrorKind::InvalidData,
+            io::ErrorKind::TimedOut => ErrorKind::TimedOut,
+            io::ErrorKind::WriteZero => ErrorKind::WriteZero,
+            io::ErrorKind::Interrupted => ErrorKind::Interrupted,
+            io::ErrorKind::UnexpectedEof => ErrorKind::UnexpectedEof,
+            io::ErrorKind::Other => ErrorKind::Other,
+            _ => ErrorKind::Other,
         }
     }
+}
+
+/// Internal representation of the error state.
+#[derive(Debug)]
+enum Repr {
+    Simple,
+    Io(io::Error),
+    Custom(anyhow::Error),
+}
+
+/// The error type for HTTP operations.
+pub struct Error {
+    repr: Repr,
+    kind: ErrorKind,
+    status: crate::StatusCode,
 }
 
 impl Error {
-    /// Creates a new HTTP error from a known kind of error as well as an
-    /// arbitrary error payload.
+    /// Create a new error object from any error type.
     ///
-    /// This function is used to generically create HTTP errors which do not
-    /// originate from the OS itself. The `error` argument is an arbitrary
-    /// payload which will be contained in this `Error`.
-    pub fn new<E>(kind: ErrorKind, error: E) -> Error
+    /// The error type must be threadsafe and 'static, so that the Error will be
+    /// as well. If the error type does not provide a backtrace, a backtrace will
+    /// be created here to ensure that a backtrace exists.
+    pub fn new<E>(kind: ErrorKind, error: E, status: StatusCode) -> Self
     where
-        E: Into<Box<dyn error::Error + Send + Sync>>,
+        E: StdError + Send + Sync + 'static,
     {
-        Self::_new(kind, error.into())
-    }
-
-    fn _new(kind: ErrorKind, error: Box<dyn error::Error + Send + Sync>) -> Error {
-        Error {
-            repr: Repr::Custom(Box::new(Custom { kind, error })),
+        let error = anyhow::Error::new(error);
+        Self {
+            kind,
+            repr: Repr::Custom(error),
+            status,
         }
     }
 
-    /// Returns a reference to the inner error wrapped by this error (if any).
-    ///
-    /// If this `Error` was constructed via `new` then this function will
-    /// return `Some`, otherwise it will return `None`.
-    pub fn get_ref(&self) -> Option<&(dyn error::Error + Send + Sync + 'static)> {
-        match self.repr {
-            Repr::Simple(..) => None,
-            Repr::Custom(ref c) => Some(&*c.error),
+    /// Create a new error object from an I/O error.
+    pub fn from_io(error: std::io::Error, status: StatusCode) -> Self {
+        Self {
+            kind: error.kind().into(),
+            repr: Repr::Io(error),
+            status,
         }
     }
 
-    /// Returns a mutable reference to the inner error wrapped by this error
-    /// (if any).
-    ///
-    /// If this `Error` was constructed via `new` then this function will
-    /// return `Some`, otherwise it will return `None`.
-    pub fn get_mut(&mut self) -> Option<&mut (dyn error::Error + Send + Sync + 'static)> {
-        match self.repr {
-            Repr::Simple(..) => None,
-            Repr::Custom(ref mut c) => Some(&mut *c.error),
-        }
+    /// Get the status code associated with this error.
+    pub fn status(&self) -> StatusCode {
+        self.status
     }
 
-    /// Consumes the `Error`, returning its inner error (if any).
-    ///
-    /// If this `Error` was constructed via `new` then this function will
-    /// return `Some`, otherwise it will return `None`.
-    pub fn into_inner(self) -> Option<Box<dyn error::Error + Send + Sync>> {
-        match self.repr {
-            Repr::Simple(..) => None,
-            Repr::Custom(c) => Some(c.error),
-        }
+    /// Set the status code associated with this error.
+    pub fn set_status(&mut self, status: StatusCode) {
+        self.status = status;
     }
 
-    /// Returns the corresponding `ErrorKind` for this error.
+    /// Returns the corresponding ErrorKind for this error.
     pub fn kind(&self) -> ErrorKind {
+        self.kind.clone()
+    }
+
+    /// Get the backtrace for this Error.
+    ///
+    /// Backtraces are only available on the nightly channel. Tracking issue:
+    /// [rust-lang/rust#53487][tracking].
+    ///
+    /// In order for the backtrace to be meaningful, the environment variable
+    /// `RUST_LIB_BACKTRACE=1` must be defined. Backtraces are somewhat
+    /// expensive to capture in Rust, so we don't necessarily want to be
+    /// capturing them all over the place all the time.
+    ///
+    /// [tracking]: https://github.com/rust-lang/rust/issues/53487
+    #[cfg(backtrace)]
+    pub fn backtrace(&self) -> &std::backtrace::Backtrace {
+        match self {
+            Repr::Simple => std::backtrace::Backtrace::capture(),
+            Repr::Custom(err) => err.backtrace(),
+        }
+    }
+
+    /// Attempt to downcast the error object to a concrete type.
+    pub fn downcast<E>(self) -> std::result::Result<E, Self>
+    where
+        E: Display + Debug + Send + Sync + 'static,
+    {
         match self.repr {
-            Repr::Custom(ref c) => c.kind,
-            Repr::Simple(kind) => kind,
+            Repr::Io(err) => Ok(anyhow::Error::new(err).downcast().unwrap()),
+            Repr::Custom(err) if err.downcast_ref::<E>().is_some() => Ok(err.downcast().unwrap()),
+            _ => Err(self),
+        }
+    }
+
+    /// Downcast this error object by reference.
+    pub fn downcast_ref<E>(&self) -> Option<&E>
+    where
+        E: Display + Debug + Send + Sync + 'static,
+    {
+        match self.repr {
+            Repr::Custom(ref err) => err.downcast_ref::<E>(),
+            _ => None,
+        }
+    }
+
+    /// Downcast this error object by mutable reference.
+    pub fn downcast_mut<E>(&mut self) -> Option<&mut E>
+    where
+        E: Display + Debug + Send + Sync + 'static,
+    {
+        match self.repr {
+            Repr::Custom(ref mut err) => err.downcast_mut::<E>(),
+            _ => None,
         }
     }
 }
 
-impl fmt::Debug for Repr {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            Repr::Custom(ref c) => fmt::Debug::fmt(&c, fmt),
-            Repr::Simple(kind) => fmt.debug_tuple("Kind").field(&kind).finish(),
+impl Display for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.repr {
+            Repr::Simple => write!(formatter, "{}", self.kind.as_str()),
+            Repr::Io(io) => write!(formatter, "{}", io),
+            Repr::Custom(err) => write!(formatter, "{}", err),
         }
     }
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.repr {
-            Repr::Custom(ref c) => c.error.fmt(fmt),
-            Repr::Simple(kind) => write!(fmt, "{}", kind.as_str()),
+impl Debug for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.repr {
+            Repr::Simple => write!(formatter, "{}", self.kind.as_str()),
+            Repr::Io(io) => write!(formatter, "{}", io),
+            Repr::Custom(err) => write!(formatter, "{}", err),
         }
     }
 }
 
-impl error::Error for Error {
-    #[allow(deprecated)]
-    fn cause(&self) -> Option<&dyn error::Error> {
-        match self.repr {
-            Repr::Simple(..) => None,
-            Repr::Custom(ref c) => c.error.cause(),
+impl<E> From<E> for Error
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn from(error: E) -> Self {
+        Self {
+            kind: ErrorKind::Other,
+            repr: Repr::Custom(anyhow::Error::new(error)),
+            status: StatusCode::InternalServerError,
         }
     }
+}
 
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self.repr {
-            Repr::Simple(..) => None,
-            Repr::Custom(ref c) => c.error.source(),
+impl From<ErrorKind> for Error {
+    fn from(kind: ErrorKind) -> Self {
+        Self {
+            kind,
+            repr: Repr::Simple,
+            status: StatusCode::InternalServerError,
+        }
+    }
+}
+
+impl AsRef<dyn StdError + Send + Sync> for Error {
+    fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
+        match &self.repr {
+            Repr::Simple => todo!(),
+            Repr::Io(ref io) => io,
+            Repr::Custom(ref err) => err.as_ref(),
+        }
+    }
+}
+
+impl AsRef<dyn StdError> for Error {
+    fn as_ref(&self) -> &(dyn StdError + 'static) {
+        match &self.repr {
+            Repr::Simple => todo!(),
+            Repr::Io(ref io) => io,
+            Repr::Custom(ref err) => err.as_ref(),
         }
     }
 }
