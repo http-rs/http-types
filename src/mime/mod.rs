@@ -40,11 +40,9 @@ impl Mime {
         let mime = match info.get(&bytes) {
             Some(info) => info.mime,
             None => {
-let err = io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "Could not sniff the mime type",
-                );
-                return Err(Error::from_io(err, StatusCode::BadRequest))
+                let err =
+                    io::Error::new(io::ErrorKind::InvalidData, "Could not sniff the mime type");
+                return Err(Error::from_io(err, StatusCode::BadRequest));
             }
         };
 

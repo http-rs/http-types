@@ -51,7 +51,10 @@ impl Headers {
         values: impl ToHeaderValues,
     ) -> crate::Result<Option<Vec<HeaderValue>>> {
         let name = name.try_into().map_err(|_| {
-            let io_err = io::Error::new(io::ErrorKind::InvalidInput, "Could not convert into header name");
+            let io_err = io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "Could not convert into header name",
+            );
             crate::Error::from_io(io_err, StatusCode::InternalServerError)
         })?;
         let values: Vec<HeaderValue> = values.to_header_values()?.collect();
