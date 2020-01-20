@@ -51,9 +51,8 @@ macro_rules! format_err {
         $crate::private::new_adhoc($msg)
     };
     ($err:expr $(,)?) => ({
-        use $crate::private::kind::*;
         let error = $err;
-        (&error).anyhow_kind().new(error)
+        Error::new(ErrorKind::Other, error, crate::StatusCode::InternalServerError)
     });
     ($fmt:expr, $($arg:tt)*) => {
         $crate::private::new_adhoc(format!($fmt, $($arg)*))

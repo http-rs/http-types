@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
-use crate::headers::ParseError;
+use crate::{Error, ErrorKind};
 
 /// A header name.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -10,12 +10,12 @@ pub struct HeaderName(Cow<'static, str>);
 
 impl HeaderName {
     /// Create a new `HeaderName`.
-    pub fn from_ascii(mut bytes: Vec<u8>) -> Result<Self, ParseError> {
+    pub fn from_ascii(mut bytes: Vec<u8>) -> Result<Self, Error> {
         if !bytes.is_ascii() {
-            return Err(ParseError::new());
+            return Err(Error::from(ErrorKind::InvalidData));
         }
         bytes.make_ascii_lowercase();
-        let string = String::from_utf8(bytes).map_err(|_| ParseError::new())?;
+        let string = String::from_utf8(bytes).map_err(|_| Error::from(ErrorKind::InvalidData))?;
         Ok(HeaderName(Cow::Owned(string)))
     }
 
@@ -52,21 +52,21 @@ impl Display for HeaderName {
 }
 
 impl FromStr for HeaderName {
-    type Err = ParseError;
+    type Err = Error;
 
     /// Create a new `HeaderName`.
     ///
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if !s.is_ascii() {
-            return Err(ParseError::new());
+            return Err(Error::from(ErrorKind::InvalidData));
         }
         Ok(HeaderName(Cow::Owned(s.to_ascii_lowercase())))
     }
 }
 
 impl<'a> std::convert::TryFrom<&'a str> for HeaderName {
-    type Error = ParseError;
+    type Error = Error;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
         Self::from_str(value)
