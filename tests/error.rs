@@ -1,4 +1,4 @@
-use http_types::{Error, ErrorKind, StatusCode, ensure, bail};
+use http_types::{bail, ensure, Error, ErrorKind, StatusCode};
 use std::io;
 
 #[test]
@@ -10,7 +10,6 @@ fn can_be_boxed() {
     }
     assert!(can_be_boxed().is_err());
 }
-
 
 #[test]
 fn ensure() {

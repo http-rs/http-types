@@ -156,8 +156,8 @@ mod hyperium_http;
 #[doc(hidden)]
 pub mod private {
     use crate::Error;
-    pub use core::result::Result::Err;
     use core::fmt::{Debug, Display};
+    pub use core::result::Result::Err;
 
     pub fn new_adhoc<M>(message: M) -> Error
     where

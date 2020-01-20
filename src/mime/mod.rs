@@ -14,8 +14,8 @@ use std::option;
 use std::str::FromStr;
 
 use crate::headers::{HeaderValue, ToHeaderValues};
-use crate::{Error, ErrorKind};
 use crate::StatusCode;
+use crate::{Error, ErrorKind};
 
 use infer::Infer;
 

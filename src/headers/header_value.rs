@@ -1,8 +1,8 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::{Error, ErrorKind};
 use crate::{Cookie, Mime};
+use crate::{Error, ErrorKind};
 
 /// A header value.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
