@@ -89,31 +89,6 @@ pub enum ErrorKind {
     UnexpectedEof,
 }
 
-impl ErrorKind {
-    pub(crate) fn as_str(&self) -> &'static str {
-        match *self {
-            ErrorKind::NotFound => "entity not found",
-            ErrorKind::PermissionDenied => "permission denied",
-            ErrorKind::ConnectionRefused => "connection refused",
-            ErrorKind::ConnectionReset => "connection reset",
-            ErrorKind::ConnectionAborted => "connection aborted",
-            ErrorKind::NotConnected => "not connected",
-            ErrorKind::AddrInUse => "address in use",
-            ErrorKind::AddrNotAvailable => "address not available",
-            ErrorKind::BrokenPipe => "broken pipe",
-            ErrorKind::AlreadyExists => "entity already exists",
-            ErrorKind::WouldBlock => "operation would block",
-            ErrorKind::InvalidInput => "invalid input parameter",
-            ErrorKind::InvalidData => "invalid data",
-            ErrorKind::TimedOut => "timed out",
-            ErrorKind::WriteZero => "write zero",
-            ErrorKind::Interrupted => "operation interrupted",
-            ErrorKind::Other => "other os error",
-            ErrorKind::UnexpectedEof => "unexpected end of file",
-        }
-    }
-}
-
 impl From<io::ErrorKind> for ErrorKind {
     fn from(kind: io::ErrorKind) -> Self {
         match kind {
@@ -140,10 +115,35 @@ impl From<io::ErrorKind> for ErrorKind {
     }
 }
 
+impl From<ErrorKind> for io::Error {
+    fn from(kind: ErrorKind) -> Self {
+        let kind = match kind {
+            ErrorKind::NotFound => io::ErrorKind::NotFound,
+            ErrorKind::PermissionDenied => io::ErrorKind::PermissionDenied,
+            ErrorKind::ConnectionRefused => io::ErrorKind::ConnectionRefused,
+            ErrorKind::ConnectionReset => io::ErrorKind::ConnectionReset,
+            ErrorKind::ConnectionAborted => io::ErrorKind::ConnectionAborted,
+            ErrorKind::NotConnected => io::ErrorKind::NotConnected,
+            ErrorKind::AddrInUse => io::ErrorKind::AddrInUse,
+            ErrorKind::AddrNotAvailable => io::ErrorKind::AddrNotAvailable,
+            ErrorKind::BrokenPipe => io::ErrorKind::BrokenPipe,
+            ErrorKind::AlreadyExists => io::ErrorKind::AlreadyExists,
+            ErrorKind::WouldBlock => io::ErrorKind::WouldBlock,
+            ErrorKind::InvalidInput => io::ErrorKind::InvalidInput,
+            ErrorKind::InvalidData => io::ErrorKind::InvalidData,
+            ErrorKind::TimedOut => io::ErrorKind::TimedOut,
+            ErrorKind::WriteZero => io::ErrorKind::WriteZero,
+            ErrorKind::Interrupted => io::ErrorKind::Interrupted,
+            ErrorKind::UnexpectedEof => io::ErrorKind::UnexpectedEof,
+            ErrorKind::Other => io::ErrorKind::Other,
+        };
+        io::Error::from(kind)
+    }
+}
+
 /// Internal representation of the error state.
 #[derive(Debug)]
 enum Repr {
-    Simple,
     Io(io::Error),
     Custom(anyhow::Error),
 }
@@ -223,7 +223,7 @@ impl Error {
     #[cfg(backtrace)]
     pub fn backtrace(&self) -> &std::backtrace::Backtrace {
         match self {
-            Repr::Simple => std::backtrace::Backtrace::capture(),
+            Repr::Io => std::backtrace::Backtrace::capture(),
             Repr::Custom(err) => err.backtrace(),
         }
     }
@@ -266,7 +266,6 @@ impl Error {
 impl Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.repr {
-            Repr::Simple => write!(formatter, "{}", self.kind.as_str()),
             Repr::Io(io) => write!(formatter, "{}", io),
             Repr::Custom(err) => write!(formatter, "{}", err),
         }
@@ -276,7 +275,6 @@ impl Display for Error {
 impl Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.repr {
-            Repr::Simple => write!(formatter, "{}", self.kind.as_str()),
             Repr::Io(io) => write!(formatter, "{}", io),
             Repr::Custom(err) => write!(formatter, "{}", err),
         }
@@ -299,8 +297,8 @@ where
 impl From<ErrorKind> for Error {
     fn from(kind: ErrorKind) -> Self {
         Self {
-            kind,
-            repr: Repr::Simple,
+            kind: kind.clone(),
+            repr: Repr::Io(kind.into()),
             status: StatusCode::InternalServerError,
         }
     }
@@ -309,7 +307,6 @@ impl From<ErrorKind> for Error {
 impl AsRef<dyn StdError + Send + Sync> for Error {
     fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
         match &self.repr {
-            Repr::Simple => todo!(),
             Repr::Io(ref io) => io,
             Repr::Custom(ref err) => err.as_ref(),
         }
@@ -319,7 +316,6 @@ impl AsRef<dyn StdError + Send + Sync> for Error {
 impl AsRef<dyn StdError> for Error {
     fn as_ref(&self) -> &(dyn StdError + 'static) {
         match &self.repr {
-            Repr::Simple => todo!(),
             Repr::Io(ref io) => io,
             Repr::Custom(ref err) => err.as_ref(),
         }
@@ -329,7 +325,6 @@ impl AsRef<dyn StdError> for Error {
 impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
     fn from(error: Error) -> Self {
         match error.repr {
-            Repr::Simple => todo!(),
             Repr::Io(io) => io.into(),
             Repr::Custom(err) => err.into(),
         }
