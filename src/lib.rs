@@ -116,6 +116,7 @@ pub mod mime;
 
 mod body;
 mod error;
+mod macros;
 mod method;
 mod request;
 mod response;
@@ -150,3 +151,18 @@ pub mod trailers;
 
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;
+
+// Not public API. Referenced by macro-generated code.
+#[doc(hidden)]
+pub mod private {
+    use crate::Error;
+    pub use core::result::Result::Err;
+    use core::fmt::{Debug, Display};
+
+    pub fn new_adhoc<M>(message: M) -> Error
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        Error::new_adhoc(message)
+    }
+}
