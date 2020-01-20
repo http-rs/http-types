@@ -15,7 +15,6 @@ mod into_iter;
 mod iter;
 mod iter_mut;
 mod names;
-mod parse_error;
 mod to_header_values;
 mod values;
 
@@ -26,7 +25,6 @@ pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
 pub use names::Names;
-pub use parse_error::ParseError;
 pub use to_header_values::ToHeaderValues;
 pub use values::Values;
 

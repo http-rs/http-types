@@ -19,7 +19,7 @@ pin_project_lite::pin_project! {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode};
     ///
@@ -126,7 +126,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode};
     ///
@@ -248,7 +248,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode, Version};
     ///
@@ -269,7 +269,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode, Version};
     ///
@@ -292,7 +292,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Response, StatusCode, Version};
     ///
@@ -302,7 +302,7 @@ impl Response {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn cookies(&self) -> Result<Vec<Cookie<'_>>, cookie::ParseError> {
+    pub fn cookies(&self) -> Result<Vec<Cookie<'_>>, crate::Error> {
         match self.header(&headers::SET_COOKIE) {
             None => Ok(vec![]),
             Some(h) => h.iter().try_fold(vec![], |mut acc, h| {
@@ -318,7 +318,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Response, StatusCode, Version};
     ///
@@ -328,7 +328,7 @@ impl Response {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, cookie::ParseError> {
+    pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, crate::Error> {
         let cookies = self.cookies()?;
         let cookie = cookies.into_iter().filter(|c| c.name() == name).next();
         Ok(cookie)
@@ -341,7 +341,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Response, StatusCode, Version};
     ///

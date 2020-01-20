@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::headers::ParseError;
+use crate::{Error, ErrorKind};
 use crate::{Cookie, Mime};
 
 /// A header value.
@@ -16,9 +16,9 @@ impl HeaderValue {
     /// # Error
     ///
     /// This function will error if the string is not a valid ASCII.
-    pub fn from_ascii(bytes: &[u8]) -> Result<Self, ParseError> {
+    pub fn from_ascii(bytes: &[u8]) -> Result<Self, Error> {
         if !bytes.is_ascii() {
-            return Err(ParseError::new());
+            return Err(Error::from(ErrorKind::InvalidData));
         }
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
@@ -71,14 +71,14 @@ impl From<&Mime> for HeaderValue {
 }
 
 impl FromStr for HeaderValue {
-    type Err = ParseError;
+    type Err = Error;
 
     /// Create a new `HeaderValue`.
     ///
     /// This checks it's valid ASCII.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if !s.is_ascii() {
-            return Err(ParseError::new());
+            return Err(Error::from(ErrorKind::InvalidData));
         }
         Ok(Self {
             inner: String::from(s),

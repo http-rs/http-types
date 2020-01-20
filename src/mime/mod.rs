@@ -13,8 +13,8 @@ use std::io;
 use std::option;
 use std::str::FromStr;
 
-use crate::headers::{HeaderValue, ParseError, ToHeaderValues};
-use crate::Error;
+use crate::headers::{HeaderValue, ToHeaderValues};
+use crate::{Error, ErrorKind};
 use crate::StatusCode;
 
 use infer::Infer;
@@ -130,14 +130,14 @@ impl Debug for Mime {
 }
 
 impl FromStr for Mime {
-    type Err = ParseError;
+    type Err = crate::Error;
 
     /// Create a new `HeaderName`.
     ///
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if !s.is_ascii() {
-            return Err(ParseError::new());
+            return Err(Error::from(ErrorKind::InvalidData));
         }
         Ok(Self {
             essence: s.to_ascii_lowercase(),

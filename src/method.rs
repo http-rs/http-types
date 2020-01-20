@@ -1,6 +1,7 @@
-use std::error::Error;
 use std::fmt::{self, Display};
 use std::str::FromStr;
+
+use crate::{Error, ErrorKind};
 
 /// HTTP request methods.
 ///
@@ -67,22 +68,8 @@ impl Display for Method {
     }
 }
 
-/// An error returned when failing to convert into a status code.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ParseError {
-    _private: (),
-}
-
-impl Error for ParseError {}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        "Error parsing a string into a status code".fmt(f)
-    }
-}
-
 impl FromStr for Method {
-    type Err = ParseError;
+    type Err = crate::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -95,7 +82,7 @@ impl FromStr for Method {
             "OPTIONS" => Ok(Self::Options),
             "TRACE" => Ok(Self::Trace),
             "PATCH" => Ok(Self::Patch),
-            _ => Err(ParseError { _private: () }),
+            _ => Err(Error::from(ErrorKind::InvalidData)),
         }
     }
 }
