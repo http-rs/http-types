@@ -314,14 +314,12 @@ impl AsRef<dyn StdError> for Error {
     }
 }
 
-
-
 impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
     fn from(error: Error) -> Self {
         match error.repr {
             Repr::Simple => todo!(),
             Repr::Io(io) => io.into(),
-            Repr::Custom(err) => err.into()
+            Repr::Custom(err) => err.into(),
         }
     }
 }
