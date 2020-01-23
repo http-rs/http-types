@@ -38,6 +38,32 @@ macro_rules! ensure {
     };
 }
 
+/// Return early with an error if a condition is not satisfied.
+///
+/// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
+///
+/// Analogously to `assert!`, `ensure!` takes a condition and exits the function
+/// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`
+/// rather than panicking.
+#[macro_export]
+macro_rules! ensure_eq {
+    ($left:expr, $right:expr, $msg:literal $(,)?) => {
+        if $left != $right {
+            return $crate::private::Err($crate::format_err!($msg));
+        }
+    };
+    ($left:expr, $right:expr, $err:expr $(,)?) => {
+        if $left != $right {
+            return $crate::private::Err($crate::format_err!($err));
+        }
+    };
+    ($left:expr, $right:expr, $fmt:expr, $($arg:tt)*) => {
+        if $left != $right {
+            return $crate::private::Err($crate::format_err!($fmt, $($arg)*));
+        }
+    };
+}
+
 /// Construct an ad-hoc error from a string.
 ///
 /// This evaluates to an `Error`. It can take either just a string, or a format
