@@ -6,19 +6,20 @@
 use omnom::prelude::*;
 use std::collections::HashMap;
 use std::io::prelude::*;
-use std::io::{self, Cursor};
+use std::io::Cursor;
 
 use super::Mime;
 
 macro_rules! bail {
-    ($fmt:expr) => {
-        return Err(std::io::Error::new(std::io::ErrorKind::Other, $fmt));
-    };
+    ($fmt:expr) => {{
+        let err = std::io::Error::new(std::io::ErrorKind::InvalidData, $fmt);
+        return Err(crate::Error::from_io(err, crate::StatusCode::BadRequest));
+    }};
 }
 
 /// Parse a string into a mime type.
 #[allow(dead_code)]
-pub(crate) fn parse(s: &str) -> io::Result<Mime> {
+pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
     // parse the "type"
     //
     // ```txt
@@ -139,7 +140,7 @@ pub(crate) fn parse(s: &str) -> io::Result<Mime> {
     Ok(mime)
 }
 
-fn validate_code_points(buf: &[u8]) -> io::Result<()> {
+fn validate_code_points(buf: &[u8]) -> crate::Result<()> {
     let all = buf.iter().all(|b| match b {
         b'-' | b'!' | b'#' | b'$' | b'%' => true,
         b'&' | b'\'' | b'*' | b'+' | b'.' => true,

@@ -473,7 +473,7 @@ impl Into<u16> for &StatusCode {
 }
 
 impl std::convert::TryFrom<u16> for StatusCode {
-    type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+    type Error = crate::Error;
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         match value {

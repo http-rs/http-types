@@ -19,7 +19,7 @@ pin_project_lite::pin_project! {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode};
     ///
@@ -33,8 +33,8 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        sender: Option<sync::Sender<io::Result<Trailers>>>,
-        receiver: sync::Receiver<io::Result<Trailers>>,
+        sender: Option<sync::Sender<crate::Result<Trailers>>>,
+        receiver: sync::Receiver<crate::Result<Trailers>>,
         #[pin]
         body: Body,
     }
@@ -92,7 +92,7 @@ impl Response {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, values)
     }
 
@@ -117,7 +117,7 @@ impl Response {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<()> {
+    ) -> crate::Result<()> {
         self.headers.append(name, values)
     }
 
@@ -126,7 +126,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode};
     ///
@@ -248,7 +248,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode, Version};
     ///
@@ -269,7 +269,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Response, StatusCode, Version};
     ///
@@ -292,7 +292,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Response, StatusCode, Version};
     ///
@@ -302,7 +302,7 @@ impl Response {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn cookies(&self) -> Result<Vec<Cookie<'_>>, cookie::ParseError> {
+    pub fn cookies(&self) -> Result<Vec<Cookie<'_>>, crate::Error> {
         match self.header(&headers::SET_COOKIE) {
             None => Ok(vec![]),
             Some(h) => h.iter().try_fold(vec![], |mut acc, h| {
@@ -318,7 +318,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Response, StatusCode, Version};
     ///
@@ -328,7 +328,7 @@ impl Response {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, cookie::ParseError> {
+    pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, crate::Error> {
         let cookies = self.cookies()?;
         let cookie = cookies.into_iter().filter(|c| c.name() == name).next();
         Ok(cookie)
@@ -341,7 +341,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Response, StatusCode, Version};
     ///
@@ -365,7 +365,7 @@ impl Response {
     }
 
     /// Receive trailers from a sender.
-    pub async fn recv_trailers(&self) -> Option<io::Result<Trailers>> {
+    pub async fn recv_trailers(&self) -> Option<crate::Result<Trailers>> {
         self.receiver.recv().await
     }
 

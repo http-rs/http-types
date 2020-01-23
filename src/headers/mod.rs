@@ -6,6 +6,8 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::iter::IntoIterator;
 
+use crate::StatusCode;
+
 mod constants;
 mod header_name;
 mod header_value;
@@ -13,7 +15,6 @@ mod into_iter;
 mod iter;
 mod iter_mut;
 mod names;
-mod parse_error;
 mod to_header_values;
 mod values;
 
@@ -24,7 +25,6 @@ pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
 pub use names::Names;
-pub use parse_error::ParseError;
 pub use to_header_values::ToHeaderValues;
 pub use values::Values;
 
@@ -47,9 +47,13 @@ impl Headers {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<Vec<HeaderValue>>> {
         let name = name.try_into().map_err(|_| {
-            io::Error::new(io::ErrorKind::Other, "Could not convert into header name")
+            let io_err = io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "Could not convert into header name",
+            );
+            crate::Error::from_io(io_err, StatusCode::InternalServerError)
         })?;
         let values: Vec<HeaderValue> = values.to_header_values()?.collect();
         Ok(self.headers.insert(name, values))
@@ -63,7 +67,7 @@ impl Headers {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<()> {
+    ) -> crate::Result<()> {
         let name = name.try_into().map_err(|_| {
             io::Error::new(io::ErrorKind::Other, "Could not convert into header name")
         })?;

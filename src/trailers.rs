@@ -52,7 +52,6 @@ use crate::headers::{
 use async_std::sync::Sender;
 
 use std::convert::TryInto;
-use std::io;
 use std::ops::{Deref, DerefMut};
 
 /// A collection of trailing HTTP headers.
@@ -87,7 +86,7 @@ impl Trailers {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, values)
     }
 
@@ -112,7 +111,7 @@ impl Trailers {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<()> {
+    ) -> crate::Result<()> {
         self.headers.append(name, values)
     }
 
@@ -184,19 +183,19 @@ impl DerefMut for Trailers {
 /// `Trailers` should be created.
 #[derive(Debug)]
 pub struct TrailersSender {
-    sender: Sender<io::Result<Trailers>>,
+    sender: Sender<crate::Result<Trailers>>,
 }
 
 impl TrailersSender {
     /// Create a new instance of `TrailersSender`.
-    pub(crate) fn new(sender: Sender<io::Result<Trailers>>) -> Self {
+    pub(crate) fn new(sender: Sender<crate::Result<Trailers>>) -> Self {
         Self { sender }
     }
 
     /// Send a `Trailer`.
     ///
     /// The channel will be consumed after having sent trailers.
-    pub async fn send(self, trailers: io::Result<Trailers>) {
+    pub async fn send(self, trailers: crate::Result<Trailers>) {
         self.sender.send(trailers).await
     }
 }

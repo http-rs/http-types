@@ -31,8 +31,8 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
-        sender: Option<sync::Sender<io::Result<Trailers>>>,
-        receiver: sync::Receiver<io::Result<Trailers>>,
+        sender: Option<sync::Sender<crate::Result<Trailers>>>,
+        receiver: sync::Receiver<crate::Result<Trailers>>,
         #[pin]
         body: Body,
     }
@@ -68,7 +68,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Url, Method, Request, Response, StatusCode};
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
@@ -85,7 +85,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Url, Method, Request, Response, StatusCode};
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
@@ -230,7 +230,7 @@ impl Request {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<Vec<HeaderValue>>> {
         self.headers.insert(name, values)
     }
 
@@ -255,7 +255,7 @@ impl Request {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> io::Result<()> {
+    ) -> crate::Result<()> {
         self.headers.append(name, values)
     }
 
@@ -289,7 +289,7 @@ impl Request {
     /// ```
     /// use http_types::{Url, Method, Request, Version};
     ///
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// assert_eq!(req.version(), None);
@@ -310,7 +310,7 @@ impl Request {
     /// ```
     /// use http_types::{Url, Method, Request, Version};
     ///
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_version(Some(Version::Http2_0));
@@ -326,7 +326,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Url, Method, Request, Version};
     ///
@@ -336,7 +336,7 @@ impl Request {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn cookies(&self) -> Result<Vec<Cookie<'_>>, cookie::ParseError> {
+    pub fn cookies(&self) -> Result<Vec<Cookie<'_>>, crate::Error> {
         match self.header(&headers::COOKIE) {
             None => Ok(vec![]),
             Some(h) => h.iter().try_fold(vec![], |mut acc, h| {
@@ -352,7 +352,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Url, Method, Request, Version};
     ///
@@ -362,7 +362,7 @@ impl Request {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, cookie::ParseError> {
+    pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, crate::Error> {
         let cookies = self.cookies()?;
         let cookie = cookies.into_iter().filter(|c| c.name() == name).next();
         Ok(cookie)
@@ -375,7 +375,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::url::ParseError> {
+    /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Cookie, Url, Method, Request, Version};
     ///
@@ -399,7 +399,7 @@ impl Request {
     }
 
     /// Receive trailers from a sender.
-    pub async fn recv_trailers(&self) -> Option<io::Result<Trailers>> {
+    pub async fn recv_trailers(&self) -> Option<crate::Result<Trailers>> {
         self.receiver.recv().await
     }
 
