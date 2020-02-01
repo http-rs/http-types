@@ -174,7 +174,7 @@ impl Error {
     }
 
     /// Create a new error object from static string.
-    pub fn new_from_str<M>(kind: ErrorKind, msg: M, status: StatusCode) -> Self
+    pub fn from_str<M>(kind: ErrorKind, msg: M, status: StatusCode) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {
@@ -190,7 +190,7 @@ impl Error {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Self::new_from_str(ErrorKind::Other, message, StatusCode::InternalServerError)
+        Self::from_str(ErrorKind::Other, message, StatusCode::InternalServerError)
     }
 
     /// Create a new error object from an I/O error.
