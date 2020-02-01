@@ -173,16 +173,24 @@ impl Error {
         }
     }
 
+    /// Create a new error object from static string.
+    pub fn new_from_str<M>(kind: ErrorKind, msg: M, status: StatusCode) -> Self
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        Self {
+            kind,
+            repr: Repr::Custom(anyhow::format_err!(msg)),
+            status,
+        }
+    }
+
     /// Create a new error from a message.
     pub(crate) fn new_adhoc<M>(message: M) -> Error
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error {
-            kind: ErrorKind::Other,
-            repr: Repr::Custom(anyhow::format_err!(message)),
-            status: StatusCode::InternalServerError,
-        }
+        Self::new_from_str(ErrorKind::Other, message, StatusCode::InternalServerError)
     }
 
     /// Create a new error object from an I/O error.
