@@ -55,7 +55,7 @@ use std::convert::TryInto;
 use std::ops::{Deref, DerefMut};
 
 /// A collection of trailing HTTP headers.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Trailers {
     headers: Headers,
 }
@@ -188,7 +188,7 @@ pub struct TrailersSender {
 
 impl TrailersSender {
     /// Create a new instance of `TrailersSender`.
-    pub(crate) fn new(sender: Sender<crate::Result<Trailers>>) -> Self {
+    pub fn new(sender: Sender<crate::Result<Trailers>>) -> Self {
         Self { sender }
     }
 
