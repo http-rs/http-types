@@ -55,7 +55,7 @@ use std::convert::TryInto;
 use std::ops::{Deref, DerefMut};
 
 /// A collection of trailing HTTP headers.
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Trailers {
     headers: Headers,
 }

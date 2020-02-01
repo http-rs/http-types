@@ -29,7 +29,7 @@ pub use to_header_values::ToHeaderValues;
 pub use values::Values;
 
 /// A collection of HTTP Headers.
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Headers {
     pub(crate) headers: HashMap<HeaderName, Vec<HeaderValue>>,
 }
