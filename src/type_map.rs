@@ -1,3 +1,7 @@
+// Implementation is based on
+// - https://github.com/hyperium/http/blob/master/src/extensions.rs
+// - https://github.com/kardeiz/type-map/blob/master/src/lib.rs
+
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::fmt;
