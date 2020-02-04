@@ -26,6 +26,7 @@ omnom = "2.1.1"
 # features: hyperium/http
 http = { version = "0.2.0", optional = true }
 anyhow = "1.0.26"
+type-map = "0.2.0"
 
 [dev-dependencies]
 http = "0.2.0"

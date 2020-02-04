@@ -11,7 +11,7 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{Trailers, TrailersSender};
-use crate::{Body, Cookie, StatusCode, Version};
+use crate::{Body, Cookie, Extensions, StatusCode, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
@@ -37,6 +37,7 @@ pin_project_lite::pin_project! {
         receiver: sync::Receiver<crate::Result<Trailers>>,
         #[pin]
         body: Body,
+        extensions: Extensions,
     }
 }
 
@@ -51,6 +52,7 @@ impl Response {
             body: Body::empty(),
             sender: Some(sender),
             receiver,
+            extensions: Extensions::new(),
         }
     }
 
@@ -388,6 +390,31 @@ impl Response {
     /// An iterator visiting all header values in arbitrary order.
     pub fn header_values<'a>(&'a self) -> Values<'a> {
         self.headers.values()
+    }
+
+    /// Returns a reference to the existing extensions.
+    pub fn extensions(&self) -> &Extensions {
+        &self.extensions
+    }
+
+    /// Returns a mutuable reference to the existing extensions.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> {
+    /// #
+    /// use http_types::{StatusCode, Response, Version};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.extensions_mut().insert("hello from the extension");
+    /// assert_eq!(res.extensions().get(), Some(&"hello from the extension"));
+    /// #
+    /// # Ok(()) }
+    /// ```    
+    pub fn extensions_mut(&mut self) -> &mut Extensions {
+        &mut self.extensions
     }
 }
 
