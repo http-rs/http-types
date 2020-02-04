@@ -188,7 +188,8 @@ pub struct TrailersSender {
 
 impl TrailersSender {
     /// Create a new instance of `TrailersSender`.
-    pub(crate) fn new(sender: Sender<crate::Result<Trailers>>) -> Self {
+    #[doc(hidden)]
+    pub fn new(sender: Sender<crate::Result<Trailers>>) -> Self {
         Self { sender }
     }
 
