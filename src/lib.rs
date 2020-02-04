@@ -152,8 +152,10 @@ pub mod trailers;
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;
 
-/// Map of arbitrary types to extend the protocol.
-pub type Extensions = type_map::concurrent::TypeMap;
+/// Map type that allows storing any `Sync + Send + 'static` type as local state
+/// on a `Request` or `Response`.
+#[doc(inline)]
+pub use type_map::concurrent::TypeMap;
 
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]

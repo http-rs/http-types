@@ -11,7 +11,7 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{Trailers, TrailersSender};
-use crate::{Body, Cookie, Extensions, StatusCode, Version};
+use crate::{Body, Cookie, StatusCode, TypeMap, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
@@ -37,7 +37,7 @@ pin_project_lite::pin_project! {
         receiver: sync::Receiver<crate::Result<Trailers>>,
         #[pin]
         body: Body,
-        extensions: Extensions,
+        local_state: TypeMap,
     }
 }
 
@@ -52,7 +52,7 @@ impl Response {
             body: Body::empty(),
             sender: Some(sender),
             receiver,
-            extensions: Extensions::new(),
+            local_state: TypeMap::new(),
         }
     }
 
@@ -392,12 +392,12 @@ impl Response {
         self.headers.values()
     }
 
-    /// Returns a reference to the existing extensions.
-    pub fn extensions(&self) -> &Extensions {
-        &self.extensions
+    /// Returns a reference to the existing local_state.
+    pub fn local_state(&self) -> &TypeMap {
+        &self.local_state
     }
 
-    /// Returns a mutuable reference to the existing extensions.
+    /// Returns a mutuable reference to the existing local state.
     ///
     ///
     /// # Examples
@@ -408,13 +408,13 @@ impl Response {
     /// use http_types::{StatusCode, Response, Version};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
-    /// res.extensions_mut().insert("hello from the extension");
-    /// assert_eq!(res.extensions().get(), Some(&"hello from the extension"));
+    /// res.local_state_mut().insert("hello from the extension");
+    /// assert_eq!(res.local_state().get(), Some(&"hello from the extension"));
     /// #
     /// # Ok(()) }
     /// ```    
-    pub fn extensions_mut(&mut self) -> &mut Extensions {
-        &mut self.extensions
+    pub fn local_state_mut(&mut self) -> &mut TypeMap {
+        &mut self.local_state
     }
 }
 
