@@ -121,6 +121,7 @@ mod method;
 mod request;
 mod response;
 mod status_code;
+mod type_map;
 mod version;
 
 pub use body::Body;
@@ -151,6 +152,9 @@ pub mod trailers;
 
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;
+
+#[doc(inline)]
+pub use crate::type_map::TypeMap;
 
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]

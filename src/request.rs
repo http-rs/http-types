@@ -12,7 +12,7 @@ use crate::headers::{
 use crate::mime::Mime;
 use crate::trailers::{Trailers, TrailersSender};
 use crate::Cookie;
-use crate::{Body, Method, Url, Version};
+use crate::{Body, Method, TypeMap, Url, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -35,6 +35,7 @@ pin_project_lite::pin_project! {
         receiver: sync::Receiver<crate::Result<Trailers>>,
         #[pin]
         body: Body,
+        local_state: TypeMap,
     }
 }
 
@@ -50,6 +51,7 @@ impl Request {
             body: Body::empty(),
             sender: Some(sender),
             receiver,
+            local_state: TypeMap::new(),
         }
     }
 
@@ -422,6 +424,31 @@ impl Request {
     /// An iterator visiting all header values in arbitrary order.
     pub fn header_values<'a>(&'a self) -> Values<'a> {
         self.headers.values()
+    }
+
+    /// Returns a reference to the existing local state.
+    pub fn local_state(&self) -> &TypeMap {
+        &self.local_state
+    }
+
+    /// Returns a mutuable reference to the existing local state.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> {
+    /// #
+    /// use http_types::{Url, Method, Request, Version};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// req.local_state_mut().insert("hello from the extension");
+    /// assert_eq!(req.local_state().get(), Some(&"hello from the extension"));
+    /// #
+    /// # Ok(()) }
+    /// ```    
+    pub fn local_state_mut(&mut self) -> &mut TypeMap {
+        &mut self.local_state
     }
 }
 
