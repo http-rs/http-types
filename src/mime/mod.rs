@@ -9,13 +9,10 @@ pub use constants::*;
 
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
-use std::io;
 use std::option;
 use std::str::FromStr;
 
 use crate::headers::{HeaderValue, ToHeaderValues};
-use crate::StatusCode;
-use crate::{Error, ErrorKind};
 
 use infer::Infer;
 
@@ -39,11 +36,7 @@ impl Mime {
         let info = Infer::new();
         let mime = match info.get(&bytes) {
             Some(info) => info.mime,
-            None => {
-                let err =
-                    io::Error::new(io::ErrorKind::InvalidData, "Could not sniff the mime type");
-                return Err(Error::from_io(err, StatusCode::BadRequest));
-            }
+            None => crate::bail!("Could not sniff the mime type"),
         };
 
         Ok(Self {
@@ -136,9 +129,7 @@ impl FromStr for Mime {
     ///
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if !s.is_ascii() {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
+        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
         Ok(Self {
             essence: s.to_ascii_lowercase(),
             static_essence: None,

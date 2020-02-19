@@ -2,7 +2,7 @@ use std::fmt::{self, Display};
 use std::str::FromStr;
 
 use crate::{Cookie, Mime};
-use crate::{Error, ErrorKind};
+use crate::Error;
 
 /// A header value.
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -17,9 +17,7 @@ impl HeaderValue {
     ///
     /// This function will error if the string is not a valid ASCII.
     pub fn from_ascii(bytes: &[u8]) -> Result<Self, Error> {
-        if !bytes.is_ascii() {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
+        crate::ensure!(bytes.is_ascii(), "Bytes should be valid ASCII");
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
         let string = unsafe { String::from_utf8_unchecked(bytes.to_vec()) };
@@ -77,9 +75,7 @@ impl FromStr for HeaderValue {
     ///
     /// This checks it's valid ASCII.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if !s.is_ascii() {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
+        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
         Ok(Self {
             inner: String::from(s),
         })

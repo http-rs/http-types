@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
-use crate::{Error, ErrorKind};
+use crate::Error;
 
 /// A header name.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -11,11 +11,11 @@ pub struct HeaderName(Cow<'static, str>);
 impl HeaderName {
     /// Create a new `HeaderName`.
     pub fn from_ascii(mut bytes: Vec<u8>) -> Result<Self, Error> {
-        if !bytes.is_ascii() {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
+        crate::ensure!(bytes.is_ascii(), "Bytes should be valid ASCII");
         bytes.make_ascii_lowercase();
-        let string = String::from_utf8(bytes).map_err(|_| Error::from(ErrorKind::InvalidData))?;
+
+        // This is permitted because ASCII is valid UTF-8, and we just checked that.
+        let string = unsafe { String::from_utf8_unchecked(bytes.to_vec()) };
         Ok(HeaderName(Cow::Owned(string)))
     }
 
@@ -58,9 +58,7 @@ impl FromStr for HeaderName {
     ///
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if !s.is_ascii() {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
+        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
         Ok(HeaderName(Cow::Owned(s.to_ascii_lowercase())))
     }
 }

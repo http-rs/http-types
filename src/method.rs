@@ -1,8 +1,6 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::{Error, ErrorKind};
-
 /// HTTP request methods.
 ///
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods)
@@ -82,7 +80,7 @@ impl FromStr for Method {
             "OPTIONS" => Ok(Self::Options),
             "TRACE" => Ok(Self::Trace),
             "PATCH" => Ok(Self::Patch),
-            _ => Err(Error::from(ErrorKind::InvalidData)),
+            _ => crate::bail!("Invalid HTTP status code"),
         }
     }
 }

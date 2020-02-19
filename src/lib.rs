@@ -125,7 +125,7 @@ mod type_map;
 mod version;
 
 pub use body::Body;
-pub use error::{Error, ErrorKind, Result};
+pub use error::{Error, Result};
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;
@@ -162,6 +162,7 @@ pub mod private {
     use crate::Error;
     use core::fmt::{Debug, Display};
     pub use core::result::Result::Err;
+    pub use crate::StatusCode;
 
     pub fn new_adhoc<M>(message: M) -> Error
     where

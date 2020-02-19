@@ -1,12 +1,8 @@
 //! HTTP headers.
 
-use async_std::io;
-
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::iter::IntoIterator;
-
-use crate::StatusCode;
 
 mod constants;
 mod header_name;
@@ -49,11 +45,7 @@ impl Headers {
         values: impl ToHeaderValues,
     ) -> crate::Result<Option<Vec<HeaderValue>>> {
         let name = name.try_into().map_err(|_| {
-            let io_err = io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "Could not convert into header name",
-            );
-            crate::Error::from_io(io_err, StatusCode::InternalServerError)
+            crate::format_err!("Could not convert into header name")
         })?;
         let values: Vec<HeaderValue> = values.to_header_values()?.collect();
         Ok(self.headers.insert(name, values))
@@ -69,7 +61,7 @@ impl Headers {
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
         let name = name.try_into().map_err(|_| {
-            io::Error::new(io::ErrorKind::Other, "Could not convert into header name")
+            crate::format_err!("Could not convert into header name")
         })?;
         match self.get_mut(&name) {
             Some(headers) => {
