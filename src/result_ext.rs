@@ -7,41 +7,48 @@ use std::error::Error as StdError;
 /// This trait is sealed and cannot be implemented outside of `http-types`.
 pub trait ResultExt<T, E>: private::Sealed {
     /// Wrap the error value with an additional status code.
-    fn status(self, status: StatusCode) -> Result<T, Error>;
+    fn status<S>(self, status: S) -> Result<T, Error>
+    where
+        S: Into<StatusCode>;
 
     /// Wrap the error value with an additional status code that is evaluated
     /// lazily only once an error does occur.
-    fn with_status<F>(self, f: F) -> Result<T, Error>
+    fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
-        F: FnOnce() -> StatusCode;
+        S: Into<StatusCode>,
+        F: FnOnce() -> S;
 }
 
 impl<T, E> ResultExt<T, E> for Result<T, E>
 where
     E: StdError + Send + Sync + 'static,
 {
-    fn status(self, status: StatusCode) -> Result<T, Error> {
-        self.map_err(|error| Error::new(status, error))
+    fn status<S>(self, status: S) -> Result<T, Error> where
+    S: Into<StatusCode> {
+        self.map_err(|error| Error::new(status.into(), error))
     }
 
-    fn with_status<F>(self, f: F) -> Result<T, Error>
+    fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
-        F: FnOnce() -> StatusCode,
+        S: Into<StatusCode>,
+        F: FnOnce() -> S,
     {
-        self.map_err(|error| Error::new(f(), error))
+        self.map_err(|error| Error::new(f().into(), error))
     }
 }
 
 impl<T> ResultExt<T, Infallible> for Option<T> {
-    fn status(self, status: StatusCode) -> Result<T, Error> {
-        self.ok_or_else(|| Error::from_str(status, "NoneError"))
+    fn status<S>(self, status: S) -> Result<T, Error> 
+    where S: Into<StatusCode> {
+        self.ok_or_else(|| Error::from_str(status.into(), "NoneError"))
     }
 
-    fn with_status<F>(self, f: F) -> Result<T, Error>
+    fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
-        F: FnOnce() -> StatusCode,
+        S: Into<StatusCode>,
+        F: FnOnce() -> S,
     {
-        self.ok_or_else(|| Error::from_str(f(), "NoneError"))
+        self.ok_or_else(|| Error::from_str(f().into(), "NoneError"))
     }
 }
 
