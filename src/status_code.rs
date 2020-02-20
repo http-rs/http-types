@@ -475,8 +475,8 @@ impl Into<u16> for &StatusCode {
 impl std::convert::TryFrom<u16> for StatusCode {
     type Error = crate::Error;
 
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        match value {
+    fn try_from(num: u16) -> Result<Self, Self::Error> {
+        match num {
             100 => Ok(StatusCode::Continue),
             101 => Ok(StatusCode::SwitchingProtocols),
             103 => Ok(StatusCode::EarlyHints),
@@ -530,7 +530,7 @@ impl std::convert::TryFrom<u16> for StatusCode {
             506 => Ok(StatusCode::VariantAlsoNegotiates),
             510 => Ok(StatusCode::NotExtended),
             511 => Ok(StatusCode::NetworkAuthenticationRequired),
-            _ => unimplemented!(), // TODO: return parser error
+            _ => crate::bail!("Invalid status code"),
         }
     }
 }

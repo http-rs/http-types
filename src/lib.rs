@@ -120,15 +120,17 @@ mod macros;
 mod method;
 mod request;
 mod response;
+mod result_ext;
 mod status_code;
 mod type_map;
 mod version;
 
 pub use body::Body;
-pub use error::{Error, ErrorKind, Result};
+pub use error::{Error, Result};
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;
+pub use result_ext::ResultExt;
 pub use status_code::StatusCode;
 pub use version::Version;
 
@@ -160,6 +162,7 @@ pub use crate::type_map::TypeMap;
 #[doc(hidden)]
 pub mod private {
     use crate::Error;
+    pub use crate::StatusCode;
     use core::fmt::{Debug, Display};
     pub use core::result::Result::Err;
 

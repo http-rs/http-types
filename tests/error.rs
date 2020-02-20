@@ -1,12 +1,11 @@
-use http_types::{bail, ensure, ensure_eq, Error, ErrorKind, StatusCode};
+use http_types::{bail, ensure, ensure_eq, Error, StatusCode};
 use std::io;
 
 #[test]
 fn can_be_boxed() {
     fn can_be_boxed() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let err = io::Error::new(io::ErrorKind::Other, "Oh no");
-        Err(Error::from_io(err, StatusCode::NotFound))?;
-        Ok(())
+        Err(Error::new(StatusCode::NotFound, err).into())
     }
     assert!(can_be_boxed().is_err());
 }
@@ -21,7 +20,6 @@ fn ensure() {
     assert!(res.is_err());
     let err = res.unwrap_err();
     assert_eq!(err.status(), StatusCode::InternalServerError);
-    assert_eq!(err.kind(), ErrorKind::Other);
 }
 
 #[test]
@@ -34,5 +32,32 @@ fn ensure_eq() {
     assert!(res.is_err());
     let err = res.unwrap_err();
     assert_eq!(err.status(), StatusCode::InternalServerError);
-    assert_eq!(err.kind(), ErrorKind::Other);
+}
+
+#[test]
+fn result_ext() {
+    use http_types::ResultExt;
+    fn run() -> http_types::Result<()> {
+        let err = io::Error::new(io::ErrorKind::Other, "Oh no");
+        Err(err).status(StatusCode::NotFound)?;
+        Ok(())
+    }
+    let res = run();
+    assert!(res.is_err());
+
+    let err = res.unwrap_err();
+    assert_eq!(err.status(), StatusCode::NotFound);
+}
+
+#[test]
+fn option_ext() {
+    use http_types::ResultExt;
+    fn run() -> http_types::Result<()> {
+        None.status(StatusCode::NotFound)
+    }
+    let res = run();
+    assert!(res.is_err());
+
+    let err = res.unwrap_err();
+    assert_eq!(err.status(), StatusCode::NotFound);
 }

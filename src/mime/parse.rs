@@ -10,13 +10,6 @@ use std::io::Cursor;
 
 use super::Mime;
 
-macro_rules! bail {
-    ($fmt:expr) => {{
-        let err = std::io::Error::new(std::io::ErrorKind::InvalidData, $fmt);
-        return Err(crate::Error::from_io(err, crate::StatusCode::BadRequest));
-    }};
-}
-
 /// Parse a string into a mime type.
 #[allow(dead_code)]
 pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
@@ -30,11 +23,11 @@ pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
     let mut base_type = vec![];
     let read = s.read_until(b'/', &mut base_type).unwrap();
     if read == 0 || read == 1 {
-        bail!("mime must be a type followed by a slash");
+        crate::bail!("mime must be a type followed by a slash");
     } else if let Some(b'/') = base_type.last() {
         base_type.pop();
     } else {
-        bail!("mime must be a type followed by a slash");
+        crate::bail!("mime must be a type followed by a slash");
     }
     validate_code_points(&base_type)?;
 
@@ -47,7 +40,7 @@ pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
     let mut sub_type = vec![];
     let read = s.read_until(b';', &mut sub_type).unwrap();
     if read == 0 {
-        bail!("no subtype found");
+        crate::bail!("no subtype found");
     }
     if let Some(b';') = sub_type.last() {
         sub_type.pop();
@@ -154,7 +147,7 @@ fn validate_code_points(buf: &[u8]) -> crate::Result<()> {
     if all {
         Ok(())
     } else {
-        bail!("invalid HTTP code points found in mime")
+        crate::bail!("invalid HTTP code points found in mime")
     }
 }
 

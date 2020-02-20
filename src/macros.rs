@@ -12,7 +12,7 @@ macro_rules! bail {
     };
 }
 
-/// Return early with an error if a condition is not satisfied.
+/// Return early with an error if two expressions are not equal to each other.
 ///
 /// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
 ///
@@ -78,7 +78,7 @@ macro_rules! format_err {
     };
     ($err:expr $(,)?) => ({
         let error = $err;
-        Error::new(ErrorKind::Other, error, crate::StatusCode::InternalServerError)
+        Error::new_adhoc(error)
     });
     ($fmt:expr, $($arg:tt)*) => {
         $crate::private::new_adhoc(format!($fmt, $($arg)*))
