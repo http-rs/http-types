@@ -120,6 +120,7 @@ mod macros;
 mod method;
 mod request;
 mod response;
+mod result_ext;
 mod status_code;
 mod type_map;
 mod version;
@@ -129,6 +130,7 @@ pub use error::{Error, Result};
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;
+pub use result_ext::ResultExt;
 pub use status_code::StatusCode;
 pub use version::Version;
 

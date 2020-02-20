@@ -12,7 +12,7 @@ macro_rules! bail {
     };
 }
 
-/// Return early with an error if a condition is not satisfied.
+/// Return early with an error if two expressions are not equal to each other.
 ///
 /// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
 ///
