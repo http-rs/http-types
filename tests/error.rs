@@ -44,7 +44,7 @@ fn result_ext() {
     }
     let res = run();
     assert!(res.is_err());
-    
+
     let err = res.unwrap_err();
     assert_eq!(err.status(), StatusCode::NotFound);
 }
@@ -57,7 +57,7 @@ fn option_ext() {
     }
     let res = run();
     assert!(res.is_err());
-    
+
     let err = res.unwrap_err();
     assert_eq!(err.status(), StatusCode::NotFound);
 }
