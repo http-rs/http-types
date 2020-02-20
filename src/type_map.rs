@@ -18,6 +18,7 @@ impl TypeMap {
     /// Create an empty `TypeMap`.
     #[inline]
     pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self { map: None }
     }
 
