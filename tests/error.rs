@@ -33,3 +33,31 @@ fn ensure_eq() {
     let err = res.unwrap_err();
     assert_eq!(err.status(), StatusCode::InternalServerError);
 }
+
+#[test]
+fn result_ext() {
+    use http_types::ResultExt;
+    fn run() -> http_types::Result<()> {
+        let err = io::Error::new(io::ErrorKind::Other, "Oh no");
+        Err(err).status(StatusCode::NotFound)?;
+        Ok(())
+    }
+    let res = run();
+    assert!(res.is_err());
+    
+    let err = res.unwrap_err();
+    assert_eq!(err.status(), StatusCode::NotFound);
+}
+
+#[test]
+fn option_ext() {
+    use http_types::ResultExt;
+    fn run() -> http_types::Result<()> {
+        None.status(StatusCode::NotFound)
+    }
+    let res = run();
+    assert!(res.is_err());
+    
+    let err = res.unwrap_err();
+    assert_eq!(err.status(), StatusCode::NotFound);
+}
