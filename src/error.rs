@@ -1,4 +1,3 @@
-
 //! HTTP error types
 
 use std::error::Error as StdError;
@@ -24,13 +23,13 @@ impl Error {
     /// The error type must be threadsafe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new<E>(error: E, status: StatusCode) -> Self
+    pub fn new<E>(status: StatusCode, error: E) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
         Self {
-            error: anyhow::Error::new(error),
             status,
+            error: anyhow::Error::new(error),
         }
     }
 
@@ -40,8 +39,8 @@ impl Error {
         M: Display + Debug + Send + Sync + 'static,
     {
         Self {
-            error: anyhow::Error::msg(msg),
             status,
+            error: anyhow::Error::msg(msg),
         }
     }
 

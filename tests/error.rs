@@ -5,8 +5,7 @@ use std::io;
 fn can_be_boxed() {
     fn can_be_boxed() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let err = io::Error::new(io::ErrorKind::Other, "Oh no");
-        Err(Error::new(err, StatusCode::NotFound))?;
-        Ok(())
+        Err(Error::new(StatusCode::NotFound, err).into())
     }
     assert!(can_be_boxed().is_err());
 }

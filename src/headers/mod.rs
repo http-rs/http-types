@@ -44,9 +44,9 @@ impl Headers {
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<Option<Vec<HeaderValue>>> {
-        let name = name.try_into().map_err(|_| {
-            crate::format_err!("Could not convert into header name")
-        })?;
+        let name = name
+            .try_into()
+            .map_err(|_| crate::format_err!("Could not convert into header name"))?;
         let values: Vec<HeaderValue> = values.to_header_values()?.collect();
         Ok(self.headers.insert(name, values))
     }
@@ -60,9 +60,9 @@ impl Headers {
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
-        let name = name.try_into().map_err(|_| {
-            crate::format_err!("Could not convert into header name")
-        })?;
+        let name = name
+            .try_into()
+            .map_err(|_| crate::format_err!("Could not convert into header name"))?;
         match self.get_mut(&name) {
             Some(headers) => {
                 let mut values: Vec<HeaderValue> = values.to_header_values()?.collect();

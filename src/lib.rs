@@ -160,9 +160,9 @@ pub use crate::type_map::TypeMap;
 #[doc(hidden)]
 pub mod private {
     use crate::Error;
+    pub use crate::StatusCode;
     use core::fmt::{Debug, Display};
     pub use core::result::Result::Err;
-    pub use crate::StatusCode;
 
     pub fn new_adhoc<M>(message: M) -> Error
     where
