@@ -35,7 +35,7 @@ pin_project_lite::pin_project! {
         receiver: sync::Receiver<crate::Result<Trailers>>,
         #[pin]
         body: Body,
-        local_state: TypeMap,
+        local: TypeMap,
     }
 }
 
@@ -51,7 +51,7 @@ impl Request {
             body: Body::empty(),
             sender: Some(sender),
             receiver,
-            local_state: TypeMap::new(),
+            local: TypeMap::new(),
         }
     }
 
@@ -427,8 +427,8 @@ impl Request {
     }
 
     /// Returns a reference to the existing local state.
-    pub fn local_state(&self) -> &TypeMap {
-        &self.local_state
+    pub fn local(&self) -> &TypeMap {
+        &self.local
     }
 
     /// Returns a mutuable reference to the existing local state.
@@ -442,13 +442,13 @@ impl Request {
     /// use http_types::{Url, Method, Request, Version};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
-    /// req.local_state_mut().insert("hello from the extension");
-    /// assert_eq!(req.local_state().get(), Some(&"hello from the extension"));
+    /// req.local_mut().insert("hello from the extension");
+    /// assert_eq!(req.local().get(), Some(&"hello from the extension"));
     /// #
     /// # Ok(()) }
     /// ```    
-    pub fn local_state_mut(&mut self) -> &mut TypeMap {
-        &mut self.local_state
+    pub fn local_mut(&mut self) -> &mut TypeMap {
+        &mut self.local
     }
 }
 

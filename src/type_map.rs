@@ -7,8 +7,13 @@ use std::collections::HashMap;
 use std::fmt;
 use std::hash::{BuildHasherDefault, Hasher};
 
-/// Map type that allows storing any `Sync + Send + 'static` type as local state
-/// on a `Request` or `Response`.
+/// Store and retrieve values by `TypeId`.
+///
+/// Map type that allows storing any `Sync + Send + 'static` type. Instances can
+/// be retrieved from [`Request::local`](struct.Request.html#method.local) +
+/// [`Response::local`](struct.Response.html#method.local) and
+/// [`Request::local_mut`](struct.Request.html#method.local_mut) +
+/// [`Response::local_mut`](struct.Response.html#method.local_mut).
 #[derive(Default)]
 pub struct TypeMap {
     map: Option<HashMap<TypeId, Box<dyn Any + Send + Sync>, BuildHasherDefault<IdHasher>>>,
@@ -17,7 +22,7 @@ pub struct TypeMap {
 impl TypeMap {
     /// Create an empty `TypeMap`.
     #[inline]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self { map: None }
     }
 
