@@ -157,12 +157,12 @@ impl AsRef<dyn StdError> for Error {
 
 impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
     fn from(error: Error) -> Self {
-        error.into()
+        error.error.into()
     }
 }
 
 impl From<Error> for Box<dyn StdError + 'static> {
     fn from(error: Error) -> Self {
-        Box::<dyn StdError + Send + Sync>::from(error)
+        Box::<dyn StdError + Send + Sync>::from(error.error)
     }
 }
