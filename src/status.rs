@@ -5,7 +5,7 @@ use std::error::Error as StdError;
 /// Provides the `status` method for `Result`.
 ///
 /// This trait is sealed and cannot be implemented outside of `http-types`.
-pub trait ResultExt<T, E>: private::Sealed {
+pub trait Status<T, E>: private::Sealed {
     /// Wrap the error value with an additional status code.
     fn status<S>(self, status: S) -> Result<T, Error>
     where
@@ -21,7 +21,7 @@ pub trait ResultExt<T, E>: private::Sealed {
         F: FnOnce() -> S;
 }
 
-impl<T, E> ResultExt<T, E> for Result<T, E>
+impl<T, E> Status<T, E> for Result<T, E>
 where
     E: StdError + Send + Sync + 'static,
 {
@@ -49,7 +49,7 @@ where
     }
 }
 
-impl<T> ResultExt<T, Infallible> for Option<T> {
+impl<T> Status<T, Infallible> for Option<T> {
     fn status<S>(self, status: S) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,

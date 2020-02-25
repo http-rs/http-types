@@ -46,7 +46,7 @@ fn ensure_eq() {
 
 #[test]
 fn result_ext() {
-    use http_types::ResultExt;
+    use http_types::Status;
     fn run() -> http_types::Result<()> {
         let err = io::Error::new(io::ErrorKind::Other, "Oh no");
         Err(err).status(StatusCode::NotFound)?;
@@ -61,7 +61,7 @@ fn result_ext() {
 
 #[test]
 fn option_ext() {
-    use http_types::ResultExt;
+    use http_types::Status;
     fn run() -> http_types::Result<()> {
         None.status(StatusCode::NotFound)
     }
