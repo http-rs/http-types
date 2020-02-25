@@ -2,7 +2,7 @@ use crate::{Error, StatusCode};
 use core::convert::{Infallible, TryInto};
 use std::error::Error as StdError;
 
-/// Provides the `status` method for `Result`.
+/// Provides the `status` method for `Result` and `Option`.
 ///
 /// This trait is sealed and cannot be implemented outside of `http-types`.
 pub trait Status<T, E>: private::Sealed {
