@@ -83,9 +83,9 @@ impl Response {
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Url, Method, Response, StatusCode};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// let mut req = Response::new(StatusCode::Ok);
     /// req.insert_header("Content-Type", "text/plain")?;
     /// #
     /// # Ok(()) }
@@ -145,7 +145,7 @@ impl Response {
         }
     }
 
-    /// Replace the request body with a new body, returning the old body.
+    /// Replace the response body with a new body, returning the old body.
     ///
     /// # Examples
     ///
@@ -154,9 +154,9 @@ impl Response {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Request};
+    /// use http_types::{Body, Url, Method, Response, StatusCode};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// let mut req = Response::new(StatusCode::Ok);
     /// req.set_body("Hello, Nori!");
     ///
     /// let mut body: Body = req.replace_body("Hello, Chashu");
@@ -181,9 +181,9 @@ impl Response {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Request};
+    /// use http_types::{Body, Url, Method, Response, StatusCode};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// let mut req = Response::new(StatusCode::Ok);
     /// req.set_body("Hello, Nori!");
     ///
     /// let mut body = "Hello, Chashu!".into();
@@ -199,7 +199,7 @@ impl Response {
         mem::swap(&mut self.body, body);
     }
 
-    /// Take the request body, replacing it with an empty body.
+    /// Take the response body, replacing it with an empty body.
     ///
     /// # Examples
     ///
@@ -208,9 +208,9 @@ impl Response {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Request};
+    /// use http_types::{Body, Url, Method, Response, StatusCode};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
+    /// let mut req = Response::new(StatusCode::Ok);
     /// req.set_body("Hello, Nori!");
     /// let mut body: Body = req.take_body();
     ///
