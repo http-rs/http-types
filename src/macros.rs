@@ -12,7 +12,7 @@ macro_rules! bail {
     };
 }
 
-/// Return early with an error if two expressions are not equal to each other.
+/// Return early with an error if a condition is not satisfied.
 ///
 /// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
 ///
@@ -38,12 +38,12 @@ macro_rules! ensure {
     };
 }
 
-/// Return early with an error if a condition is not satisfied.
+/// Return early with an error if two expressions are not equal to each other.
 ///
-/// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
+/// This macro is equivalent to `if $left != $right { return Err(From::from($err)); }`.
 ///
-/// Analogously to `assert!`, `ensure!` takes a condition and exits the function
-/// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`
+/// Analogously to `assert_eq!`, `ensure_eq!` takes two expressions and exits the function
+/// if the expressions are not equal. Unlike `assert_eq!`, `ensure_eq!` returns an `Error`
 /// rather than panicking.
 #[macro_export]
 macro_rules! ensure_eq {
