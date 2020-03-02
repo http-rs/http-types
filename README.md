@@ -47,8 +47,8 @@ $ cargo add http-types
 ```
 
 ## Safety
-This crate uses ``#![deny(unsafe_code)]`` to ensure everything is implemented in
-100% Safe Rust.
+This crate uses `unsafe` in a few places to convert from validated ASCII byte
+buffers to utf-8 strings.
 
 ## Contributing
 Want to join us? Check out our ["Contributing" guide][contributing] and take a
