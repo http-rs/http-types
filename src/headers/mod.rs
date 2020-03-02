@@ -164,41 +164,27 @@ mod tests {
         let non_static_header = HeaderName::from_str("hello").unwrap();
 
         let mut headers = Headers::new();
+        headers.append(STATIC_HEADER, &["foo0"][..]).unwrap();
         headers
-            .append(STATIC_HEADER, &["foo0".parse().unwrap()][..])
+            .append(static_header.clone(), &["foo1"][..])
             .unwrap();
         headers
-            .append(static_header.clone(), &["foo1".parse().unwrap()][..])
-            .unwrap();
-        headers
-            .append(non_static_header.clone(), &["foo2".parse().unwrap()][..])
+            .append(non_static_header.clone(), &["foo2"][..])
             .unwrap();
 
         assert_eq!(
             &headers.get(&STATIC_HEADER).unwrap()[..],
-            &[
-                "foo0".parse().unwrap(),
-                "foo1".parse().unwrap(),
-                "foo2".parse().unwrap()
-            ][..]
+            &["foo0", "foo1", "foo2",][..]
         );
 
         assert_eq!(
             &headers.get(&static_header).unwrap()[..],
-            &[
-                "foo0".parse().unwrap(),
-                "foo1".parse().unwrap(),
-                "foo2".parse().unwrap()
-            ][..]
+            &["foo0", "foo1", "foo2",][..]
         );
 
         assert_eq!(
             &headers.get(&non_static_header).unwrap()[..],
-            &[
-                "foo0".parse().unwrap(),
-                "foo1".parse().unwrap(),
-                "foo2".parse().unwrap()
-            ][..]
+            &["foo0", "foo1", "foo2",][..]
         );
     }
 }

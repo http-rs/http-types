@@ -87,3 +87,27 @@ impl Display for HeaderValue {
         write!(f, "{}", self.inner)
     }
 }
+
+impl PartialEq<str> for HeaderValue {
+    fn eq(&self, other: &str) -> bool {
+        self.inner == other
+    }
+}
+
+impl<'a> PartialEq<&'a str> for HeaderValue {
+    fn eq(&self, other: &&'a str) -> bool {
+        &self.inner == other
+    }
+}
+
+impl PartialEq<String> for HeaderValue {
+    fn eq(&self, other: &String) -> bool {
+        &self.inner == other
+    }
+}
+
+impl<'a> PartialEq<&String> for HeaderValue {
+    fn eq(&self, other: &&String) -> bool {
+        &&self.inner == other
+    }
+}
