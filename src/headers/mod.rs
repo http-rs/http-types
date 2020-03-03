@@ -159,18 +159,14 @@ mod tests {
     const STATIC_HEADER: HeaderName = HeaderName::from_lowercase_str("hello");
 
     #[test]
-    fn test_header_name_static_non_static() {
+    fn test_header_name_static_non_static() -> crate::Result<()> {
         let static_header = HeaderName::from_lowercase_str("hello");
-        let non_static_header = HeaderName::from_str("hello").unwrap();
+        let non_static_header = HeaderName::from_str("hello")?;
 
         let mut headers = Headers::new();
-        headers.append(STATIC_HEADER, &["foo0"][..]).unwrap();
-        headers
-            .append(static_header.clone(), &["foo1"][..])
-            .unwrap();
-        headers
-            .append(non_static_header.clone(), &["foo2"][..])
-            .unwrap();
+        headers.append(STATIC_HEADER, "foo0")?;
+        headers.append(static_header.clone(), "foo1")?;
+        headers.append(non_static_header.clone(), "foo2")?;
 
         assert_eq!(
             &headers.get(&STATIC_HEADER).unwrap()[..],
@@ -186,5 +182,7 @@ mod tests {
             &headers.get(&non_static_header).unwrap()[..],
             &["foo0", "foo1", "foo2",][..]
         );
+
+        Ok(())
     }
 }
