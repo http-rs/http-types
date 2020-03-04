@@ -73,25 +73,37 @@ impl<'a> std::convert::TryFrom<&'a str> for HeaderName {
 
 impl PartialEq<str> for HeaderName {
     fn eq(&self, other: &str) -> bool {
-        self.0 == other
+        match HeaderName::from_str(other) {
+            Err(_) => return false,
+            Ok(other) => self == &other,
+        }
     }
 }
 
 impl<'a> PartialEq<&'a str> for HeaderName {
     fn eq(&self, other: &&'a str) -> bool {
-        &self.0 == other
+        match HeaderName::from_str(other) {
+            Err(_) => return false,
+            Ok(other) => self == &other,
+        }
     }
 }
 
 impl PartialEq<String> for HeaderName {
     fn eq(&self, other: &String) -> bool {
-        &self.0 == other
+        match HeaderName::from_str(&other) {
+            Err(_) => return false,
+            Ok(other) => self == &other,
+        }
     }
 }
 
 impl<'a> PartialEq<&String> for HeaderName {
     fn eq(&self, other: &&String) -> bool {
-        &&self.0 == other
+        match HeaderName::from_str(other) {
+            Err(_) => return false,
+            Ok(other) => self == &other,
+        }
     }
 }
 
@@ -120,5 +132,8 @@ mod tests {
         assert_eq!(&static_header, "hello");
         assert_eq!(static_header, String::from("hello"));
         assert_eq!(static_header, &String::from("hello"));
+
+        // Must validate regardless of casing.
+        assert_eq!(static_header, &String::from("Hello"));
     }
 }
