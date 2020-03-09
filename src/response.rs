@@ -138,11 +138,7 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub fn set_body(&mut self, body: impl Into<Body>) {
-        self.body = body.into();
-        if self.header(&CONTENT_TYPE).is_none() {
-            let mime = self.body.take_mime();
-            self.set_content_type(mime);
-        }
+        self.replace_body(body);
     }
 
     /// Replace the response body with a new body, returning the old body.
@@ -168,7 +164,9 @@ impl Response {
     /// # Ok(()) }) }
     /// ```
     pub fn replace_body(&mut self, body: impl Into<Body>) -> Body {
-        mem::replace(&mut self.body, body.into())
+        let body = mem::replace(&mut self.body, body.into());
+        self.copy_content_type_from_body();
+        body
     }
 
     /// Swaps the value of the body with another body, without deinitializing
@@ -197,6 +195,7 @@ impl Response {
     /// ```
     pub fn swap_body(&mut self, body: &mut Body) {
         mem::swap(&mut self.body, body);
+        self.copy_content_type_from_body();
     }
 
     /// Take the response body, replacing it with an empty body.
@@ -234,6 +233,13 @@ impl Response {
 
         // A Mime instance is guaranteed to be valid header name.
         self.insert_header(CONTENT_TYPE, value).unwrap()
+    }
+
+    /// Copy MIME data from the body.
+    fn copy_content_type_from_body(&mut self) {
+        if self.header(&CONTENT_TYPE).is_none() {
+            self.set_content_type(self.body.mime().clone());
+        }
     }
 
     /// Get the length of the body stream, if it has been set.
@@ -412,7 +418,7 @@ impl Response {
     /// assert_eq!(res.local().get(), Some(&"hello from the extension"));
     /// #
     /// # Ok(()) }
-    /// ```    
+    /// ```
     pub fn local_mut(&mut self) -> &mut TypeMap {
         &mut self.local
     }
