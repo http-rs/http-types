@@ -460,15 +460,9 @@ impl StatusCode {
     }
 }
 
-impl Into<u16> for StatusCode {
-    fn into(self) -> u16 {
-        self as u16
-    }
-}
-
-impl Into<u16> for &StatusCode {
-    fn into(self) -> u16 {
-        *self as u16
+impl From<StatusCode> for u16 {
+    fn from(code: StatusCode) -> u16 {
+        code as u16
     }
 }
 
