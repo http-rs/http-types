@@ -459,9 +459,9 @@ impl AsMut<Headers> for Response {
     }
 }
 
-impl Into<Body> for Response {
-    fn into(self) -> Body {
-        self.body
+impl From<Response> for Body {
+    fn from(res: Response) -> Body {
+        res.body
     }
 }
 

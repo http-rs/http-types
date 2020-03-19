@@ -493,9 +493,9 @@ impl AsMut<Headers> for Request {
     }
 }
 
-impl Into<Body> for Request {
-    fn into(self) -> Body {
-        self.body
+impl From<Request> for Body {
+    fn from(req: Request) -> Body {
+        req.body
     }
 }
 
