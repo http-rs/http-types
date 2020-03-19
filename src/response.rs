@@ -227,6 +227,33 @@ impl Response {
         self.replace_body(Body::empty())
     }
 
+    /// Read the body as a string.
+    ///
+    /// This consumes the response. If you want to read the body without
+    /// consuming the response, consider using the `take_body` method and
+    /// then calling `Body::into_string` or using the Response's AsyncRead
+    /// implementation to read the body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// use http_types::{Body, Url, Method, Response, StatusCode};    
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut resp = Response::new(StatusCode::Ok);    
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let body = Body::from_reader(cursor, None);
+    /// resp.set_body(body);
+    /// assert_eq!(&resp.body_string().await.unwrap(), "Hello Nori");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn body_string(self) -> io::Result<String> {
+        self.body.into_string().await
+    }
+
     /// Set the response MIME.
     pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
         let value: HeaderValue = mime.into();

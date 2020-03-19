@@ -39,6 +39,10 @@ impl Headers {
     }
 
     /// Insert a header into the headers.
+    ///
+    /// Not that this will replace all header values for a given header name.
+    /// If you wish to add header values for a header name that already exists
+    /// use `Headers::append`
     pub fn insert(
         &mut self,
         name: impl TryInto<HeaderName>,
