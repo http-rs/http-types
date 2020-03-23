@@ -5,7 +5,7 @@ use std::fmt::{self, Display};
 /// As defined by [rfc7231 section 6](https://tools.ietf.org/html/rfc7231#section-6).
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 #[repr(u16)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum StatusCode {
     /// 100 Continue
     ///
