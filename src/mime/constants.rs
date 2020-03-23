@@ -141,15 +141,15 @@ pub const BYTE_STREAM: Mime = Mime {
 /// # Mime Type
 ///
 /// ```txt
-/// application/x-www-urlencoded
+/// application/x-www-form-urlencoded
 /// ```
 pub const FORM: Mime = Mime {
-    static_essence: Some("application/x-www-urlencoded"),
+    static_essence: Some("application/x-www-form-urlencoded"),
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
     static_basetype: Some("application"),
-    static_subtype: Some("x-www-urlencoded"),
+    static_subtype: Some("x-www-form-urlencoded"),
     parameters: None,
 };
 
