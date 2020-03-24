@@ -198,6 +198,34 @@ impl Request {
         self.replace_body(Body::empty())
     }
 
+    /// Read the body as a string.
+    ///
+    /// This consumes the request. If you want to read the body without
+    /// consuming the request, consider using the `take_body` method and
+    /// then calling `Body::into_string` or using the Request's AsyncRead
+    /// implementation to read the body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// use http_types::{Body, Url, Method, Request};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    ///
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let body = Body::from_reader(cursor, None);
+    /// req.set_body(body);
+    /// assert_eq!(&req.body_string().await.unwrap(), "Hello Nori");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn body_string(self) -> io::Result<String> {
+        self.body.into_string().await
+    }
+
     /// Get an HTTP header.
     pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
         self.headers.get(name)

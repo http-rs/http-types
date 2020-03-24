@@ -114,10 +114,8 @@ impl Body {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Body, Response, StatusCode};
+    /// use http_types::Body;
     /// use async_std::io::Cursor;
-    ///
-    /// let mut req = Response::new(StatusCode::Ok);
     ///
     /// let cursor = Cursor::new("Hello Nori");
     /// let len = 10;
@@ -134,10 +132,8 @@ impl Body {
     ///
     /// ```
     /// # use std::io::prelude::*;
-    /// use http_types::{Body, Response, StatusCode};
+    /// use http_types::Body;
     /// use async_std::io::Cursor;
-    ///
-    /// let mut req = Response::new(StatusCode::Ok);
     ///
     /// let cursor = Cursor::new("Hello Nori");
     /// let body = Body::from_reader(cursor, None);
@@ -145,6 +141,29 @@ impl Body {
     /// ```
     pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
         self.reader
+    }
+
+    /// Read the body as a string
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// use http_types::Body;
+    /// use async_std::io::Cursor;
+    ///  
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let body = Body::from_reader(cursor, None);
+    /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn into_string(mut self) -> io::Result<String> {
+        use async_std::io::ReadExt;
+        let mut result = String::with_capacity(self.len().unwrap_or(0));
+        self.read_to_string(&mut result).await?;
+        Ok(result)
     }
 
     pub(crate) fn mime(&self) -> &Mime {
