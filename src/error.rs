@@ -119,18 +119,6 @@ impl Debug for Error {
     }
 }
 
-impl<E> From<E> for Error
-where
-    E: StdError + Send + Sync + 'static,
-{
-    fn from(error: E) -> Self {
-        Self {
-            error: anyhow::Error::new(error),
-            status: StatusCode::InternalServerError,
-        }
-    }
-}
-
 impl AsRef<dyn StdError + Send + Sync> for Error {
     fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
         self.error.as_ref()
@@ -155,14 +143,22 @@ impl AsRef<dyn StdError> for Error {
     }
 }
 
-impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
-    fn from(error: Error) -> Self {
-        error.error.into()
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        Self {
+            error: anyhow::Error::new(error),
+            status: StatusCode::InternalServerError,
+        }
     }
 }
 
-impl From<Error> for Box<dyn StdError + 'static> {
-    fn from(error: Error) -> Self {
-        Box::<dyn StdError + Send + Sync>::from(error.error)
+impl From<cookie::ParseError> for Error {
+    fn from(error: cookie::ParseError) -> Self {
+        Self {
+            error: anyhow::Error::new(error),
+            status: StatusCode::InternalServerError,
+        }
     }
 }
+
+impl std::error::Error for Error {}
