@@ -74,7 +74,7 @@ impl<'a> std::convert::TryFrom<&'a str> for HeaderName {
 impl PartialEq<str> for HeaderName {
     fn eq(&self, other: &str) -> bool {
         match HeaderName::from_str(other) {
-            Err(_) => return false,
+            Err(_) => false,
             Ok(other) => self == &other,
         }
     }
@@ -83,7 +83,7 @@ impl PartialEq<str> for HeaderName {
 impl<'a> PartialEq<&'a str> for HeaderName {
     fn eq(&self, other: &&'a str) -> bool {
         match HeaderName::from_str(other) {
-            Err(_) => return false,
+            Err(_) => false,
             Ok(other) => self == &other,
         }
     }
@@ -92,7 +92,7 @@ impl<'a> PartialEq<&'a str> for HeaderName {
 impl PartialEq<String> for HeaderName {
     fn eq(&self, other: &String) -> bool {
         match HeaderName::from_str(&other) {
-            Err(_) => return false,
+            Err(_) => false,
             Ok(other) => self == &other,
         }
     }
@@ -101,7 +101,7 @@ impl PartialEq<String> for HeaderName {
 impl<'a> PartialEq<&String> for HeaderName {
     fn eq(&self, other: &&String) -> bool {
         match HeaderName::from_str(other) {
-            Err(_) => return false,
+            Err(_) => false,
             Ok(other) => self == &other,
         }
     }
