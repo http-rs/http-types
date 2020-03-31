@@ -70,7 +70,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Url, Method, Request, Response, StatusCode};
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
@@ -87,7 +87,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Url, Method, Request, Response, StatusCode};
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
@@ -121,7 +121,7 @@ impl Request {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Url, Method, Request};
@@ -148,7 +148,7 @@ impl Request {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Url, Method, Request};
@@ -175,7 +175,7 @@ impl Request {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Url, Method, Request};
@@ -209,7 +209,7 @@ impl Request {
     ///
     /// ```
     /// # use std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # async_std::task::block_on(async {
     /// use http_types::{Body, Url, Method, Request};
     /// use async_std::io::Cursor;
@@ -246,7 +246,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Url, Method, Request};
     ///
@@ -271,7 +271,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Url, Method, Request};
     ///
@@ -325,7 +325,7 @@ impl Request {
     /// ```
     /// use http_types::{Url, Method, Request, Version};
     ///
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// assert_eq!(req.version(), None);
@@ -346,7 +346,7 @@ impl Request {
     /// ```
     /// use http_types::{Url, Method, Request, Version};
     ///
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_version(Some(Version::Http2_0));
@@ -362,7 +362,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Cookie, Url, Method, Request, Version};
     ///
@@ -388,7 +388,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Cookie, Url, Method, Request, Version};
     ///
@@ -411,7 +411,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Cookie, Url, Method, Request, Version};
     ///
@@ -471,7 +471,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> {
+    /// # fn main() -> anyhow::Result<()> {
     /// #
     /// use http_types::{Url, Method, Request, Version};
     ///
