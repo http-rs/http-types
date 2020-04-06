@@ -486,6 +486,22 @@ impl Request {
     }
 }
 
+impl Clone for Request {
+    /// Clone the request, resolving the body to `Body::empty()` and removing extensions.
+    fn clone(&self) -> Self {
+        Request {
+            method: self.method.clone(),
+            url: self.url.clone(),
+            headers: self.headers.clone(),
+            version: self.version.clone(),
+            sender: self.sender.clone(),
+            receiver: self.receiver.clone(),
+            body: Body::empty(),
+            local: TypeMap::new(),
+        }
+    }
+}
+
 impl Read for Request {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
