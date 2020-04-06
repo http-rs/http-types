@@ -126,6 +126,11 @@ impl Body {
         self.length
     }
 
+    /// Returns `true` if the body has a length of zero, and `false` otherwise.
+    pub fn is_empty(&self) -> Option<bool> {
+        self.length.map(|length| length == 0)
+    }
+
     /// Get the inner reader from the `Body`
     ///
     /// # Examples

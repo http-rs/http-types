@@ -131,24 +131,30 @@ impl Trailers {
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
-    pub fn iter<'a>(&'a self) -> Iter<'a> {
+    pub fn iter(&self) -> Iter<'_> {
         self.headers.iter()
     }
 
     /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
     /// values.
-    pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a> {
+    pub fn iter_mut(&mut self) -> IterMut<'_> {
         self.headers.iter_mut()
     }
 
     /// An iterator visiting all header names in arbitrary order.
-    pub fn names<'a>(&'a self) -> Names<'a> {
+    pub fn names(&self) -> Names<'_> {
         self.headers.names()
     }
 
     /// An iterator visiting all header values in arbitrary order.
-    pub fn values<'a>(&'a self) -> Values<'a> {
+    pub fn values(&self) -> Values<'_> {
         self.headers.values()
+    }
+}
+
+impl Default for Trailers {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

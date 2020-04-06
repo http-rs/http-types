@@ -95,7 +95,7 @@ impl Headers {
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
-    pub fn iter<'a>(&'a self) -> Iter<'a> {
+    pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.headers.iter(),
         }
@@ -103,22 +103,28 @@ impl Headers {
 
     /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
     /// values.
-    pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a> {
+    pub fn iter_mut(&mut self) -> IterMut<'_> {
         IterMut {
             inner: self.headers.iter_mut(),
         }
     }
 
     /// An iterator visiting all header names in arbitrary order.
-    pub fn names<'a>(&'a self) -> Names<'a> {
+    pub fn names(&self) -> Names<'_> {
         Names {
             inner: self.headers.keys(),
         }
     }
 
     /// An iterator visiting all header values in arbitrary order.
-    pub fn values<'a>(&'a self) -> Values<'a> {
+    pub fn values(&self) -> Values<'_> {
         Values::new(self.headers.values())
+    }
+}
+
+impl Default for Headers {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
