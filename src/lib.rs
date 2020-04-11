@@ -115,21 +115,25 @@ pub mod headers;
 pub mod mime;
 
 mod body;
+mod client;
 mod error;
 mod macros;
 mod method;
 mod request;
 mod response;
+mod server;
 mod status;
 mod status_code;
 mod type_map;
 mod version;
 
 pub use body::Body;
+pub use client::Client;
 pub use error::{Error, Result};
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;
+pub use server::Server;
 pub use status::Status;
 pub use status_code::StatusCode;
 pub use version::Version;

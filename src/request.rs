@@ -2,6 +2,7 @@ use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
 use std::convert::TryInto;
+use std::future::Future;
 use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -13,6 +14,9 @@ use crate::mime::Mime;
 use crate::trailers::{Trailers, TrailersSender};
 use crate::Cookie;
 use crate::{Body, Method, TypeMap, Url, Version};
+use crate::{Client, Error, Response, Server};
+
+type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a + Send>>;
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -437,6 +441,22 @@ impl Request {
     /// Receive trailers from a sender.
     pub async fn recv_trailers(&self) -> Option<crate::Result<Trailers>> {
         self.receiver.recv().await
+    }
+
+    /// Send a request directly to a server.
+    ///
+    /// This is useful for sending a request to a server without needing to
+    /// make any further HTTP requests. Examples include: HTTP endpoints in
+    /// frameworks, or testing logic for requests.
+    pub fn send_to<S: Server>(self, server: &S) -> BoxFuture<'static, Result<Response, Error>> {
+        server.recv_req(self)
+    }
+
+    /// Send a request through a client.
+    ///
+    /// This will most likely create an HTTP request over the network.
+    pub fn send_from<C: Client>(self, client: &C) -> BoxFuture<'static, Result<Response, Error>> {
+        client.send_req(self)
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
