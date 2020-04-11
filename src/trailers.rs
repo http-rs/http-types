@@ -152,12 +152,6 @@ impl Trailers {
     }
 }
 
-impl Default for Trailers {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Clone for Trailers {
     fn clone(&self) -> Self {
         Self {

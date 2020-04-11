@@ -122,12 +122,6 @@ impl Headers {
     }
 }
 
-impl Default for Headers {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl IntoIterator for Headers {
     type Item = (HeaderName, Vec<HeaderValue>);
     type IntoIter = IntoIter;
