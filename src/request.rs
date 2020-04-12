@@ -2,7 +2,6 @@ use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
 use std::convert::TryInto;
-use std::future::Future;
 use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -14,9 +13,14 @@ use crate::mime::Mime;
 use crate::trailers::{Trailers, TrailersSender};
 use crate::Cookie;
 use crate::{Body, Method, TypeMap, Url, Version};
-use crate::{Client, Error, Response, Server};
 
-type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a + Send>>;
+cfg_unstable! {
+    use std::future::Future;
+
+    use crate::{Client, Error, Response, Server};
+
+    type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a + Send>>;
+}
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -448,6 +452,8 @@ impl Request {
     /// This is useful for sending a request to a server without needing to
     /// make any further HTTP requests. Examples include: HTTP endpoints in
     /// frameworks, or testing logic for requests.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub fn send_to<S: Server>(self, server: &S) -> BoxFuture<'static, Result<Response, Error>> {
         server.recv_req(self)
     }
@@ -455,6 +461,8 @@ impl Request {
     /// Send a request through a client.
     ///
     /// This will most likely create an HTTP request over the network.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub fn send_from<C: Client>(self, client: &C) -> BoxFuture<'static, Result<Response, Error>> {
         client.send_req(self)
     }

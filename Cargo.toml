@@ -11,8 +11,13 @@ authors = ["Yoshua Wuyts <yoshuawuyts@gmail.com>"]
 readme = "README.md"
 edition = "2018"
 
+[package.metadata.docs.rs]
+features = ["docs"]
+rustdoc-args = ["--cfg", "feature=\"docs\""]
+
 [features]
 default = []
+docs = ["unstable"]
 unstable = []
 hyperium_http = ["http"]
 
