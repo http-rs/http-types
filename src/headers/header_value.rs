@@ -82,6 +82,14 @@ impl FromStr for HeaderValue {
     }
 }
 
+impl<'a> std::convert::TryFrom<&'a str> for HeaderValue {
+    type Error = Error;
+
+    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+        Self::from_str(value)
+    }
+}
+
 impl Display for HeaderValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.inner)
