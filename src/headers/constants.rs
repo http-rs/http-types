@@ -18,6 +18,9 @@ pub const TRANSFER_ENCODING: HeaderName = HeaderName::from_lowercase_str("transf
 /// The `Date` Header
 pub const DATE: HeaderName = HeaderName::from_lowercase_str("date");
 
+/// The `Host` Header
+pub const HOST: HeaderName = HeaderName::from_lowercase_str("host");
+
 /// The `Origin` Header
 pub const ORIGIN: HeaderName = HeaderName::from_lowercase_str("origin");
 
