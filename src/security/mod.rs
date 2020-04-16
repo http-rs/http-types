@@ -1,16 +1,17 @@
 //! HTTP Security Headers.
 //!
-// //! ## Example
-// //!
-// //! ```
-// //! use http_types::Response;
-// //!
-// //! let mut res = Response::new(StatusCode::Ok);
-// //! http_types::security::default(&mut res);
+//! ## Example
+//!
+//! ```
+//! use http_types::Response;
+//!
+//! let mut res = Response::new(StatusCode::Ok);
+//! http_types::security::default(&mut res);
 // //! assert_eq!(res["X-Content-Type-Options"], "nosniff");
 // //! assert_eq!(res["X-XSS-Protection"], "1; mode=block");
-// //! ```
-use crate::headers::{HeaderName, Headers};
+//! ```
+
+use crate::headers::{HeaderName, HeaderValue, Headers};
 pub use csp::{ContentSecurityPolicy, ReportTo, ReportToEndpoint, Source};
 
 mod csp;
@@ -30,7 +31,7 @@ pub fn default(mut headers: impl AsMut<Headers>) {
     dns_prefetch_control(&mut headers);
     nosniff(&mut headers);
     frameguard(&mut headers, None);
-    hide_powered_by(&mut headers);
+    powered_by(&mut headers, None);
     hsts(&mut headers);
     xss_filter(&mut headers);
 }
@@ -100,10 +101,16 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
 // /// assert_eq!(headers.get("X-Powered-By"), None);
 // /// ```
 #[inline]
-pub fn hide_powered_by(mut headers: impl AsMut<Headers>) {
-    headers
-        .as_mut()
-        .remove(&HeaderName::from_lowercase_str("X-Powered-By"));
+pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<HeaderValue>) {
+    let name = HeaderName::from_lowercase_str("X-Powered-By");
+    match value {
+        Some(value) => {
+            headers.as_mut().insert(name, value).unwrap();
+        }
+        None => {
+            headers.as_mut().remove(&name);
+        }
+    };
 }
 
 /// Sets the `Strict-Transport-Security` header to keep your users on `HTTPS`.
