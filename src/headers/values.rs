@@ -27,13 +27,10 @@ impl<'a> Iterator for Values<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             // Check if we have a vec in the current slot, and if not set one.
-            if let None = self.slot {
-                let next = self.inner.next();
-                if next.is_none() {
-                    return None;
-                }
+            if self.slot.is_none() {
+                let next = self.inner.next()?;
                 self.cursor = 0;
-                self.slot = next;
+                self.slot = Some(next);
             }
 
             // Get the next item

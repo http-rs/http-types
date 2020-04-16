@@ -31,7 +31,7 @@ impl TypeMap {
     /// If a value of this type already exists, it will be returned.
     pub fn insert<T: Send + Sync + 'static>(&mut self, val: T) -> Option<T> {
         self.map
-            .get_or_insert_with(|| Default::default())
+            .get_or_insert_with(Default::default)
             .insert(TypeId::of::<T>(), Box::new(val))
             .and_then(|boxed| (boxed as Box<dyn Any>).downcast().ok().map(|boxed| *boxed))
     }

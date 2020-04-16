@@ -68,7 +68,7 @@ pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
     // ```
     loop {
         // Stop parsing if there's no more bytes to consume.
-        if s.fill_buf().unwrap().len() == 0 {
+        if s.fill_buf().unwrap().is_empty() {
             break;
         }
 
@@ -121,9 +121,8 @@ pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
         param_value.make_ascii_lowercase();
 
         // Insert attribute pair into hashmap.
-        if let None = mime.parameters {
-            mime.parameters = Some(HashMap::new());
-        }
+        mime.parameters.get_or_insert_with(HashMap::new);
+
         mime.parameters
             .as_mut()
             .unwrap()

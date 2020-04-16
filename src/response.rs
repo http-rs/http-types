@@ -278,6 +278,11 @@ impl Response {
         self.body.len()
     }
 
+    /// Returns `true` if the set length of the body stream is zero, `false` otherwise.
+    pub fn is_empty(&self) -> Option<bool> {
+        self.body.is_empty()
+    }
+
     /// Get the HTTP version, if one has been set.
     ///
     /// # Examples
@@ -365,7 +370,7 @@ impl Response {
     /// ```
     pub fn cookie(&self, name: &str) -> Result<Option<Cookie<'_>>, crate::Error> {
         let cookies = self.cookies()?;
-        let cookie = cookies.into_iter().filter(|c| c.name() == name).next();
+        let cookie = cookies.into_iter().find(|c| c.name() == name);
         Ok(cookie)
     }
 
@@ -405,23 +410,23 @@ impl Response {
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
-    pub fn iter<'a>(&'a self) -> headers::Iter<'a> {
+    pub fn iter(&self) -> headers::Iter<'_> {
         self.headers.iter()
     }
 
     /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
     /// values.
-    pub fn iter_mut<'a>(&'a mut self) -> headers::IterMut<'a> {
+    pub fn iter_mut(&mut self) -> headers::IterMut<'_> {
         self.headers.iter_mut()
     }
 
     /// An iterator visiting all header names in arbitrary order.
-    pub fn header_names<'a>(&'a self) -> Names<'a> {
+    pub fn header_names(&self) -> Names<'_> {
         self.headers.names()
     }
 
     /// An iterator visiting all header values in arbitrary order.
-    pub fn header_values<'a>(&'a self) -> Values<'a> {
+    pub fn header_values(&self) -> Values<'_> {
         self.headers.values()
     }
 
