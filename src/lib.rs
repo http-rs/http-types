@@ -93,7 +93,6 @@
 //! differently. But as a rule: if you know the size of the body, it's usually more efficient to
 //! declare it up front. But if you don't, things will still work.
 
-#![forbid(rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, missing_doc_code_examples, unreachable_pub)]
 #![cfg_attr(test, deny(warnings))]
@@ -151,6 +150,8 @@ pub use crate::cookies::Cookie;
 
 #[doc(inline)]
 pub mod trailers;
+
+pub mod security;
 
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;
