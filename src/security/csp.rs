@@ -103,18 +103,29 @@ pub struct ReportToEndpoint {
 /// # Examples
 ///
 /// ```
-/// let mut policy = http_types::security::new()
-///     .default_src(http_types::security::Source::SameOrigin)
+/// use http_types::{headers, security, Response, StatusCode};
+///
+/// let mut policy = security::ContentSecurityPolicy::new();
+/// policy
+///     .default_src(security::Source::SameOrigin)
 ///     .default_src("areweasyncyet.rs")
-///     .script_src(http_types::security::Source::SameOrigin)
-///     .object_src(http_types::security::Source::None)
-///     .base_uri(http_types::security::Source::None)
+///     .script_src(security::Source::SameOrigin)
+///     .script_src(security::Source::UnsafeInline)
+///     .object_src(security::Source::None)
+///     .base_uri(security::Source::None)
 ///     .upgrade_insecure_requests();
 ///
-/// let mut headers = http::Headers::new();
-/// policy.apply(&mut headers);
+/// let mut res = Response::new(StatusCode::Ok);
+/// res.set_body("Hello, Chashu!");
 ///
-/// assert_eq!(headers["content-security-policy"], "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self'; upgrade-insecure-requests");
+/// security::default(&mut res);
+/// policy.apply(&mut res);
+///
+/// let name =
+///     headers::HeaderName::from_ascii("content-security-policy".to_owned().into_bytes()).unwrap();
+/// let headers = res.header(&name).unwrap();
+/// let header = headers.iter().next().unwrap();
+/// assert_eq!(header, "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests");
 /// ```
 
 #[derive(Debug)]

@@ -1,14 +1,15 @@
 //! HTTP Security Headers.
 //!
-//! Adapted from [helmetjs](https://helmetjs.github.io/).
-//!
-//! ## Example
-//! ```
-//! let mut headers = http::Headers::new();
-//! http_types::security::default(&mut headers);
-//! assert_eq!(headers["X-Content-Type-Options"], "nosniff");
-//! assert_eq!(headers["X-XSS-Protection"], "1; mode=block");
-//! ```
+// //! ## Example
+// //!
+// //! ```
+// //! use http_types::Response;
+// //!
+// //! let mut res = Response::new(StatusCode::Ok);
+// //! http_types::security::default(&mut res);
+// //! assert_eq!(res["X-Content-Type-Options"], "nosniff");
+// //! assert_eq!(res["X-XSS-Protection"], "1; mode=block");
+// //! ```
 use crate::headers::{HeaderName, Headers};
 pub use csp::{ContentSecurityPolicy, ReportTo, ReportToEndpoint, Source};
 
@@ -16,13 +17,15 @@ mod csp;
 
 /// Apply a set of default protections.
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// http_types::security::default(&mut headers);
-/// assert_eq!(headers["X-Content-Type-Options"], "nosniff");
-/// assert_eq!(headers["X-XSS-Protection"], "1; mode=block");
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// http_types::security::default(&mut headers);
+// /// assert_eq!(headers["X-Content-Type-Options"], "nosniff");
+// /// assert_eq!(headers["X-XSS-Protection"], "1; mode=block");
+// /// ```
 pub fn default(mut headers: impl AsMut<Headers>) {
     dns_prefetch_control(&mut headers);
     nosniff(&mut headers);
@@ -36,12 +39,14 @@ pub fn default(mut headers: impl AsMut<Headers>) {
 ///
 /// [read more](https://helmetjs.github.io/docs/dns-prefetch-control/)
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// http_types::security::dns_prefetch_control(&mut headers);
-/// assert_eq!(headers["X-DNS-Prefetch-Control"], "on");
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// http_types::security::dns_prefetch_control(&mut headers);
+// /// assert_eq!(headers["X-DNS-Prefetch-Control"], "on");
+// /// ```
 #[inline]
 pub fn dns_prefetch_control(mut headers: impl AsMut<Headers>) {
     headers
@@ -63,12 +68,14 @@ pub enum FrameOptions {
 ///
 /// [read more](https://helmetjs.github.io/docs/frameguard/)
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// http_types::security::frameguard(&mut headers, None);
-/// assert_eq!(headers["X-Frame-Options"], "sameorigin");
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// http_types::security::frameguard(&mut headers, None);
+// /// assert_eq!(headers["X-Frame-Options"], "sameorigin");
+// /// ```
 #[inline]
 pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>) {
     let kind = match guard {
@@ -83,13 +90,15 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
 ///
 /// [read more](https://helmetjs.github.io/docs/hide-powered-by/)
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// headers.as_mut().insert("X-Powered-By", "Tide/Rust".parse().unwrap());
-/// http_types::security::hide_powered_by(&mut headers);
-/// assert_eq!(headers.get("X-Powered-By"), None);
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// headers.as_mut().insert("X-Powered-By", "Tide/Rust".parse().unwrap());
+// /// http_types::security::hide_powered_by(&mut headers);
+// /// assert_eq!(headers.get("X-Powered-By"), None);
+// /// ```
 #[inline]
 pub fn hide_powered_by(mut headers: impl AsMut<Headers>) {
     headers
@@ -104,12 +113,14 @@ pub fn hide_powered_by(mut headers: impl AsMut<Headers>) {
 ///
 /// [read more](https://helmetjs.github.io/docs/hsts/)
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// http_types::security::hsts(&mut headers);
-/// assert_eq!(headers["Strict-Transport-Security"], "max-age=5184000");
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// http_types::security::hsts(&mut headers);
+// /// assert_eq!(headers["Strict-Transport-Security"], "max-age=5184000");
+// /// ```
 #[inline]
 pub fn hsts(mut headers: impl AsMut<Headers>) {
     headers
@@ -123,12 +134,14 @@ pub fn hsts(mut headers: impl AsMut<Headers>) {
 ///
 /// [read more](https://helmetjs.github.io/docs/dont-sniff-mimetype/)
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// http_types::security::nosniff(&mut headers);
-/// assert_eq!(headers["X-Content-Type-Options"], "nosniff");
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// http_types::security::nosniff(&mut headers);
+// /// assert_eq!(headers["X-Content-Type-Options"], "nosniff");
+// /// ```
 #[inline]
 pub fn nosniff(mut headers: impl AsMut<Headers>) {
     headers
@@ -141,12 +154,14 @@ pub fn nosniff(mut headers: impl AsMut<Headers>) {
 ///
 /// [read more](https://helmetjs.github.io/docs/xss-filter/)
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// http_types::security::xss_filter(&mut headers);
-/// assert_eq!(headers["X-XSS-Protection"], "1; mode=block");
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// http_types::security::xss_filter(&mut headers);
+// /// assert_eq!(headers["X-XSS-Protection"], "1; mode=block");
+// /// ```
 #[inline]
 pub fn xss_filter(mut headers: impl AsMut<Headers>) {
     headers
@@ -183,14 +198,16 @@ pub enum ReferrerOptions {
 /// [Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy)
 ///
 ///
-/// ## Examples
-/// ```
-/// let mut headers = http::Headers::new();
-/// http_types::security::referrer_policy(&mut headers, Some(http_types::security::ReferrerOptions::UnsafeUrl));
-/// http_types::security::referrer_policy(&mut headers, None);
-/// let mut referrerValues: Vec<&str> = headers.get_all("Referrer-Policy").iter().map(|x| x.to_str().unwrap()).collect();
-/// assert_eq!(referrerValues.sort(), vec!("unsafe-url", "no-referrer").sort());
-/// ```
+// /// ## Examples
+// /// ```
+// /// use http_types::Response;
+// ///
+// /// let mut res = Response::new(StatusCode::Ok);
+// /// http_types::security::referrer_policy(&mut headers, Some(http_types::security::ReferrerOptions::UnsafeUrl));
+// /// http_types::security::referrer_policy(&mut headers, None);
+// /// let mut referrerValues: Vec<&str> = headers.get_all("Referrer-Policy").iter().map(|x| x.to_str().unwrap()).collect();
+// /// assert_eq!(referrerValues.sort(), vec!("unsafe-url", "no-referrer").sort());
+// /// ```
 #[inline]
 pub fn referrer_policy(mut headers: impl AsMut<Headers>, referrer: Option<ReferrerOptions>) {
     let policy = match referrer {

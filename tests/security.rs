@@ -1,4 +1,4 @@
-use http_types::{headers, security, Response, StatusCode};
+use http_types::{headers::HeaderName, security, Response, StatusCode};
 
 #[test]
 fn security_test() {
@@ -18,9 +18,11 @@ fn security_test() {
     security::default(&mut res);
     policy.apply(&mut res);
 
-    let name =
-        headers::HeaderName::from_ascii("content-security-policy".to_owned().into_bytes()).unwrap();
-    let headers = res.header(&name).unwrap();
-    let header = headers.iter().next().unwrap();
+    let header = res
+        .header(&HeaderName::from_ascii("content-security-policy".to_owned().into_bytes()).unwrap())
+        .unwrap()
+        .iter()
+        .next()
+        .unwrap();
     assert_eq!(header, "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests");
 }
