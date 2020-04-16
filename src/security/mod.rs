@@ -3,7 +3,7 @@
 //! ## Example
 //!
 //! ```
-//! use http_types::Response;
+//! use http_types::{StatusCode, Response};
 //!
 //! let mut res = Response::new(StatusCode::Ok);
 //! http_types::security::default(&mut res);
