@@ -95,8 +95,9 @@
 
 #![forbid(rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]
-#![warn(missing_docs, missing_doc_code_examples, unreachable_pub)]
+#![warn(missing_docs, unreachable_pub)]
 #![cfg_attr(test, deny(warnings))]
+#![cfg_attr(feature = "docs", feature(doc_cfg))]
 
 /// HTTP cookies.
 pub mod cookies {
@@ -111,6 +112,9 @@ pub mod url {
     };
 }
 
+#[macro_use]
+mod utils;
+
 pub mod headers;
 pub mod mime;
 
@@ -124,6 +128,14 @@ mod status;
 mod status_code;
 mod type_map;
 mod version;
+
+cfg_unstable! {
+    mod client;
+    mod server;
+
+    pub use client::Client;
+    pub use server::Server;
+}
 
 pub use body::Body;
 pub use error::{Error, Result};
