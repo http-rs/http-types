@@ -127,7 +127,6 @@ pub struct ReportToEndpoint {
 /// let header = headers.iter().next().unwrap();
 /// assert_eq!(header, "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests");
 /// ```
-
 #[derive(Debug)]
 pub struct ContentSecurityPolicy {
     policy: Vec<String>,
@@ -265,7 +264,7 @@ impl ContentSecurityPolicy {
     ///
     /// [MDN | require-sri-for](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/require-sri-for)
     pub fn require_sri_for<T: AsRef<str>>(&mut self, source: T) -> &mut Self {
-        self.insert_directive("require-sri-for ", source);
+        self.insert_directive("require-sri-for", source);
         self
     }
 
