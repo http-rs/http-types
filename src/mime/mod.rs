@@ -82,13 +82,14 @@ impl Mime {
     }
 
     /// Get a reference to a param.
-    pub fn param(&self, s: &str) -> Option<&ParamValue> {
+    pub fn param(&self, name: impl Into<ParamName>) -> Option<&ParamValue> {
+        let name: ParamName = name.into();
         self.params
             .as_ref()
             .map(|inner| match inner {
-                ParamKind::Map(hm) => hm.get(&ParamName(s.to_owned().into())),
-                ParamKind::Utf8 => match s {
-                    "charset" => Some(&ParamValue(Cow::Borrowed("utf8"))),
+                ParamKind::Map(hm) => hm.get(&name),
+                ParamKind::Utf8 => match name {
+                    ParamName(Cow::Borrowed("charset")) => Some(&ParamValue(Cow::Borrowed("utf8"))),
                     _ => None,
                 },
             })
@@ -170,6 +171,24 @@ pub struct ParamName(Cow<'static, str>);
 impl Display for ParamName {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl FromStr for ParamName {
+    type Err = crate::Error;
+
+    /// Create a new `HeaderName`.
+    ///
+    /// This checks it's valid ASCII, and lowercases it.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
+        Ok(ParamName(Cow::Owned(s.to_ascii_lowercase())))
+    }
+}
+
+impl<'a> From<&'a str> for ParamName {
+    fn from(value: &'a str) -> Self {
+        Self::from_str(value).unwrap()
     }
 }
 
