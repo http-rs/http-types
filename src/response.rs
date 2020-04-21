@@ -254,6 +254,32 @@ impl Response {
         self.body.into_string().await
     }
 
+    /// Read the body as bytes.
+    ///
+    /// This consumes the `Response`. If you want to read the body without
+    /// consuming the response, consider using the `take_body` method and
+    /// then calling `Body::into_bytes` or using the Response's AsyncRead
+    /// implementation to read the body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    ///
+    /// use http_types::{Body, Url, Method, Response, StatusCode};
+    ///
+    /// let bytes = vec![1, 2, 3];
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_body(Body::from_bytes(bytes));
+    ///
+    /// let bytes = res.body_bytes().await?;
+    /// assert_eq!(bytes, vec![1, 2, 3]);
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn body_bytes(self) -> crate::Result<Vec<u8>> {
+        self.body.into_bytes().await
+    }
+
     /// Set the response MIME.
     pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
         let value: HeaderValue = mime.into();
