@@ -497,6 +497,12 @@ impl From<Response> for Body {
     }
 }
 
+impl From<()> for Response {
+    fn from(_: ()) -> Self {
+        Response::new(StatusCode::NoContent)
+    }
+}
+
 impl From<String> for Response {
     fn from(s: String) -> Self {
         let mut res = Response::new(StatusCode::Ok);
@@ -518,6 +524,20 @@ impl From<Vec<u8>> for Response {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(b);
         res
+    }
+}
+
+impl<'a> From<&'a [u8]> for Response {
+    fn from(b: &'a [u8]) -> Self {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(b);
+        res
+    }
+}
+
+impl From<StatusCode> for Response {
+    fn from(s: StatusCode) -> Self {
+        Response::new(s)
     }
 }
 
