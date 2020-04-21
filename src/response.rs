@@ -10,7 +10,7 @@ use crate::headers::{
     self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
-use crate::trailers::{Trailers, TrailersSender};
+use crate::trailers::{self, Trailers};
 use crate::{Body, Cookie, StatusCode, TypeMap, Version};
 
 pin_project_lite::pin_project! {
@@ -33,8 +33,8 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        sender: Option<sync::Sender<crate::Result<Trailers>>>,
-        receiver: sync::Receiver<crate::Result<Trailers>>,
+        sender: Option<sync::Sender<Trailers>>,
+        receiver: Option<sync::Receiver<Trailers>>,
         #[pin]
         body: Body,
         local: TypeMap,
@@ -51,7 +51,7 @@ impl Response {
             version: None,
             body: Body::empty(),
             sender: Some(sender),
-            receiver,
+            receiver: Some(receiver),
             local: TypeMap::new(),
         }
     }
@@ -396,17 +396,21 @@ impl Response {
     }
 
     /// Sends trailers to the a receiver.
-    pub fn send_trailers(&mut self) -> TrailersSender {
+    pub fn send_trailers(&mut self) -> trailers::Sender {
         let sender = self
             .sender
             .take()
             .expect("Trailers sender can only be constructed once");
-        TrailersSender::new(sender)
+        trailers::Sender::new(sender)
     }
 
     /// Receive trailers from a sender.
-    pub async fn recv_trailers(&self) -> Option<crate::Result<Trailers>> {
-        self.receiver.recv().await
+    pub async fn recv_trailers(&mut self) -> trailers::Receiver {
+        let receiver = self
+            .receiver
+            .take()
+            .expect("Trailers receiver can only be constructed once");
+        trailers::Receiver::new(receiver)
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
