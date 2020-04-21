@@ -1,5 +1,6 @@
 use async_std::io::prelude::*;
-use async_std::io::{self, BufRead, Read};
+use async_std::io::{self, Cursor};
+use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
 use std::pin::Pin;
@@ -157,6 +158,30 @@ impl Body {
         Ok(buf)
     }
 
+    /// Creates a `Body` from a type, serializing it as JSON.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/json`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, serde::json};
+    ///
+    /// let body = Body::from_json(json!({ "name": "Chashu" }));
+    /// # drop(body);
+    /// ```
+    pub fn from_json(json: impl Serialize) -> crate::Result<Self> {
+        let bytes = serde_json::to_vec(&json)?;
+        let body = Self {
+            length: Some(bytes.len()),
+            reader: Box::new(Cursor::new(bytes)),
+            mime: mime::JSON,
+        };
+        Ok(body)
+    }
+
     /// Get the length of the body in bytes.
     ///
     /// # Examples
@@ -218,6 +243,31 @@ impl Body {
         Ok(result)
     }
 
+    /// Parse the body as JSON, serializing it to a struct.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::Body;
+    /// use http_types::serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Debug, Serialize, Deserialize)]
+    /// struct Cat { name: String }
+    ///
+    /// let cat = Cat { name: String::from("chashu") };
+    /// let body = Body::from_json(cat)?;
+    ///
+    /// let cat: Cat = body.into_json().await?;
+    /// assert_eq!(&cat.name, "chashu");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
+        let mut buf = Vec::with_capacity(1024);
+        self.read_to_end(&mut buf).await?;
+        Ok(serde_json::from_slice(&buf).map_err(io::Error::from)?)
+    }
+
     pub(crate) fn mime(&self) -> &Mime {
         &self.mime
     }
@@ -236,7 +286,7 @@ impl From<String> for Body {
     fn from(s: String) -> Self {
         Self {
             length: Some(s.len()),
-            reader: Box::new(io::Cursor::new(s.into_bytes())),
+            reader: Box::new(Cursor::new(s.into_bytes())),
             mime: mime::PLAIN,
         }
     }
@@ -246,7 +296,7 @@ impl<'a> From<&'a str> for Body {
     fn from(s: &'a str) -> Self {
         Self {
             length: Some(s.len()),
-            reader: Box::new(io::Cursor::new(s.to_owned().into_bytes())),
+            reader: Box::new(Cursor::new(s.to_owned().into_bytes())),
             mime: mime::PLAIN,
         }
     }
@@ -256,7 +306,7 @@ impl From<Vec<u8>> for Body {
     fn from(b: Vec<u8>) -> Self {
         Self {
             length: Some(b.len()),
-            reader: Box::new(io::Cursor::new(b)),
+            reader: Box::new(Cursor::new(b)),
             mime: mime::BYTE_STREAM,
         }
     }

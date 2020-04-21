@@ -173,6 +173,13 @@ mod hyperium_http;
 #[doc(inline)]
 pub use crate::type_map::TypeMap;
 
+/// Generic serialization and deserialization.
+pub mod serde {
+    pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
+    #[doc(inline)]
+    pub use serde_json::json;
+}
+
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
