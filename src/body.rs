@@ -205,6 +205,7 @@ impl<'a> From<&'a str> for Body {
     }
 }
 
+//  TODO: add this to the mime definition.
 fn string_mime() -> mime::Mime {
     let mut mime = mime::PLAIN;
     let mut parameters = std::collections::HashMap::new();
@@ -220,6 +221,12 @@ impl From<Vec<u8>> for Body {
             reader: Box::new(io::Cursor::new(b)),
             mime: mime::BYTE_STREAM,
         }
+    }
+}
+
+impl From<()> for Body {
+    fn from(_: ()) -> Self {
+        Self::empty()
     }
 }
 
