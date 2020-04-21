@@ -57,7 +57,7 @@ pub fn dns_prefetch_control(mut headers: impl AsMut<Headers>) {
 }
 
 /// Set the frameguard level.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FrameOptions {
     /// Set to `sameorigin`
     SameOrigin,
@@ -178,7 +178,7 @@ pub fn xss_filter(mut headers: impl AsMut<Headers>) {
 }
 
 /// Set the Referrer-Policy level
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ReferrerOptions {
     /// Set to "no-referrer"
     NoReferrer,

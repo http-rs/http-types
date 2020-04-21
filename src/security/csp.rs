@@ -1,17 +1,17 @@
 use crate::Headers;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
 /// Define source value
 ///
 /// [read more](https://content-security-policy.com)
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
 pub enum Source {
     /// Set source `'self'`
     SameOrigin,
     /// Set source `'src'`
-    SRC,
+    Src,
     /// Set source `'none'`
     None,
     /// Set source `'unsafe-inline'`
@@ -21,7 +21,7 @@ pub enum Source {
     /// Set source `mediastream:`
     Mediastream,
     /// Set source `https:`
-    HTTPS,
+    Https,
     /// Set source `blob:`
     Blob,
     /// Set source `filesystem:`
@@ -38,12 +38,12 @@ impl fmt::Display for Source {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Source::SameOrigin => write!(f, "'self'"),
-            Source::SRC => write!(f, "'src'"),
+            Source::Src => write!(f, "'src'"),
             Source::None => write!(f, "'none'"),
             Source::UnsafeInline => write!(f, "'unsafe-inline'"),
             Source::Data => write!(f, "data:"),
             Source::Mediastream => write!(f, "mediastream:"),
-            Source::HTTPS => write!(f, "https:"),
+            Source::Https => write!(f, "https:"),
             Source::Blob => write!(f, "blob:"),
             Source::Filesystem => write!(f, "filesystem:"),
             Source::StrictDynamic => write!(f, "'strict-dynamic'"),
@@ -57,12 +57,12 @@ impl AsRef<str> for Source {
     fn as_ref(&self) -> &str {
         match *self {
             Source::SameOrigin => "'self'",
-            Source::SRC => "'src'",
+            Source::Src => "'src'",
             Source::None => "'none'",
             Source::UnsafeInline => "'unsafe-inline'",
             Source::Data => "data:",
             Source::Mediastream => "mediastream:",
-            Source::HTTPS => "https:",
+            Source::Https => "https:",
             Source::Blob => "blob:",
             Source::Filesystem => "filesystem:",
             Source::StrictDynamic => "'strict-dynamic'",
@@ -75,7 +75,7 @@ impl AsRef<str> for Source {
 /// Define `report-to` directive value
 ///
 /// [MDN | report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to)
-#[derive(Serialize, Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ReportTo {
     #[serde(skip_serializing_if = "Option::is_none")]
     group: Option<String>,
@@ -88,7 +88,7 @@ pub struct ReportTo {
 /// Define `endpoints` for `report-to` directive value
 ///
 /// [MDN | report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to)
-#[derive(Serialize, Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ReportToEndpoint {
     url: String,
 }
@@ -127,7 +127,7 @@ pub struct ReportToEndpoint {
 /// let header = headers.iter().next().unwrap();
 /// assert_eq!(header, "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests");
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContentSecurityPolicy {
     policy: Vec<String>,
     report_only_flag: bool,
