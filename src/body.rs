@@ -182,6 +182,30 @@ impl Body {
         Ok(body)
     }
 
+    /// Create a `Body` from an async-std File.
+    ///
+    /// The Mime type set to `application/octet-stream` if no other mime type has been set or can
+    /// be sniffed.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::fs::File;
+    ///
+    /// # async_std::task::block_on(async {
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// let file = File::open("/path/to/file").await.unwrap();
+    /// res.set_body(Body::from_file(file));
+    /// // or
+    /// res.set_body(File::open("/path/to/file").await.unwrap());
+    /// # });
+    /// ```
+    #[cfg(feature = "async_std")]
+    pub fn from_file(file: async_std::fs::File) -> Self {
+        file.into()
+    }
+
     /// Get the length of the body in bytes.
     ///
     /// # Examples
@@ -317,6 +341,24 @@ impl<'a> From<&'a [u8]> for Body {
         Self {
             length: Some(b.len()),
             reader: Box::new(io::Cursor::new(b.to_owned())),
+            mime: mime::BYTE_STREAM,
+        }
+    }
+}
+
+#[cfg(feature = "async_std")]
+impl From<async_std::fs::File> for Body {
+    fn from(file: async_std::fs::File) -> Self {
+        let length = async_std::task::block_on(async {
+            file.metadata()
+                .await
+                .expect("unable to read file metadata")
+                .len()
+        });
+
+        Self {
+            length: Some(length as usize),
+            reader: Box::new(async_std::io::BufReader::new(file)),
             mime: mime::BYTE_STREAM,
         }
     }
