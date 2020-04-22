@@ -64,8 +64,9 @@ impl<'a> Iterator for Values<'a> {
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.inner
-            .map(|inner| inner.size_hint())
-            .unwrap_or((0, None))
+        match self.inner.as_ref() {
+            Some(inner) => inner.size_hint(),
+            None => (0, None),
+        }
     }
 }

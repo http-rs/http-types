@@ -122,7 +122,11 @@ impl<'a> PartialEq<&String> for HeaderValue {
 }
 
 impl From<HeaderValues> for HeaderValue {
-    fn from(other: HeaderValues) -> Self {
-        other[0]
+    fn from(mut other: HeaderValues) -> Self {
+        other.inner.reverse();
+        other
+            .inner
+            .pop()
+            .expect("HeaderValues should contain at least one value")
     }
 }

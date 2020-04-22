@@ -10,7 +10,7 @@ use std::slice::SliceIndex;
 /// This always contains at least one header value.
 #[derive(Debug, Clone)]
 pub struct HeaderValues {
-    inner: Vec<HeaderValue>,
+    pub(crate) inner: Vec<HeaderValue>,
 }
 
 impl HeaderValues {
@@ -30,7 +30,7 @@ impl HeaderValues {
     }
 
     /// Returns the last `HeaderValue`.
-    pub fn last(&mut self) -> &HeaderValue {
+    pub fn last(&self) -> &HeaderValue {
         self.inner
             .last()
             .expect("HeaderValues must always contain at least one value")
@@ -66,7 +66,7 @@ impl FromIterator<HeaderValue> for HeaderValues {
     {
         let iter = iter.into_iter();
         let mut output = Vec::with_capacity(iter.size_hint().0);
-        for v in output {
+        for v in iter {
             output.push(v);
         }
         HeaderValues { inner: output }
@@ -147,13 +147,3 @@ impl<'a> IntoIterator for &'a HeaderValues {
         self.iter()
     }
 }
-
-// impl<'a> IntoIterator for &'a mut HeaderValues {
-//     type Item = &'a HeaderValue;
-//     type IntoIter = ValuesMut<'a>;
-
-//     #[inline]
-//     fn into_iter(self) -> Self::IntoIter {
-//         self.iter_mut()
-//     }
-// }
