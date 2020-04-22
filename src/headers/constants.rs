@@ -96,9 +96,6 @@ pub const EXPIRES: HeaderName = HeaderName::from_lowercase_str("expires");
 ///  The `From` Header
 pub const FROM: HeaderName = HeaderName::from_lowercase_str("from");
 
-///  The `Host` Header
-pub const HOST: HeaderName = HeaderName::from_lowercase_str("host");
-
 ///  The `If-Match` Header
 pub const IF_MATCH: HeaderName = HeaderName::from_lowercase_str("if-match");
 
@@ -145,9 +142,6 @@ pub const TE: HeaderName = HeaderName::from_lowercase_str("te");
 
 ///  The `Trailer` Header
 pub const TRAILER: HeaderName = HeaderName::from_lowercase_str("trailer");
-
-///  The `Transfer-Encoding` Header
-pub const TRANSFER_ENCODING: HeaderName = HeaderName::from_lowercase_str("transfer-encoding");
 
 ///  The `Upgrade` Header
 pub const UPGRADE: HeaderName = HeaderName::from_lowercase_str("upgrade");
