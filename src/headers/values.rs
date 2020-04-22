@@ -6,16 +6,26 @@ use crate::headers::{HeaderName, HeaderValue, HeaderValues};
 /// Iterator over the header values.
 #[derive(Debug)]
 pub struct Values<'a> {
-    pub(super) inner: hash_map::Values<'a, HeaderName, HeaderValues>,
+    pub(super) inner: Option<hash_map::Values<'a, HeaderName, HeaderValues>>,
     slot: Option<&'a HeaderValues>,
     cursor: usize,
 }
 
 impl<'a> Values<'a> {
+    /// Constructor for `Headers`.
     pub(crate) fn new(inner: hash_map::Values<'a, HeaderName, HeaderValues>) -> Self {
         Self {
-            inner,
+            inner: Some(inner),
             slot: None,
+            cursor: 0,
+        }
+    }
+
+    /// Constructor for `HeaderValues`.
+    pub(crate) fn new_values(values: &'a HeaderValues) -> Self {
+        Self {
+            inner: None,
+            slot: Some(values),
             cursor: 0,
         }
     }
@@ -28,7 +38,10 @@ impl<'a> Iterator for Values<'a> {
         loop {
             // Check if we have a vec in the current slot, and if not set one.
             if self.slot.is_none() {
-                let next = self.inner.next()?;
+                let next = match self.inner.as_mut() {
+                    Some(inner) => inner.next()?,
+                    None => return None,
+                };
                 self.cursor = 0;
                 self.slot = Some(next);
             }
@@ -51,6 +64,8 @@ impl<'a> Iterator for Values<'a> {
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.inner.size_hint()
+        self.inner
+            .map(|inner| inner.size_hint())
+            .unwrap_or((0, None))
     }
 }

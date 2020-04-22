@@ -1,4 +1,5 @@
-use crate::headers::HeaderValue;
+use crate::headers::{HeaderValue, Values};
+
 use std::fmt::{self, Display};
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut, Index};
@@ -23,12 +24,30 @@ impl HeaderValues {
         self.inner.get(index)
     }
 
+    /// Returns a mutable reference or a value depending on the type of index.
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut HeaderValue> {
+        self.inner.get_mut(index)
+    }
+
     /// Returns the last `HeaderValue`.
     pub fn last(&mut self) -> &HeaderValue {
         self.inner
             .last()
             .expect("HeaderValues must always contain at least one value")
     }
+
+    /// An iterator visiting all header values in arbitrary order.
+    pub fn iter(&self) -> Values<'_> {
+        Values::new_values(&self)
+    }
+
+    // /// An iterator visiting all header values in arbitrary order, with mutable
+    // /// references to the values.
+    // pub fn iter_mut(&mut self) -> ValuesMut<'_> {
+    //     ValuesMut {
+    //         inner: self.headers.iter_mut(),
+    //     }
+    // }
 }
 
 impl<I: SliceIndex<[HeaderValue]>> Index<I> for HeaderValues {
@@ -118,3 +137,23 @@ impl DerefMut for HeaderValues {
         &mut self.inner[0]
     }
 }
+
+impl<'a> IntoIterator for &'a HeaderValues {
+    type Item = &'a HeaderValue;
+    type IntoIter = Values<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+// impl<'a> IntoIterator for &'a mut HeaderValues {
+//     type Item = &'a HeaderValue;
+//     type IntoIter = ValuesMut<'a>;
+
+//     #[inline]
+//     fn into_iter(self) -> Self::IntoIter {
+//         self.iter_mut()
+//     }
+// }
