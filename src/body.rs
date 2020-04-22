@@ -234,12 +234,6 @@ impl<'a> From<&'a [u8]> for Body {
     }
 }
 
-impl From<()> for Body {
-    fn from(_: ()) -> Self {
-        Self::empty()
-    }
-}
-
 impl Read for Body {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
