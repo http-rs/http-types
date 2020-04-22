@@ -16,13 +16,15 @@ features = ["docs"]
 rustdoc-args = ["--cfg", "feature=\"docs\""]
 
 [features]
-default = []
+default = ["async_std"]
 docs = ["unstable"]
 unstable = []
 hyperium_http = ["http"]
+async_std = [] # "async-std" when it is not default
 
 [dependencies]
 # Note(yoshuawuyts): used for async_std's `channel` only; use "core" once possible.
+# features: async_std
 async-std = { version = "1.4.0", features = ["unstable"] }
 
 # features: hyperium/http
