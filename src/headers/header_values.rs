@@ -1,7 +1,7 @@
 use crate::headers::HeaderValue;
 use std::fmt::{self, Display};
 use std::iter::FromIterator;
-use std::ops::Index;
+use std::ops::{Deref, DerefMut, Index};
 use std::slice::SliceIndex;
 
 /// A list of `HeaderValue`s.
@@ -85,5 +85,36 @@ impl PartialEq<String> for HeaderValues {
 impl<'a> PartialEq<&String> for HeaderValues {
     fn eq(&self, other: &&String) -> bool {
         &&self.inner[0] == other
+    }
+}
+
+impl From<HeaderValue> for HeaderValues {
+    fn from(other: HeaderValue) -> Self {
+        Self { inner: vec![other] }
+    }
+}
+
+impl AsRef<HeaderValue> for HeaderValues {
+    fn as_ref(&self) -> &HeaderValue {
+        &self.inner[0]
+    }
+}
+
+impl AsMut<HeaderValue> for HeaderValues {
+    fn as_mut(&mut self) -> &mut HeaderValue {
+        &mut self.inner[0]
+    }
+}
+impl Deref for HeaderValues {
+    type Target = HeaderValue;
+
+    fn deref(&self) -> &HeaderValue {
+        &self.inner[0]
+    }
+}
+
+impl DerefMut for HeaderValues {
+    fn deref_mut(&mut self) -> &mut HeaderValue {
+        &mut self.inner[0]
     }
 }

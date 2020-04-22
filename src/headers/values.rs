@@ -3,7 +3,7 @@ use std::iter::Iterator;
 
 use crate::headers::{HeaderName, HeaderValue, HeaderValues};
 
-/// Iterator over the headers.
+/// Iterator over the header values.
 #[derive(Debug)]
 pub struct Values<'a> {
     pub(super) inner: hash_map::Values<'a, HeaderName, HeaderValues>,
