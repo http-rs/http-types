@@ -1,18 +1,18 @@
 use std::collections::hash_map;
 use std::iter::Iterator;
 
-use crate::headers::{HeaderName, HeaderValue};
+use crate::headers::{HeaderName, HeaderValue, HeaderValues};
 
 /// Iterator over the headers.
 #[derive(Debug)]
 pub struct Values<'a> {
-    pub(super) inner: hash_map::Values<'a, HeaderName, Vec<HeaderValue>>,
-    slot: Option<&'a Vec<HeaderValue>>,
+    pub(super) inner: hash_map::Values<'a, HeaderName, HeaderValues>,
+    slot: Option<&'a HeaderValues>,
     cursor: usize,
 }
 
 impl<'a> Values<'a> {
-    pub(crate) fn new(inner: hash_map::Values<'a, HeaderName, Vec<HeaderValue>>) -> Self {
+    pub(crate) fn new(inner: hash_map::Values<'a, HeaderName, HeaderValues>) -> Self {
         Self {
             inner,
             slot: None,

@@ -7,7 +7,8 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::headers::{
-    self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
+    self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
+    CONTENT_TYPE,
 };
 use crate::mime::Mime;
 use crate::trailers::{Trailers, TrailersSender};
@@ -227,17 +228,17 @@ impl Request {
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
+    pub fn header(&self, name: &HeaderName) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
     /// Get a mutable reference to a header.
-    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
         self.headers.get_mut(name)
     }
 
     /// Remove a header.
-    pub fn remove_header(&mut self, name: &HeaderName) -> Option<Vec<HeaderValue>> {
+    pub fn remove_header(&mut self, name: &HeaderName) -> Option<HeaderValues> {
         self.headers.remove(name)
     }
 
@@ -259,7 +260,7 @@ impl Request {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<HeaderValues>> {
         self.headers.insert(name, values)
     }
 
@@ -290,7 +291,7 @@ impl Request {
 
     /// Set the response MIME.
     // TODO: return a parsed MIME
-    pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
+    pub fn set_content_type(&mut self, mime: Mime) -> Option<HeaderValues> {
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
@@ -306,7 +307,7 @@ impl Request {
 
     /// Get the current content type
     pub fn content_type(&self) -> Option<Mime> {
-        self.header(&CONTENT_TYPE)?.last()?.as_str().parse().ok()
+        self.header(&CONTENT_TYPE)?.last().as_str().parse().ok()
     }
 
     /// Get the length of the body stream, if it has been set.
@@ -549,7 +550,7 @@ impl From<Request> for Body {
 }
 
 impl IntoIterator for Request {
-    type Item = (HeaderName, Vec<HeaderValue>);
+    type Item = (HeaderName, HeaderValues);
     type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -560,7 +561,7 @@ impl IntoIterator for Request {
 }
 
 impl<'a> IntoIterator for &'a Request {
-    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = headers::Iter<'a>;
 
     #[inline]
@@ -570,7 +571,7 @@ impl<'a> IntoIterator for &'a Request {
 }
 
 impl<'a> IntoIterator for &'a mut Request {
-    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = headers::IterMut<'a>;
 
     #[inline]

@@ -7,7 +7,8 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::headers::{
-    self, HeaderName, HeaderValue, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
+    self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
+    CONTENT_TYPE,
 };
 use crate::mime::Mime;
 use crate::trailers::{Trailers, TrailersSender};
@@ -62,17 +63,17 @@ impl Response {
     }
 
     /// Get a mutable reference to a header.
-    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
         self.headers.get_mut(name)
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
+    pub fn header(&self, name: &HeaderName) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
     /// Remove a header.
-    pub fn remove_header(&mut self, name: &HeaderName) -> Option<Vec<HeaderValue>> {
+    pub fn remove_header(&mut self, name: &HeaderName) -> Option<HeaderValues> {
         self.headers.remove(name)
     }
 
@@ -94,7 +95,7 @@ impl Response {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<HeaderValues>> {
         self.headers.insert(name, values)
     }
 
@@ -255,7 +256,7 @@ impl Response {
     }
 
     /// Set the response MIME.
-    pub fn set_content_type(&mut self, mime: Mime) -> Option<Vec<HeaderValue>> {
+    pub fn set_content_type(&mut self, mime: Mime) -> Option<HeaderValues> {
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
@@ -537,7 +538,7 @@ impl From<Vec<u8>> for Response {
 }
 
 impl IntoIterator for Response {
-    type Item = (HeaderName, Vec<HeaderValue>);
+    type Item = (HeaderName, HeaderValues);
     type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -548,7 +549,7 @@ impl IntoIterator for Response {
 }
 
 impl<'a> IntoIterator for &'a Response {
-    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = headers::Iter<'a>;
 
     #[inline]
@@ -558,7 +559,7 @@ impl<'a> IntoIterator for &'a Response {
 }
 
 impl<'a> IntoIterator for &'a mut Response {
-    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = headers::IterMut<'a>;
 
     #[inline]

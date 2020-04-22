@@ -1,12 +1,12 @@
 use std::collections::hash_map;
 use std::iter::Iterator;
 
-use crate::headers::{HeaderName, HeaderValue};
+use crate::headers::{HeaderName, HeaderValues};
 
 /// Iterator over the headers.
 #[derive(Debug)]
 pub struct Names<'a> {
-    pub(super) inner: hash_map::Keys<'a, HeaderName, Vec<HeaderValue>>,
+    pub(super) inner: hash_map::Keys<'a, HeaderName, HeaderValues>,
 }
 
 impl<'a> Iterator for Names<'a> {

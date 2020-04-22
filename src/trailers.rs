@@ -47,7 +47,7 @@
 //! - [HTTP/2 spec: HTTP Sequence](https://http2.github.io/http2-spec/#HttpSequence)
 
 use crate::headers::{
-    HeaderName, HeaderValue, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
+    HeaderName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 use async_std::sync::Sender;
 
@@ -86,7 +86,7 @@ impl Trailers {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<HeaderValues>> {
         self.headers.insert(name, values)
     }
 
@@ -116,17 +116,17 @@ impl Trailers {
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
+    pub fn get(&self, name: &HeaderName) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
         self.headers.get_mut(name)
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: &HeaderName) -> Option<Vec<HeaderValue>> {
+    pub fn remove(&mut self, name: &HeaderName) -> Option<HeaderValues> {
         self.headers.remove(name)
     }
 
