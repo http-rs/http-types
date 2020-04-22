@@ -205,7 +205,6 @@ impl<'a> From<&'a str> for Body {
     }
 }
 
-//  TODO: add this to the mime definition.
 fn string_mime() -> mime::Mime {
     let mut mime = mime::PLAIN;
     let mut parameters = std::collections::HashMap::new();
