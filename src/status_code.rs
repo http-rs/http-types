@@ -265,6 +265,16 @@ pub enum StatusCode {
     /// The request was well-formed but was unable to be followed due to semantic errors.
     UnprocessableEntity = 422,
 
+    /// 423 Locked
+    ///
+    /// The resource that is being accessed is locked.
+    Locked = 423,
+
+    /// 424 Failed Dependency
+    ///
+    /// The request failed because it depended on another request and that request failed (e.g., a PROPPATCH).
+    FailedDependency = 424,
+
     /// 425 Too Early
     ///
     /// Indicates that the server is unwilling to risk processing a request that might be replayed.
@@ -348,6 +358,16 @@ pub enum StatusCode {
     /// to engage in transparent content negotiation itself, and is therefore not a proper end
     /// point in the negotiation process.
     VariantAlsoNegotiates = 506,
+
+    /// 507 Insufficient Storage
+    ///
+    /// The server is unable to store the representation needed to complete the request.
+    InsufficientStorage = 507,
+
+    /// 508 Loop Detected
+    ///
+    /// The server detected an infinite loop while processing the request.
+    LoopDetected = 508,
 
     /// 510 Not Extended
     ///
@@ -447,6 +467,8 @@ impl StatusCode {
             StatusCode::ImATeapot => "I'm a teapot",
             StatusCode::MisdirectedRequest => "Misdirected Request",
             StatusCode::UnprocessableEntity => "Unprocessable Entity",
+            StatusCode::Locked => "Locked",
+            StatusCode::FailedDependency => "Failed Dependency",
             StatusCode::TooEarly => "Too Early",
             StatusCode::UpgradeRequired => "Upgrade Required",
             StatusCode::PreconditionRequired => "Precondition Required",
@@ -460,6 +482,8 @@ impl StatusCode {
             StatusCode::GatewayTimeout => "Gateway Timeout",
             StatusCode::HttpVersionNotSupported => "HTTP Version Not Supported",
             StatusCode::VariantAlsoNegotiates => "Variant Also Negotiates",
+            StatusCode::InsufficientStorage => "Insufficient Storage",
+            StatusCode::LoopDetected => "Loop Detected",
             StatusCode::NotExtended => "Not Extended",
             StatusCode::NetworkAuthenticationRequired => "Network Authentication Required",
         }
@@ -516,6 +540,8 @@ impl std::convert::TryFrom<u16> for StatusCode {
             418 => Ok(StatusCode::ImATeapot),
             421 => Ok(StatusCode::MisdirectedRequest),
             422 => Ok(StatusCode::UnprocessableEntity),
+            423 => Ok(StatusCode::Locked),
+            424 => Ok(StatusCode::FailedDependency),
             425 => Ok(StatusCode::TooEarly),
             426 => Ok(StatusCode::UpgradeRequired),
             428 => Ok(StatusCode::PreconditionRequired),
@@ -529,6 +555,8 @@ impl std::convert::TryFrom<u16> for StatusCode {
             504 => Ok(StatusCode::GatewayTimeout),
             505 => Ok(StatusCode::HttpVersionNotSupported),
             506 => Ok(StatusCode::VariantAlsoNegotiates),
+            507 => Ok(StatusCode::InsufficientStorage),
+            508 => Ok(StatusCode::LoopDetected),
             510 => Ok(StatusCode::NotExtended),
             511 => Ok(StatusCode::NetworkAuthenticationRequired),
             _ => crate::bail!("Invalid status code"),
