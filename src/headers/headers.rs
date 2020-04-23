@@ -3,12 +3,29 @@
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::iter::IntoIterator;
+use std::ops::Index;
+use std::str::FromStr;
 
 use crate::headers::{
     HeaderName, HeaderValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 
 /// A collection of HTTP Headers.
+///
+/// Headers are never manually constructed, but are part of `Request`,
+/// `Response`, and `Trailers`. Each of these types implements `AsRef<Headers>`
+/// and `AsMut<Headers>` so functions that want to modify headers can be generic
+/// over either of these traits.
+///
+/// # Examples
+///
+/// ```
+/// use http_types::{Response, StatusCode};
+///
+/// let mut res = Response::new(StatusCode::Ok);
+/// res.insert_header("hello", "foo0").unwrap();
+/// assert_eq!(res["hello"], "foo0");
+/// ```
 #[derive(Debug, Clone)]
 pub struct Headers {
     pub(crate) headers: HashMap<HeaderName, HeaderValues>,
@@ -106,6 +123,35 @@ impl Headers {
     }
 }
 
+impl Index<&HeaderName> for Headers {
+    type Output = HeaderValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Headers`.
+    #[inline]
+    fn index(&self, name: &HeaderName) -> &HeaderValues {
+        self.get(name).expect("no entry found for name")
+    }
+}
+
+impl Index<&str> for Headers {
+    type Output = HeaderValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Headers`.
+    #[inline]
+    fn index(&self, name: &str) -> &HeaderValues {
+        let name = HeaderName::from_str(name).expect("string slice needs to be valid ASCII");
+        self.get(&name).expect("no entry found for name")
+    }
+}
+
 impl IntoIterator for Headers {
     type Item = (HeaderName, HeaderValues);
     type IntoIter = IntoIter;
@@ -172,5 +218,12 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn index_into_headers() {
+        let mut headers = Headers::new();
+        headers.insert("hello", "foo0").unwrap();
+        assert_eq!(headers["hello"], "foo0");
     }
 }
