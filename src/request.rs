@@ -14,6 +14,10 @@ use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
 use crate::{Body, Method, TypeMap, Url, Version};
 
+cfg_unstable! {
+    use crate::upgrade;
+}
+
 pin_project_lite::pin_project! {
     /// An HTTP request.
     ///
@@ -31,8 +35,10 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
-        sender: Option<sync::Sender<Trailers>>,
-        receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<sync::Sender<Trailers>>,
+        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
+        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
         #[pin]
         body: Body,
         local: TypeMap,
@@ -41,16 +47,37 @@ pin_project_lite::pin_project! {
 
 impl Request {
     /// Create a new request.
+    #[cfg(feature = "unstable")]
     pub fn new(method: Method, url: Url) -> Self {
-        let (sender, receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
         Self {
             method,
             url,
             headers: Headers::new(),
             version: None,
             body: Body::empty(),
-            sender: Some(sender),
-            receiver: Some(receiver),
+            trailers_receiver: Some(trailers_receiver),
+            trailers_sender: Some(trailers_sender),
+            upgrade_sender: Some(upgrade_sender),
+            upgrade_receiver: Some(upgrade_receiver),
+            local: TypeMap::new(),
+        }
+    }
+
+    /// Create a new request.
+    #[cfg(not(feature = "unstable"))]
+    pub fn new(method: Method, url: Url) -> Self {
+        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
+        Self {
+            method,
+            url,
+            headers: Headers::new(),
+            version: None,
+            body: Body::empty(),
+            trailers_receiver: Some(trailers_receiver),
+            trailers_sender: Some(trailers_sender),
             local: TypeMap::new(),
         }
     }
@@ -365,7 +392,7 @@ impl Request {
     /// Sends trailers to the a receiver.
     pub fn send_trailers(&mut self) -> trailers::Sender {
         let sender = self
-            .sender
+            .trailers_sender
             .take()
             .expect("Trailers sender can only be constructed once");
         trailers::Sender::new(sender)
@@ -374,10 +401,32 @@ impl Request {
     /// Receive trailers from a sender.
     pub async fn recv_trailers(&mut self) -> trailers::Receiver {
         let receiver = self
-            .receiver
+            .trailers_receiver
             .take()
             .expect("Trailers receiver can only be constructed once");
         trailers::Receiver::new(receiver)
+    }
+
+    /// Sends an upgrade connection to the a receiver.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    pub fn send_upgrade(&mut self) -> upgrade::Sender {
+        let sender = self
+            .upgrade_sender
+            .take()
+            .expect("Upgrade sender can only be constructed once");
+        upgrade::Sender::new(sender)
+    }
+
+    /// Receive an upgraded connection from a sender.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    pub async fn recv_upgrade(&mut self) -> upgrade::Receiver {
+        let receiver = self
+            .upgrade_receiver
+            .take()
+            .expect("Upgrade receiver can only be constructed once");
+        upgrade::Receiver::new(receiver)
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -435,8 +484,10 @@ impl Clone for Request {
             url: self.url.clone(),
             headers: self.headers.clone(),
             version: self.version.clone(),
-            sender: self.sender.clone(),
-            receiver: self.receiver.clone(),
+            trailers_sender: None,
+            trailers_receiver: None,
+            upgrade_sender: None,
+            upgrade_receiver: None,
             body: Body::empty(),
             local: TypeMap::new(),
         }
