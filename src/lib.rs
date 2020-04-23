@@ -97,6 +97,8 @@
 #![warn(missing_docs, unreachable_pub)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(feature = "docs", feature(doc_cfg))]
+#![doc(html_favicon_url = "https://yoshuawuyts.com/assets/http-rs/favicon.ico")]
+#![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
 
 /// HTTP cookies.
 pub mod cookies {
