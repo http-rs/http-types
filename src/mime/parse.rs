@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::io::prelude::*;
 use std::io::Cursor;
 
-use super::Mime;
+use super::{Mime, ParamKind, ParamName, ParamValue};
 
 /// Parse a string into a mime type.
 #[allow(dead_code)]
@@ -54,13 +54,13 @@ pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
         essence: format!("{}/{}", &basetype, &subtype),
         basetype,
         subtype,
-        parameters: None,
+        params: None,
         static_essence: None,
         static_basetype: None,
         static_subtype: None,
     };
 
-    // parse parameters into a hashmap
+    // parse params into a hashmap
     //
     // ```txt
     // text/html; charset=utf-8;
@@ -121,12 +121,14 @@ pub(crate) fn parse(s: &str) -> crate::Result<Mime> {
         param_value.make_ascii_lowercase();
 
         // Insert attribute pair into hashmap.
-        mime.parameters.get_or_insert_with(HashMap::new);
+        mime.params
+            .get_or_insert_with(|| ParamKind::Map(HashMap::new()));
 
-        mime.parameters
+        mime.params
             .as_mut()
             .unwrap()
-            .insert(param_name, param_value);
+            .unwrap()
+            .insert(ParamName(param_name.into()), ParamValue(param_value.into()));
     }
 
     Ok(mime)
@@ -171,12 +173,12 @@ fn test() {
     let mime = parse("text/html; charset=utf-8").unwrap();
     assert_eq!(mime.basetype(), "text");
     assert_eq!(mime.subtype(), "html");
-    assert_eq!(mime.param("charset"), Some(&"utf-8".to_string()));
+    assert_eq!(mime.param("charset").unwrap(), "utf-8");
 
     let mime = parse("text/html; charset=utf-8;").unwrap();
     assert_eq!(mime.basetype(), "text");
     assert_eq!(mime.subtype(), "html");
-    assert_eq!(mime.param("charset"), Some(&"utf-8".to_string()));
+    assert_eq!(mime.param("charset").unwrap(), "utf-8");
 
     assert!(parse("text").is_err());
     assert!(parse("text/").is_err());

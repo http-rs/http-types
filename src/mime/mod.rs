@@ -7,6 +7,7 @@ mod parse;
 
 pub use constants::*;
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use std::option;
@@ -27,7 +28,7 @@ pub struct Mime {
     pub(crate) static_essence: Option<&'static str>,
     pub(crate) static_basetype: Option<&'static str>,
     pub(crate) static_subtype: Option<&'static str>,
-    pub(crate) parameters: Option<HashMap<String, String>>,
+    pub(crate) params: Option<ParamKind>,
 }
 
 impl Mime {
@@ -46,7 +47,7 @@ impl Mime {
             subtype: String::new(),  // TODO: fill in.
             static_basetype: None,   // TODO: fill in
             static_subtype: None,
-            parameters: None, // TODO: fill in.
+            params: None, // TODO: fill in.
         })
     }
 
@@ -81,13 +82,18 @@ impl Mime {
     }
 
     /// Get a reference to a param.
-    pub fn param(&self, s: &str) -> Option<&String> {
-        self.parameters.as_ref().map(|hm| hm.get(s)).flatten()
-    }
-
-    /// Get a mutable reference to a param.
-    pub fn param_mut(&mut self, s: &str) -> Option<&mut String> {
-        self.parameters.as_mut().map(|hm| hm.get_mut(s)).flatten()
+    pub fn param(&self, name: impl Into<ParamName>) -> Option<&ParamValue> {
+        let name: ParamName = name.into();
+        self.params
+            .as_ref()
+            .map(|inner| match inner {
+                ParamKind::Map(hm) => hm.get(&name),
+                ParamKind::Utf8 => match name {
+                    ParamName(Cow::Borrowed("charset")) => Some(&ParamValue(Cow::Borrowed("utf8"))),
+                    _ => None,
+                },
+            })
+            .flatten()
     }
 }
 
@@ -98,13 +104,18 @@ impl Display for Mime {
         } else {
             write!(f, "{}", &self.essence)?
         }
-        if let Some(parameters) = &self.parameters {
-            assert!(!parameters.is_empty());
-            write!(f, "; ")?;
-            for (i, (key, value)) in parameters.iter().enumerate() {
-                write!(f, "{}={}", key, value)?;
-                if i != parameters.len() - 1 {
-                    write!(f, ",")?;
+        if let Some(params) = &self.params {
+            match params {
+                ParamKind::Utf8 => write!(f, "; charset=utf-8")?,
+                ParamKind::Map(params) => {
+                    assert!(!params.is_empty());
+                    write!(f, "; ")?;
+                    for (i, (key, value)) in params.iter().enumerate() {
+                        write!(f, "{}={}", key, value)?;
+                        if i != params.len() - 1 {
+                            write!(f, ",")?;
+                        }
+                    }
                 }
             }
         }
@@ -137,7 +148,7 @@ impl FromStr for Mime {
             subtype: String::new(),  // TODO: fill in.
             static_basetype: None,   // TODO: fill in
             static_subtype: None,    // TODO: fill in
-            parameters: None,        // TODO: fill in.
+            params: None,            // TODO: fill in.
         })
     }
 }
@@ -151,5 +162,71 @@ impl ToHeaderValues for Mime {
 
         // A HeaderValue will always convert into itself.
         Ok(header.to_header_values().unwrap())
+    }
+}
+/// A parameter name.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ParamName(Cow<'static, str>);
+
+impl Display for ParamName {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl FromStr for ParamName {
+    type Err = crate::Error;
+
+    /// Create a new `HeaderName`.
+    ///
+    /// This checks it's valid ASCII, and lowercases it.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
+        Ok(ParamName(Cow::Owned(s.to_ascii_lowercase())))
+    }
+}
+
+impl<'a> From<&'a str> for ParamName {
+    fn from(value: &'a str) -> Self {
+        Self::from_str(value).unwrap()
+    }
+}
+
+/// A parameter value.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ParamValue(Cow<'static, str>);
+
+impl Display for ParamValue {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl<'a> PartialEq<&'a str> for ParamValue {
+    fn eq(&self, other: &&'a str) -> bool {
+        &self.0 == other
+    }
+}
+
+impl PartialEq<str> for ParamValue {
+    fn eq(&self, other: &str) -> bool {
+        &self.0 == other
+    }
+}
+
+/// This is a hack that allows us to mark a trait as utf8 during compilation. We
+/// can remove this once we can construct HashMap during compilation.
+#[derive(Debug, Clone)]
+pub(crate) enum ParamKind {
+    Utf8,
+    Map(HashMap<ParamName, ParamValue>),
+}
+
+impl ParamKind {
+    pub(crate) fn unwrap(&mut self) -> &mut HashMap<ParamName, ParamValue> {
+        match self {
+            Self::Map(t) => t,
+            _ => panic!("Unwrapped a ParamKind::utf8"),
+        }
     }
 }

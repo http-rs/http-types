@@ -1,3 +1,4 @@
+use super::ParamKind;
 use crate::Mime;
 
 /// Content-Type that matches anything.
@@ -11,7 +12,7 @@ pub const ANY: Mime = Mime {
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
-    parameters: None,
+    params: None,
     static_essence: Some("*/*"),
     static_basetype: Some("*"),
     static_subtype: Some("*"),
@@ -22,16 +23,16 @@ pub const ANY: Mime = Mime {
 /// # Mime Type
 ///
 /// ```txt
-/// application/javascript
+/// application/javascript; charset=utf-8
 /// ```
 pub const JAVASCRIPT: Mime = Mime {
     static_essence: Some("application/javascript"),
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
+    params: Some(ParamKind::Utf8),
     static_basetype: Some("application"),
     static_subtype: Some("javascript"),
-    parameters: None,
 };
 
 /// Content-Type for JSON.
@@ -46,9 +47,9 @@ pub const JSON: Mime = Mime {
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
+    params: None,
     static_basetype: Some("application"),
     static_subtype: Some("json"),
-    parameters: None,
 };
 
 /// Content-Type for CSS.
@@ -56,16 +57,16 @@ pub const JSON: Mime = Mime {
 /// # Mime Type
 ///
 /// ```txt
-/// text/css
+/// text/css; charset=utf-8
 /// ```
 pub const CSS: Mime = Mime {
     static_essence: Some("text/css"),
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
+    params: Some(ParamKind::Utf8),
     static_basetype: Some("text"),
     static_subtype: Some("css"),
-    parameters: None,
 };
 
 /// Content-Type for HTML.
@@ -73,16 +74,16 @@ pub const CSS: Mime = Mime {
 /// # Mime Type
 ///
 /// ```txt
-/// text/html
+/// text/html; charset=utf-8
 /// ```
 pub const HTML: Mime = Mime {
     static_essence: Some("text/html"),
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
+    params: Some(ParamKind::Utf8),
     static_basetype: Some("text"),
     static_subtype: Some("html"),
-    parameters: None,
 };
 
 /// Content-Type for Server Sent Events
@@ -99,7 +100,7 @@ pub const SSE: Mime = Mime {
     subtype: String::new(),
     static_basetype: Some("text"),
     static_subtype: Some("event-stream"),
-    parameters: None,
+    params: None,
 };
 
 /// Content-Type for plain text.
@@ -107,16 +108,16 @@ pub const SSE: Mime = Mime {
 /// # Mime Type
 ///
 /// ```txt
-/// text/plain
+/// text/plain; charset=utf-8
 /// ```
 pub const PLAIN: Mime = Mime {
     static_essence: Some("text/plain"),
     essence: String::new(),
     basetype: String::new(),
     subtype: String::new(),
+    params: Some(ParamKind::Utf8),
     static_basetype: Some("text"),
     static_subtype: Some("plain"),
-    parameters: None,
 };
 
 /// Content-Type for byte streams.
@@ -133,7 +134,7 @@ pub const BYTE_STREAM: Mime = Mime {
     subtype: String::new(),
     static_basetype: Some("application"),
     static_subtype: Some("octet-stream"),
-    parameters: None,
+    params: None,
 };
 
 /// Content-Type for form.
@@ -150,7 +151,7 @@ pub const FORM: Mime = Mime {
     subtype: String::new(),
     static_basetype: Some("application"),
     static_subtype: Some("x-www-form-urlencoded"),
-    parameters: None,
+    params: None,
 };
 
 /// Content-Type for a multipart form.
@@ -167,5 +168,5 @@ pub const MULTIPART_FORM: Mime = Mime {
     subtype: String::new(),
     static_basetype: Some("multipart"),
     static_subtype: Some("form-data"),
-    parameters: None,
+    params: None,
 };
