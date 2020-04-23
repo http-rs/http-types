@@ -260,6 +260,11 @@ pub enum StatusCode {
     /// and authority that are included in the request URI.
     MisdirectedRequest = 421,
 
+    /// 422 Unprocessable Entity
+    ///
+    /// The request was well-formed but was unable to be followed due to semantic errors.
+    UnprocessableEntity = 422,
+
     /// 425 Too Early
     ///
     /// Indicates that the server is unwilling to risk processing a request that might be replayed.
@@ -441,6 +446,7 @@ impl StatusCode {
             StatusCode::ExpectationFailed => "Expectation Failed",
             StatusCode::ImATeapot => "I'm a teapot",
             StatusCode::MisdirectedRequest => "Misdirected Request",
+            StatusCode::UnprocessableEntity => "Unprocessable Entity",
             StatusCode::TooEarly => "Too Early",
             StatusCode::UpgradeRequired => "Upgrade Required",
             StatusCode::PreconditionRequired => "Precondition Required",
@@ -509,6 +515,7 @@ impl std::convert::TryFrom<u16> for StatusCode {
             417 => Ok(StatusCode::ExpectationFailed),
             418 => Ok(StatusCode::ImATeapot),
             421 => Ok(StatusCode::MisdirectedRequest),
+            422 => Ok(StatusCode::UnprocessableEntity),
             425 => Ok(StatusCode::TooEarly),
             426 => Ok(StatusCode::UpgradeRequired),
             428 => Ok(StatusCode::PreconditionRequired),
