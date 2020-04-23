@@ -215,6 +215,16 @@ impl From<Vec<u8>> for Body {
     }
 }
 
+impl<'a> From<&'a [u8]> for Body {
+    fn from(b: &'a [u8]) -> Self {
+        Self {
+            length: Some(b.len()),
+            reader: Box::new(io::Cursor::new(b.to_owned())),
+            mime: mime::BYTE_STREAM,
+        }
+    }
+}
+
 impl Read for Body {
     #[allow(missing_doc_code_examples)]
     fn poll_read(

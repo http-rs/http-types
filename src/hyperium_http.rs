@@ -137,6 +137,7 @@ impl From<Response> for http::Response<Body> {
             .status(status)
             .version(version);
         headers_to_hyperium_headers(res.as_mut(), builder.headers_mut().unwrap());
-        builder.body(res.into()).unwrap()
+        let body = res.take_body();
+        builder.body(body).unwrap()
     }
 }
