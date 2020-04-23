@@ -71,7 +71,7 @@ fn headers_to_hyperium_headers(headers: &mut Headers, hyperium_headers: &mut htt
         let name = format!("{}", name).into_bytes();
         let name = http::header::HeaderName::from_bytes(&name).unwrap();
 
-        for value in values {
+        for value in values.iter() {
             let value = format!("{}", value).into_bytes();
             let value = http::header::HeaderValue::from_bytes(&value).unwrap();
             hyperium_headers.append(&name, value);

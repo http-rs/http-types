@@ -1,6 +1,7 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
+use crate::headers::HeaderValues;
 use crate::Error;
 use crate::{Cookie, Mime};
 
@@ -117,5 +118,15 @@ impl PartialEq<String> for HeaderValue {
 impl<'a> PartialEq<&String> for HeaderValue {
     fn eq(&self, other: &&String) -> bool {
         &&self.inner == other
+    }
+}
+
+impl From<HeaderValues> for HeaderValue {
+    fn from(mut other: HeaderValues) -> Self {
+        other.inner.reverse();
+        other
+            .inner
+            .pop()
+            .expect("HeaderValues should contain at least one value")
     }
 }

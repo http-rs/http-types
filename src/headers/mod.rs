@@ -7,6 +7,7 @@ use std::iter::IntoIterator;
 mod constants;
 mod header_name;
 mod header_value;
+mod header_values;
 mod into_iter;
 mod iter;
 mod iter_mut;
@@ -17,6 +18,7 @@ mod values;
 pub use constants::*;
 pub use header_name::HeaderName;
 pub use header_value::HeaderValue;
+pub use header_values::HeaderValues;
 pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
@@ -27,7 +29,7 @@ pub use values::Values;
 /// A collection of HTTP Headers.
 #[derive(Debug, Clone)]
 pub struct Headers {
-    pub(crate) headers: HashMap<HeaderName, Vec<HeaderValue>>,
+    pub(crate) headers: HashMap<HeaderName, HeaderValues>,
 }
 
 impl Headers {
@@ -47,11 +49,11 @@ impl Headers {
         &mut self,
         name: impl TryInto<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<Vec<HeaderValue>>> {
+    ) -> crate::Result<Option<HeaderValues>> {
         let name = name
             .try_into()
             .map_err(|_| crate::format_err!("Could not convert into header name"))?;
-        let values: Vec<HeaderValue> = values.to_header_values()?.collect();
+        let values: HeaderValues = values.to_header_values()?.collect();
         Ok(self.headers.insert(name, values))
     }
 
@@ -69,7 +71,7 @@ impl Headers {
             .map_err(|_| crate::format_err!("Could not convert into header name"))?;
         match self.get_mut(&name) {
             Some(headers) => {
-                let mut values: Vec<HeaderValue> = values.to_header_values()?.collect();
+                let mut values: HeaderValues = values.to_header_values()?.collect();
                 headers.append(&mut values);
             }
             None => {
@@ -80,17 +82,17 @@ impl Headers {
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: &HeaderName) -> Option<&Vec<HeaderValue>> {
+    pub fn get(&self, name: &HeaderName) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut Vec<HeaderValue>> {
+    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
         self.headers.get_mut(name)
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: &HeaderName) -> Option<Vec<HeaderValue>> {
+    pub fn remove(&mut self, name: &HeaderName) -> Option<HeaderValues> {
         self.headers.remove(name)
     }
 
@@ -123,7 +125,7 @@ impl Headers {
 }
 
 impl IntoIterator for Headers {
-    type Item = (HeaderName, Vec<HeaderValue>);
+    type Item = (HeaderName, HeaderValues);
     type IntoIter = IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -136,7 +138,7 @@ impl IntoIterator for Headers {
 }
 
 impl<'a> IntoIterator for &'a Headers {
-    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -146,7 +148,7 @@ impl<'a> IntoIterator for &'a Headers {
 }
 
 impl<'a> IntoIterator for &'a mut Headers {
-    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = IterMut<'a>;
 
     #[inline]
