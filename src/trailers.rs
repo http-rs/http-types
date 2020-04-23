@@ -34,10 +34,11 @@
 //! trailers.insert("Content-Type", "text/plain")?;
 //!
 //! task::spawn(async move {
-//!     let _trailers = req.recv_trailers().await;
+//!     let trailers = req.recv_trailers().await;
+//!     # drop(trailers)
 //! });
 //!
-//! sender.send(Ok(trailers)).await;
+//! sender.send(trailers).await;
 //! #
 //! # Ok(()) })}
 //! ```
@@ -49,10 +50,14 @@
 use crate::headers::{
     HeaderName, HeaderValue, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
-use async_std::sync::Sender;
+use async_std::prelude::*;
+use async_std::sync;
 
 use std::convert::TryInto;
+use std::future::Future;
 use std::ops::{Deref, DerefMut};
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 /// A collection of trailing HTTP headers.
 #[derive(Debug)]
@@ -182,21 +187,47 @@ impl DerefMut for Trailers {
 /// called once, and cannot be cloned. That's because only a single instance of
 /// `Trailers` should be created.
 #[derive(Debug)]
-pub struct TrailersSender {
-    sender: Sender<crate::Result<Trailers>>,
+pub struct Sender {
+    sender: sync::Sender<Trailers>,
 }
 
-impl TrailersSender {
-    /// Create a new instance of `TrailersSender`.
+impl Sender {
+    /// Create a new instance of `Sender`.
     #[doc(hidden)]
-    pub fn new(sender: Sender<crate::Result<Trailers>>) -> Self {
+    pub fn new(sender: sync::Sender<Trailers>) -> Self {
         Self { sender }
     }
 
     /// Send a `Trailer`.
     ///
     /// The channel will be consumed after having sent trailers.
-    pub async fn send(self, trailers: crate::Result<Trailers>) {
+    pub async fn send(self, trailers: Trailers) {
         self.sender.send(trailers).await
+    }
+}
+
+/// The receiving half of a channel to send trailers.
+///
+/// Unlike `async_std::sync::channel` the `send` method on this type can only be
+/// called once, and cannot be cloned. That's because only a single instance of
+/// `Trailers` should be created.
+#[must_use = "Futures do nothing unless polled or .awaited"]
+#[derive(Debug)]
+pub struct Receiver {
+    receiver: sync::Receiver<Trailers>,
+}
+
+impl Receiver {
+    /// Create a new instance of `Receiver`.
+    pub(crate) fn new(receiver: sync::Receiver<Trailers>) -> Self {
+        Self { receiver }
+    }
+}
+
+impl Future for Receiver {
+    type Output = Option<Trailers>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        Pin::new(&mut self.receiver).poll_next(cx)
     }
 }
