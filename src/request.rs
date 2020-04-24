@@ -226,6 +226,31 @@ impl Request {
         self.body.into_string().await
     }
 
+    /// Read the body as bytes.
+    ///
+    /// This consumes the `Request`. If you want to read the body without
+    /// consuming the request, consider using the `take_body` method and
+    /// then calling `Body::into_bytes` or using the Request's AsyncRead
+    /// implementation to read the body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::{Body, Url, Method, Request};
+    ///
+    /// let bytes = vec![1, 2, 3];
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body(Body::from_bytes(bytes));
+    ///
+    /// let bytes = req.body_bytes().await?;
+    /// assert_eq!(bytes, vec![1, 2, 3]);
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn body_bytes(self) -> crate::Result<Vec<u8>> {
+        self.body.into_bytes().await
+    }
+
     /// Get an HTTP header.
     pub fn header(&self, name: &HeaderName) -> Option<&HeaderValues> {
         self.headers.get(name)

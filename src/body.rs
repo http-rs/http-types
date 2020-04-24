@@ -1,3 +1,4 @@
+use async_std::io::prelude::*;
 use async_std::io::{self, BufRead, Read};
 
 use std::fmt::{self, Debug};
@@ -81,7 +82,7 @@ impl Body {
 
     /// Create a `Body` from a reader with an optional length.
     ///
-    /// The Mime type set to `application/octet-stream` if no other mime type has been set or can
+    /// The Mime type is set to `application/octet-stream` if no other mime type has been set or can
     /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
     /// framed messages such as [Chunked
     /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
@@ -107,6 +108,53 @@ impl Body {
             mime: mime::BYTE_STREAM,
             length: len,
         }
+    }
+
+    /// Create a `Body` from a Vec of bytes.
+    ///
+    /// The Mime type is set to `application/octet-stream` if no other mime type has been set or can
+    /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
+    /// framed messages such as [Chunked
+    /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    ///
+    /// let input = vec![1, 2, 3];
+    /// req.set_body(Body::from_bytes(input));
+    /// ```
+    pub fn from_bytes(bytes: Vec<u8>) -> Self {
+        Self {
+            mime: mime::BYTE_STREAM,
+            length: Some(bytes.len()),
+            reader: Box::new(io::Cursor::new(bytes)),
+        }
+    }
+
+    /// Parse the body into a `Vec<u8>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::Body;
+    ///
+    /// let bytes = vec![1, 2, 3];
+    /// let body = Body::from_bytes(bytes);
+    ///
+    /// let bytes: Vec<u8> = body.into_bytes().await?;
+    /// assert_eq!(bytes, vec![1, 2, 3]);
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn into_bytes(mut self) -> crate::Result<Vec<u8>> {
+        let mut buf = Vec::with_capacity(1024);
+        self.read_to_end(&mut buf).await?;
+        Ok(buf)
     }
 
     /// Get the length of the body in bytes.
@@ -165,7 +213,6 @@ impl Body {
     /// # Ok(()) }) }
     /// ```
     pub async fn into_string(mut self) -> io::Result<String> {
-        use async_std::io::ReadExt;
         let mut result = String::with_capacity(self.len().unwrap_or(0));
         self.read_to_string(&mut result).await?;
         Ok(result)
