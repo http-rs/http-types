@@ -60,12 +60,12 @@ impl Request {
         }
     }
 
-    /// get the peer socket address for the underlying transport, if appropriate
+    /// Get the peer socket address for the underlying transport, if appropriate
     pub fn peer_addr(&self) -> Option<SocketAddr> {
         self.peer_addr
     }
 
-    /// get the local socket address for the underlying transport, if appropriate
+    /// Get the local socket address for the underlying transport, if appropriate
     pub fn local_addr(&self) -> Option<SocketAddr> {
         self.local_addr
     }
