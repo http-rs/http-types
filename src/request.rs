@@ -1,6 +1,7 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
+use std::net::SocketAddr;
 use std::convert::TryInto;
 use std::mem;
 use std::pin::Pin;
@@ -36,6 +37,8 @@ pin_project_lite::pin_project! {
         #[pin]
         body: Body,
         local: TypeMap,
+        local_addr: Option<SocketAddr>,
+        peer_addr: Option<SocketAddr>,
     }
 }
 
@@ -52,8 +55,21 @@ impl Request {
             sender: Some(sender),
             receiver: Some(receiver),
             local: TypeMap::new(),
+            peer_addr: None,
+            local_addr: None,
         }
     }
+
+    /// get the peer socket address for the underlying transport, if appropriate
+    pub fn peer_addr(&self) -> Option<SocketAddr> {
+        self.peer_addr
+    }
+
+    /// get the local socket address for the underlying transport, if appropriate
+    pub fn local_addr(&self) -> Option<SocketAddr> {
+        self.local_addr
+    }
+        
 
     /// Get the HTTP method
     pub fn method(&self) -> Method {
