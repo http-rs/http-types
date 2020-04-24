@@ -1,9 +1,9 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
-use std::net::SocketAddr;
 use std::convert::TryInto;
 use std::mem;
+use std::net::SocketAddr;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -69,7 +69,6 @@ impl Request {
     pub fn local_addr(&self) -> Option<SocketAddr> {
         self.local_addr
     }
-        
 
     /// Get the HTTP method
     pub fn method(&self) -> Method {
