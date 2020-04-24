@@ -14,7 +14,7 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
-use crate::{Body, StatusCode, TypeMap, Version};
+use crate::{Body, Extensions, StatusCode, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
@@ -40,7 +40,7 @@ pin_project_lite::pin_project! {
         receiver: Option<sync::Receiver<Trailers>>,
         #[pin]
         body: Body,
-        local: TypeMap,
+        ext: Extensions,
         local_addr: Option<String>,
         peer_addr: Option<String>,
     }
@@ -57,7 +57,7 @@ impl Response {
             body: Body::empty(),
             sender: Some(sender),
             receiver: Some(receiver),
-            local: TypeMap::new(),
+            ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
         }
@@ -481,8 +481,8 @@ impl Response {
     }
 
     /// Returns a reference to the existing local.
-    pub fn local(&self) -> &TypeMap {
-        &self.local
+    pub fn ext(&self) -> &Extensions {
+        &self.ext
     }
 
     /// Returns a mutuable reference to the existing local state.
@@ -496,13 +496,13 @@ impl Response {
     /// use http_types::{StatusCode, Response, Version};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
-    /// res.local_mut().insert("hello from the extension");
-    /// assert_eq!(res.local().get(), Some(&"hello from the extension"));
+    /// res.ext_mut().insert("hello from the extension");
+    /// assert_eq!(res.ext().get(), Some(&"hello from the extension"));
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn local_mut(&mut self) -> &mut TypeMap {
-        &mut self.local
+    pub fn ext_mut(&mut self) -> &mut Extensions {
+        &mut self.ext
     }
 }
 
@@ -516,7 +516,7 @@ impl Clone for Response {
             sender: self.sender.clone(),
             receiver: self.receiver.clone(),
             body: Body::empty(),
-            local: TypeMap::new(),
+            ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),
             local_addr: self.local_addr.clone(),
         }

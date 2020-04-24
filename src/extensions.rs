@@ -7,26 +7,25 @@ use std::collections::HashMap;
 use std::fmt;
 use std::hash::{BuildHasherDefault, Hasher};
 
-/// Store and retrieve values by `TypeId`.
+/// A type to store extra data inside `Request` and `Response`.
 ///
-/// Map type that allows storing any `Sync + Send + 'static` type. Instances can
-/// be retrieved from [`Request::local`](struct.Request.html#method.local) +
-/// [`Response::local`](struct.Response.html#method.local) and
-/// [`Request::local_mut`](struct.Request.html#method.local_mut) +
-/// [`Response::local_mut`](struct.Response.html#method.local_mut).
+/// Store and retrieve values by
+/// [`TypeId`](https://doc.rust-lang.org/std/any/struct.TypeId.html). This allows
+/// storing arbitrary data that implements `Sync + Send + 'static`. This is
+/// useful when for example implementing middleware that needs to send values.
 #[derive(Default)]
-pub struct TypeMap {
+pub struct Extensions {
     map: Option<HashMap<TypeId, Box<dyn Any + Send + Sync>, BuildHasherDefault<IdHasher>>>,
 }
 
-impl TypeMap {
-    /// Create an empty `TypeMap`.
+impl Extensions {
+    /// Create an empty `Extensions`.
     #[inline]
     pub(crate) fn new() -> Self {
         Self { map: None }
     }
 
-    /// Insert a value into this `TypeMap`.
+    /// Insert a value into this `Extensions`.
     ///
     /// If a value of this type already exists, it will be returned.
     pub fn insert<T: Send + Sync + 'static>(&mut self, val: T) -> Option<T> {
@@ -44,7 +43,7 @@ impl TypeMap {
             .is_some()
     }
 
-    /// Get a reference to a value previously inserted on this `TypeMap`.
+    /// Get a reference to a value previously inserted on this `Extensions`.
     pub fn get<T: 'static>(&self) -> Option<&T> {
         self.map
             .as_ref()
@@ -52,7 +51,7 @@ impl TypeMap {
             .and_then(|boxed| (&**boxed as &(dyn Any)).downcast_ref())
     }
 
-    /// Get a mutable reference to a value previously inserted on this `TypeMap`.
+    /// Get a mutable reference to a value previously inserted on this `Extensions`.
     pub fn get_mut<T: 'static>(&mut self) -> Option<&mut T> {
         self.map
             .as_mut()
@@ -60,7 +59,7 @@ impl TypeMap {
             .and_then(|boxed| (&mut **boxed as &mut (dyn Any)).downcast_mut())
     }
 
-    /// Remove a value from this `TypeMap`.
+    /// Remove a value from this `Extensions`.
     ///
     /// If a value of this type exists, it will be returned.
     pub fn remove<T: 'static>(&mut self) -> Option<T> {
@@ -70,16 +69,16 @@ impl TypeMap {
             .and_then(|boxed| (boxed as Box<dyn Any>).downcast().ok().map(|boxed| *boxed))
     }
 
-    /// Clear the `TypeMap` of all inserted values.
+    /// Clear the `Extensions` of all inserted values.
     #[inline]
     pub fn clear(&mut self) {
         self.map = None;
     }
 }
 
-impl fmt::Debug for TypeMap {
+impl fmt::Debug for Extensions {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("TypeMap").finish()
+        f.debug_struct("Extensions").finish()
     }
 }
 
@@ -107,11 +106,11 @@ impl Hasher for IdHasher {
 mod tests {
     use super::*;
     #[test]
-    fn test_type_map() {
+    fn test_extensions() {
         #[derive(Debug, PartialEq)]
         struct MyType(i32);
 
-        let mut map = TypeMap::new();
+        let mut map = Extensions::new();
 
         map.insert(5i32);
         map.insert(MyType(10));
