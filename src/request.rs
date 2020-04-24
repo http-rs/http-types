@@ -480,6 +480,8 @@ impl Clone for Request {
             receiver: self.receiver.clone(),
             body: Body::empty(),
             local: TypeMap::new(),
+            peer_addr: self.peer_addr.clone(),
+            local_addr: self.local_addr.clone(),
         }
     }
 }
