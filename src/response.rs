@@ -539,4 +539,3 @@ impl<'a> IntoIterator for &'a mut Response {
         self.headers.iter_mut()
     }
 }
-
