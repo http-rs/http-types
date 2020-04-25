@@ -1,8 +1,10 @@
+use async_std::fs;
 use async_std::io::prelude::*;
 use async_std::io::{self, Cursor};
 use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
+use std::path::Path;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -182,28 +184,28 @@ impl Body {
         Ok(body)
     }
 
-    /// Create a `Body` from an async-std File.
+    /// Create a `Body` from a file.
     ///
-    /// The Mime type set to `application/octet-stream` if no other mime type has been set or can
-    /// be sniffed.
+    /// The Mime type set to `application/octet-stream` if no other mime type has
+    /// been set or can be sniffed.
     ///
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
     /// use http_types::{Body, Response, StatusCode};
-    /// use async_std::fs::File;
     ///
-    /// # async_std::task::block_on(async {
     /// let mut res = Response::new(StatusCode::Ok);
-    /// let file = File::open("/path/to/file").await.unwrap();
-    /// res.set_body(Body::from_file(file));
-    /// // or
-    /// res.set_body(File::open("/path/to/file").await.unwrap());
-    /// # });
+    /// res.set_body(Body::from_file("/path/to/file").await?);
+    /// # Ok(()) }) }
     /// ```
     #[cfg(feature = "async_std")]
-    pub fn from_file(file: async_std::fs::File) -> Self {
-        file.into()
+    pub async fn from_file<P>(file: P) -> io::Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        let file = fs::read(file.as_ref()).await?;
+        Ok(file.into())
     }
 
     /// Get the length of the body in bytes.
