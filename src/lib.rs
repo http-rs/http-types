@@ -173,8 +173,8 @@ mod hyperium_http;
 #[doc(inline)]
 pub use crate::type_map::TypeMap;
 
-/// Generic serialization and deserialization.
-pub mod serde {
+/// Traits for conversions between types.
+pub mod convert {
     pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
     #[doc(inline)]
     pub use serde_json::json;

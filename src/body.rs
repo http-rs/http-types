@@ -167,7 +167,7 @@ impl Body {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Body, serde::json};
+    /// use http_types::{Body, convert::json};
     ///
     /// let body = Body::from_json(json!({ "name": "Chashu" }));
     /// # drop(body);
@@ -250,7 +250,7 @@ impl Body {
     /// ```
     /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
     /// use http_types::Body;
-    /// use http_types::serde::{Serialize, Deserialize};
+    /// use http_types::convert::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
     /// struct Cat { name: String }
