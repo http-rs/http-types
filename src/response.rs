@@ -284,7 +284,7 @@ impl Response {
     /// Read the body as JSON.
     ///
     /// This consumes the response. If you want to read the body without
-    /// consuming the request, consider using the `take_body` method and
+    /// consuming the response, consider using the `take_body` method and
     /// then calling `Body::into_json` or using the Response's AsyncRead
     /// implementation to read the body.
     ///
