@@ -113,6 +113,23 @@ impl Body {
         }
     }
 
+    /// Get the inner reader from the `Body`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::prelude::*;
+    /// use http_types::Body;
+    /// use async_std::io::Cursor;
+    ///
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let body = Body::from_reader(cursor, None);
+    /// let _ = body.into_reader();
+    /// ```
+    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
+        self.reader
+    }
+
     /// Create a `Body` from a Vec of bytes.
     ///
     /// The Mime type is set to `application/octet-stream` if no other mime type has been set or can
@@ -160,6 +177,54 @@ impl Body {
         Ok(buf)
     }
 
+    /// Create a `Body` from a String
+    ///
+    /// The Mime type is set to `text/plain` if no other mime type has been set or can
+    /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
+    /// framed messages such as [Chunked
+    /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    ///
+    /// let input = String::from("hello Nori!");
+    /// req.set_body(Body::from_bytes(input));
+    /// ```
+    pub fn from_string(s: String) -> Self {
+        Self {
+            mime: mime::PLAIN,
+            length: Some(s.len()),
+            reader: Box::new(io::Cursor::new(s.into_bytes())),
+        }
+    }
+
+    /// Read the body as a string
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// use http_types::Body;
+    /// use async_std::io::Cursor;
+    ///  
+    /// let cursor = Cursor::new("Hello Nori");
+    /// let body = Body::from_reader(cursor, None);
+    /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn into_string(mut self) -> io::Result<String> {
+        let mut result = String::with_capacity(self.len().unwrap_or(0));
+        self.read_to_string(&mut result).await?;
+        Ok(result)
+    }
+
     /// Creates a `Body` from a type, serializing it as JSON.
     ///
     /// # Mime
@@ -171,10 +236,10 @@ impl Body {
     /// ```
     /// use http_types::{Body, convert::json};
     ///
-    /// let body = Body::from_json(json!({ "name": "Chashu" }));
+    /// let body = Body::from_json(&json!({ "name": "Chashu" }));
     /// # drop(body);
     /// ```
-    pub fn from_json(json: impl Serialize) -> crate::Result<Self> {
+    pub fn from_json(json: &impl Serialize) -> crate::Result<Self> {
         let bytes = serde_json::to_vec(&json)?;
         let body = Self {
             length: Some(bytes.len()),
@@ -182,6 +247,99 @@ impl Body {
             mime: mime::JSON,
         };
         Ok(body)
+    }
+
+    /// Parse the body as JSON, serializing it to a struct.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::Body;
+    /// use http_types::convert::{Serialize, Deserialize};
+    ///
+    /// #[derive(Debug, Serialize, Deserialize)]
+    /// struct Cat { name: String }
+    ///
+    /// let cat = Cat { name: String::from("chashu") };
+    /// let body = Body::from_json(cat)?;
+    ///
+    /// let cat: Cat = body.into_json().await?;
+    /// assert_eq!(&cat.name, "chashu");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
+        let mut buf = Vec::with_capacity(1024);
+        self.read_to_end(&mut buf).await?;
+        Ok(serde_json::from_slice(&buf).map_err(io::Error::from)?)
+    }
+
+    /// Creates a `Body` from a type, serializing it using form encoding.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/x-www-form-urlencoded`.
+    ///
+    /// # Errors
+    ///
+    /// An error will be returned if the encoding failed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::Body;
+    /// use http_types::convert::{Serialize, Deserialize};
+    ///
+    /// #[derive(Debug, Serialize, Deserialize)]
+    /// struct Cat { name: String }
+    ///
+    /// let cat = Cat { name: String::from("chashu") };
+    /// let body = Body::from_form(&cat)?;
+    ///
+    /// let cat: Cat = body.into_form().await?;
+    /// assert_eq!(&cat.name, "chashu");
+    /// # Ok(()) }) }
+    /// ```
+    pub fn from_form(form: &impl Serialize) -> crate::Result<Self> {
+        let query = serde_urlencoded::to_string(form)?;
+        let bytes = query.into_bytes();
+
+        let body = Self {
+            length: Some(bytes.len()),
+            reader: Box::new(Cursor::new(bytes)),
+            mime: mime::FORM,
+        };
+        Ok(body)
+    }
+
+    /// Parse the body from form encoding into a type.
+    ///
+    /// # Errors
+    ///
+    /// An error is returned if the underlying IO stream errors, or if the body
+    /// could not be deserialized into the type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::Body;
+    /// use http_types::convert::{Serialize, Deserialize};
+    ///
+    /// #[derive(Debug, Serialize, Deserialize)]
+    /// struct Cat { name: String }
+    ///
+    /// let cat = Cat { name: String::from("chashu") };
+    /// let body = Body::from_form(cat)?;
+    ///
+    /// let cat: Cat = body.into_form().await?;
+    /// assert_eq!(&cat.name, "chashu");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn into_form<T: DeserializeOwned>(self) -> crate::Result<T> {
+        let s = self.into_string().await?;
+        Ok(serde_urlencoded::from_str(&s)?)
     }
 
     /// Create a `Body` from a file.
@@ -230,70 +388,6 @@ impl Body {
         self.length.map(|length| length == 0)
     }
 
-    /// Get the inner reader from the `Body`
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::prelude::*;
-    /// use http_types::Body;
-    /// use async_std::io::Cursor;
-    ///
-    /// let cursor = Cursor::new("Hello Nori");
-    /// let body = Body::from_reader(cursor, None);
-    /// let _ = body.into_reader();
-    /// ```
-    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
-        self.reader
-    }
-
-    /// Read the body as a string
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
-    /// use http_types::Body;
-    /// use async_std::io::Cursor;
-    ///  
-    /// let cursor = Cursor::new("Hello Nori");
-    /// let body = Body::from_reader(cursor, None);
-    /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
-    /// # Ok(()) }) }
-    /// ```
-    pub async fn into_string(mut self) -> io::Result<String> {
-        let mut result = String::with_capacity(self.len().unwrap_or(0));
-        self.read_to_string(&mut result).await?;
-        Ok(result)
-    }
-
-    /// Parse the body as JSON, serializing it to a struct.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
-    /// use http_types::Body;
-    /// use http_types::convert::{Serialize, Deserialize};
-    ///
-    /// #[derive(Debug, Serialize, Deserialize)]
-    /// struct Cat { name: String }
-    ///
-    /// let cat = Cat { name: String::from("chashu") };
-    /// let body = Body::from_json(cat)?;
-    ///
-    /// let cat: Cat = body.into_json().await?;
-    /// assert_eq!(&cat.name, "chashu");
-    /// # Ok(()) }) }
-    /// ```
-    pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
-        let mut buf = Vec::with_capacity(1024);
-        self.read_to_end(&mut buf).await?;
-        Ok(serde_json::from_slice(&buf).map_err(io::Error::from)?)
-    }
-
     pub(crate) fn mime(&self) -> &Mime {
         &self.mime
     }
@@ -310,59 +404,25 @@ impl Debug for Body {
 
 impl From<String> for Body {
     fn from(s: String) -> Self {
-        Self {
-            length: Some(s.len()),
-            reader: Box::new(Cursor::new(s.into_bytes())),
-            mime: mime::PLAIN,
-        }
+        Self::from_string(s)
     }
 }
 
 impl<'a> From<&'a str> for Body {
     fn from(s: &'a str) -> Self {
-        Self {
-            length: Some(s.len()),
-            reader: Box::new(Cursor::new(s.to_owned().into_bytes())),
-            mime: mime::PLAIN,
-        }
+        Self::from_string(s.to_owned())
     }
 }
 
 impl From<Vec<u8>> for Body {
     fn from(b: Vec<u8>) -> Self {
-        Self {
-            length: Some(b.len()),
-            reader: Box::new(Cursor::new(b)),
-            mime: mime::BYTE_STREAM,
-        }
+        Self::from_bytes(b.to_owned())
     }
 }
 
 impl<'a> From<&'a [u8]> for Body {
     fn from(b: &'a [u8]) -> Self {
-        Self {
-            length: Some(b.len()),
-            reader: Box::new(io::Cursor::new(b.to_owned())),
-            mime: mime::BYTE_STREAM,
-        }
-    }
-}
-
-#[cfg(feature = "async_std")]
-impl From<async_std::fs::File> for Body {
-    fn from(file: async_std::fs::File) -> Self {
-        let length = async_std::task::block_on(async {
-            file.metadata()
-                .await
-                .expect("unable to read file metadata")
-                .len()
-        });
-
-        Self {
-            length: Some(length as usize),
-            reader: Box::new(async_std::io::BufReader::new(file)),
-            mime: mime::BYTE_STREAM,
-        }
+        Self::from_bytes(b.to_owned())
     }
 }
 

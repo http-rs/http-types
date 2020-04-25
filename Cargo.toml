@@ -38,6 +38,7 @@ pin-project-lite = "0.1.0"
 url = "2.1.0"
 serde_json = "1.0.51"
 serde = { version = "1.0.106", features = ["derive"] }
+serde_urlencoded = "0.6.1"
 
 [dev-dependencies]
 http = "0.2.0"
