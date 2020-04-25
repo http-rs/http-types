@@ -3,7 +3,6 @@ use async_std::sync;
 
 use std::convert::TryInto;
 use std::mem;
-use std::net::SocketAddr;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -37,8 +36,8 @@ pin_project_lite::pin_project! {
         #[pin]
         body: Body,
         local: TypeMap,
-        local_addr: Option<SocketAddr>,
-        peer_addr: Option<SocketAddr>,
+        local_addr: Option<String>,
+        peer_addr: Option<String>,
     }
 }
 
@@ -61,39 +60,34 @@ impl Request {
     }
 
     /// Get the peer socket address for the underlying transport, if appropriate
-    pub fn peer_addr(&self) -> Option<SocketAddr> {
-        self.peer_addr
+    pub fn peer_addr(&self) -> Option<&str> {
+        self.peer_addr.as_deref()
     }
 
     /// Get the local socket address for the underlying transport, if appropriate
-    pub fn local_addr(&self) -> Option<SocketAddr> {
-        self.local_addr
+    pub fn local_addr(&self) -> Option<&str> {
+        self.local_addr.as_deref()
     }
 
     /// Get the remote address for this request.
-    pub fn remote(&self) -> Option<String> {
-        self.forwarded_for()
-            .or_else(|| self.peer_addr.map(|peer| peer.to_string()))
+    pub fn remote(&self) -> Option<&str> {
+        self.forwarded_for().or(self.peer_addr())
     }
 
     /// Parses the Forwarded or X-Forwarded-For headers.
     /// The returned String will either be an IP address or a domain and an optional port.
-    pub fn forwarded_for(&self) -> Option<String> {
+    pub fn forwarded_for(&self) -> Option<&str> {
         if let Some(header) = self.header(&"Forwarded".parse().unwrap()) {
             header.as_str().split(";").find_map(|key_equals_value| {
                 let parts = key_equals_value.split("=").collect::<Vec<_>>();
                 if parts.len() == 2 && parts[0].eq_ignore_ascii_case("for") {
-                    Some(String::from(parts[1]))
+                    Some(parts[1])
                 } else {
                     None
                 }
             })
         } else if let Some(header) = self.header(&"X-Forwarded-For".parse().unwrap()) {
-            header
-                .as_str()
-                .split(",")
-                .next()
-                .map(|client| String::from(client))
+            header.as_str().split(",").next()
         } else {
             None
         }
@@ -618,11 +612,8 @@ mod tests {
         request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
         set_forwarded(&mut request, "127.0.0.1:8001");
 
-        assert_eq!(
-            request.forwarded_for(),
-            Some(String::from("127.0.0.1:8001"))
-        );
-        assert_eq!(request.remote(), Some(String::from("127.0.0.1:8001")));
+        assert_eq!(request.forwarded_for(), Some("127.0.0.1:8001"));
+        assert_eq!(request.remote(), Some("127.0.0.1:8001"));
     }
 
     #[test]
@@ -635,7 +626,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(request.forwarded_for(), None);
-        assert_eq!(request.remote(), Some(String::from("127.0.0.1:8000")));
+        assert_eq!(request.remote(), Some("127.0.0.1:8000"));
     }
 
     #[test]
@@ -644,12 +635,8 @@ mod tests {
         request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
         set_x_forwarded_for(&mut request, "forwarded-host.com");
 
-        assert_eq!(
-            request.forwarded_for(),
-            Some(String::from("forwarded-host.com"))
-        );
-
-        assert_eq!(request.remote(), Some(String::from("forwarded-host.com")));
+        assert_eq!(request.forwarded_for(), Some("forwarded-host.com"));
+        assert_eq!(request.remote(), Some("forwarded-host.com"));
     }
 
     #[test]
@@ -664,7 +651,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remote_and_forwarded_for_falling_back_to_peer_addr() {
+    fn test_remote_falling_back_to_peer_addr() {
         let mut request = build_test_request();
         request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
 

@@ -3,7 +3,6 @@ use async_std::sync;
 
 use std::convert::TryInto;
 use std::mem;
-use std::net::SocketAddr;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -40,8 +39,8 @@ pin_project_lite::pin_project! {
         #[pin]
         body: Body,
         local: TypeMap,
-        local_addr: Option<SocketAddr>,
-        peer_addr: Option<SocketAddr>,
+        local_addr: Option<String>,
+        peer_addr: Option<String>,
     }
 }
 
@@ -337,13 +336,13 @@ impl Response {
     }
 
     /// Get the peer socket address for the underlying transport, if appropriate
-    pub fn peer_addr(&self) -> Option<SocketAddr> {
-        self.peer_addr
+    pub fn peer_addr(&self) -> Option<&str> {
+        self.peer_addr.as_deref()
     }
 
     /// Get the local socket address for the underlying transport, if appropriate
-    pub fn local_addr(&self) -> Option<SocketAddr> {
-        self.local_addr
+    pub fn local_addr(&self) -> Option<&str> {
+        self.local_addr.as_deref()
     }
 
     /// Set the HTTP version.
@@ -540,3 +539,4 @@ impl<'a> IntoIterator for &'a mut Response {
         self.headers.iter_mut()
     }
 }
+
