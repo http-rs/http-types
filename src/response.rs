@@ -300,7 +300,7 @@ impl Response {
     ///
     /// let cat = Cat { name: String::from("chashu") };
     /// let mut res = Response::new(StatusCode::Ok);    
-    /// res.set_body(Body::from_json(cat)?);
+    /// res.set_body(Body::from_json(&cat)?);
     ///
     /// let cat: Cat = res.body_json().await?;
     /// assert_eq!(&cat.name, "chashu");
@@ -308,6 +308,35 @@ impl Response {
     /// ```
     pub async fn body_json<T: DeserializeOwned>(self) -> crate::Result<T> {
         self.body.into_json().await
+    }
+
+    /// Read the body as `x-www-form-urlencoded`.
+    ///
+    /// This consumes the request. If you want to read the body without
+    /// consuming the request, consider using the `take_body` method and
+    /// then calling `Body::into_json` or using the Response's AsyncRead
+    /// implementation to read the body.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::{Body, Url, Method, Response, StatusCode};    
+    /// use http_types::convert::{Serialize, Deserialize};
+    ///
+    /// #[derive(Debug, Serialize, Deserialize)]
+    /// struct Cat { name: String }
+    ///
+    /// let cat = Cat { name: String::from("chashu") };
+    /// let mut res = Response::new(StatusCode::Ok);    
+    /// res.set_body(Body::from_form(&cat)?);
+    ///
+    /// let cat: Cat = res.body_form().await?;
+    /// assert_eq!(&cat.name, "chashu");
+    /// # Ok(()) }) }
+    /// ```
+    pub async fn body_form<T: DeserializeOwned>(self) -> crate::Result<T> {
+        self.body.into_form().await
     }
 
     /// Set the response MIME.

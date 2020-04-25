@@ -193,7 +193,7 @@ impl Body {
     /// let mut req = Response::new(StatusCode::Ok);
     ///
     /// let input = String::from("hello Nori!");
-    /// req.set_body(Body::from_bytes(input));
+    /// req.set_body(Body::from_string(input));
     /// ```
     pub fn from_string(s: String) -> Self {
         Self {
@@ -262,7 +262,7 @@ impl Body {
     /// struct Cat { name: String }
     ///
     /// let cat = Cat { name: String::from("chashu") };
-    /// let body = Body::from_json(cat)?;
+    /// let body = Body::from_json(&cat)?;
     ///
     /// let cat: Cat = body.into_json().await?;
     /// assert_eq!(&cat.name, "chashu");
@@ -331,7 +331,7 @@ impl Body {
     /// struct Cat { name: String }
     ///
     /// let cat = Cat { name: String::from("chashu") };
-    /// let body = Body::from_form(cat)?;
+    /// let body = Body::from_form(&cat)?;
     ///
     /// let cat: Cat = body.into_form().await?;
     /// assert_eq!(&cat.name, "chashu");
