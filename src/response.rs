@@ -335,6 +335,16 @@ impl Response {
         self.version
     }
 
+    #[doc(hidden)]
+    pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
+        self.peer_addr = peer_addr.map(|addr| addr.to_string());
+    }
+
+    #[doc(hidden)]
+    pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
+        self.local_addr = local_addr.map(|addr| addr.to_string());
+    }
+
     /// Get the peer socket address for the underlying transport, if appropriate
     pub fn peer_addr(&self) -> Option<&str> {
         self.peer_addr.as_deref()

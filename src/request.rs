@@ -59,6 +59,16 @@ impl Request {
         }
     }
 
+    #[doc(hidden)]
+    pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
+        self.peer_addr = peer_addr.map(|addr| addr.to_string());
+    }
+
+    #[doc(hidden)]
+    pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
+        self.local_addr = local_addr.map(|addr| addr.to_string());
+    }
+
     /// Get the peer socket address for the underlying transport, if appropriate
     pub fn peer_addr(&self) -> Option<&str> {
         self.peer_addr.as_deref()
@@ -609,7 +619,7 @@ mod tests {
     #[test]
     fn test_remote_and_forwarded_for_when_forwarded_is_properly_formatted() {
         let mut request = build_test_request();
-        request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
+        request.set_peer_addr(Some("127.0.0.1:8000"));
         set_forwarded(&mut request, "127.0.0.1:8001");
 
         assert_eq!(request.forwarded_for(), Some("127.0.0.1:8001"));
@@ -619,7 +629,9 @@ mod tests {
     #[test]
     fn test_remote_and_forwarded_for_when_forwarded_is_improperly_formatted() {
         let mut request = build_test_request();
-        request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
+        request.set_peer_addr(Some(
+            "127.0.0.1:8000".parse::<std::net::SocketAddr>().unwrap(),
+        ));
 
         request
             .insert_header("Forwarded", "this is an improperly ;;; formatted header")
@@ -632,7 +644,9 @@ mod tests {
     #[test]
     fn test_remote_and_forwarded_for_when_x_forwarded_for_is_set() {
         let mut request = build_test_request();
-        request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
+        request.set_peer_addr(Some(
+            std::path::PathBuf::from("/dev/random").to_str().unwrap(),
+        ));
         set_x_forwarded_for(&mut request, "forwarded-host.com");
 
         assert_eq!(request.forwarded_for(), Some("forwarded-host.com"));
@@ -644,7 +658,7 @@ mod tests {
         let mut request = build_test_request();
         set_forwarded(&mut request, "forwarded.com");
         set_x_forwarded_for(&mut request, "forwarded-for-client.com");
-        request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
+        request.peer_addr = Some("127.0.0.1:8000".into());
 
         assert_eq!(request.forwarded_for(), Some("forwarded.com".into()));
         assert_eq!(request.remote(), Some("forwarded.com".into()));
@@ -653,7 +667,7 @@ mod tests {
     #[test]
     fn test_remote_falling_back_to_peer_addr() {
         let mut request = build_test_request();
-        request.peer_addr = Some("127.0.0.1:8000".parse().unwrap());
+        request.peer_addr = Some("127.0.0.1:8000".into());
 
         assert_eq!(request.forwarded_for(), None);
         assert_eq!(request.remote(), Some("127.0.0.1:8000".into()));
