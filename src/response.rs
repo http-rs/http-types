@@ -335,12 +335,16 @@ impl Response {
         self.version
     }
 
-    #[doc(hidden)]
+    /// Sets a string representation of the peer address that this
+    /// response was sent to. This might take the form of an ip/fqdn
+    /// and port or a local socket address.
     pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
         self.peer_addr = peer_addr.map(|addr| addr.to_string());
     }
 
-    #[doc(hidden)]
+    /// Sets a string representation of the local address that this
+    /// response was sent on. This might take the form of an ip/fqdn and
+    /// port, or a local socket address.
     pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
         self.local_addr = local_addr.map(|addr| addr.to_string());
     }

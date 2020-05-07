@@ -59,22 +59,28 @@ impl Request {
         }
     }
 
-    #[doc(hidden)]
+    /// Sets a string representation of the peer address of this
+    /// request. This might take the form of an ip/fqdn and port or a
+    /// local socket address.
     pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
         self.peer_addr = peer_addr.map(|addr| addr.to_string());
     }
 
-    #[doc(hidden)]
+    /// Sets a string representation of the local address that this
+    /// request was received on. This might take the form of an ip/fqdn and
+    /// port, or a local socket address.
     pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
         self.local_addr = local_addr.map(|addr| addr.to_string());
     }
 
-    /// Get the peer socket address for the underlying transport, if appropriate
+    /// Get the peer socket address for the underlying transport, if
+    /// that information is available for this request.
     pub fn peer_addr(&self) -> Option<&str> {
         self.peer_addr.as_deref()
     }
 
-    /// Get the local socket address for the underlying transport, if appropriate
+    /// Get the local socket address for the underlying transport, if
+    /// that information is available for this request.
     pub fn local_addr(&self) -> Option<&str> {
         self.local_addr.as_deref()
     }
@@ -84,9 +90,7 @@ impl Request {
         self.forwarded_for().or(self.peer_addr())
     }
 
-    /// Parses the Forwarded or X-Forwarded-For headers.
-    /// The returned String will either be an IP address or a domain and an optional port.
-    pub fn forwarded_for(&self) -> Option<&str> {
+    fn forwarded_for(&self) -> Option<&str> {
         if let Some(header) = self.header(&"Forwarded".parse().unwrap()) {
             header.as_str().split(";").find_map(|key_equals_value| {
                 let parts = key_equals_value.split("=").collect::<Vec<_>>();
