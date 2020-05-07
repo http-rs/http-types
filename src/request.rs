@@ -37,6 +37,8 @@ pin_project_lite::pin_project! {
         #[pin]
         body: Body,
         local: TypeMap,
+        local_addr: Option<String>,
+        peer_addr: Option<String>,
     }
 }
 
@@ -53,6 +55,56 @@ impl Request {
             sender: Some(sender),
             receiver: Some(receiver),
             local: TypeMap::new(),
+            peer_addr: None,
+            local_addr: None,
+        }
+    }
+
+    /// Sets a string representation of the peer address of this
+    /// request. This might take the form of an ip/fqdn and port or a
+    /// local socket address.
+    pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
+        self.peer_addr = peer_addr.map(|addr| addr.to_string());
+    }
+
+    /// Sets a string representation of the local address that this
+    /// request was received on. This might take the form of an ip/fqdn and
+    /// port, or a local socket address.
+    pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
+        self.local_addr = local_addr.map(|addr| addr.to_string());
+    }
+
+    /// Get the peer socket address for the underlying transport, if
+    /// that information is available for this request.
+    pub fn peer_addr(&self) -> Option<&str> {
+        self.peer_addr.as_deref()
+    }
+
+    /// Get the local socket address for the underlying transport, if
+    /// that information is available for this request.
+    pub fn local_addr(&self) -> Option<&str> {
+        self.local_addr.as_deref()
+    }
+
+    /// Get the remote address for this request.
+    pub fn remote(&self) -> Option<&str> {
+        self.forwarded_for().or(self.peer_addr())
+    }
+
+    fn forwarded_for(&self) -> Option<&str> {
+        if let Some(header) = self.header(&"Forwarded".parse().unwrap()) {
+            header.as_str().split(";").find_map(|key_equals_value| {
+                let parts = key_equals_value.split("=").collect::<Vec<_>>();
+                if parts.len() == 2 && parts[0].eq_ignore_ascii_case("for") {
+                    Some(parts[1])
+                } else {
+                    None
+                }
+            })
+        } else if let Some(header) = self.header(&"X-Forwarded-For".parse().unwrap()) {
+            header.as_str().split(",").next()
+        } else {
+            None
         }
     }
 
@@ -523,6 +575,8 @@ impl Clone for Request {
             receiver: self.receiver.clone(),
             body: Body::empty(),
             local: TypeMap::new(),
+            peer_addr: self.peer_addr.clone(),
+            local_addr: self.local_addr.clone(),
         }
     }
 }
@@ -596,5 +650,96 @@ impl<'a> IntoIterator for &'a mut Request {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.headers.iter_mut()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn build_test_request() -> Request {
+        Request::new(Method::Get, "http://irrelevant/".parse().unwrap())
+    }
+
+    fn set_x_forwarded_for(request: &mut Request, client: &'static str) {
+        request
+            .insert_header(
+                "x-forwarded-for",
+                format!("{},proxy.com,other-proxy.com", client),
+            )
+            .unwrap();
+    }
+
+    fn set_forwarded(request: &mut Request, client: &'static str) {
+        request
+            .insert_header(
+                "Forwarded",
+                format!("by=something.com;for={};host=host.com;proto=http", client),
+            )
+            .unwrap();
+    }
+
+    #[test]
+    fn test_remote_and_forwarded_for_when_forwarded_is_properly_formatted() {
+        let mut request = build_test_request();
+        request.set_peer_addr(Some("127.0.0.1:8000"));
+        set_forwarded(&mut request, "127.0.0.1:8001");
+
+        assert_eq!(request.forwarded_for(), Some("127.0.0.1:8001"));
+        assert_eq!(request.remote(), Some("127.0.0.1:8001"));
+    }
+
+    #[test]
+    fn test_remote_and_forwarded_for_when_forwarded_is_improperly_formatted() {
+        let mut request = build_test_request();
+        request.set_peer_addr(Some(
+            "127.0.0.1:8000".parse::<std::net::SocketAddr>().unwrap(),
+        ));
+
+        request
+            .insert_header("Forwarded", "this is an improperly ;;; formatted header")
+            .unwrap();
+
+        assert_eq!(request.forwarded_for(), None);
+        assert_eq!(request.remote(), Some("127.0.0.1:8000"));
+    }
+
+    #[test]
+    fn test_remote_and_forwarded_for_when_x_forwarded_for_is_set() {
+        let mut request = build_test_request();
+        request.set_peer_addr(Some(
+            std::path::PathBuf::from("/dev/random").to_str().unwrap(),
+        ));
+        set_x_forwarded_for(&mut request, "forwarded-host.com");
+
+        assert_eq!(request.forwarded_for(), Some("forwarded-host.com"));
+        assert_eq!(request.remote(), Some("forwarded-host.com"));
+    }
+
+    #[test]
+    fn test_remote_and_forwarded_for_when_both_forwarding_headers_are_set() {
+        let mut request = build_test_request();
+        set_forwarded(&mut request, "forwarded.com");
+        set_x_forwarded_for(&mut request, "forwarded-for-client.com");
+        request.peer_addr = Some("127.0.0.1:8000".into());
+
+        assert_eq!(request.forwarded_for(), Some("forwarded.com".into()));
+        assert_eq!(request.remote(), Some("forwarded.com".into()));
+    }
+
+    #[test]
+    fn test_remote_falling_back_to_peer_addr() {
+        let mut request = build_test_request();
+        request.peer_addr = Some("127.0.0.1:8000".into());
+
+        assert_eq!(request.forwarded_for(), None);
+        assert_eq!(request.remote(), Some("127.0.0.1:8000".into()));
+    }
+
+    #[test]
+    fn test_remote_and_forwarded_for_when_no_remote_available() {
+        let request = build_test_request();
+        assert_eq!(request.forwarded_for(), None);
+        assert_eq!(request.remote(), None);
     }
 }

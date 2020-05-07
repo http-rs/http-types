@@ -40,6 +40,8 @@ pin_project_lite::pin_project! {
         #[pin]
         body: Body,
         local: TypeMap,
+        local_addr: Option<String>,
+        peer_addr: Option<String>,
     }
 }
 
@@ -55,6 +57,8 @@ impl Response {
             sender: Some(sender),
             receiver: Some(receiver),
             local: TypeMap::new(),
+            peer_addr: None,
+            local_addr: None,
         }
     }
 
@@ -389,6 +393,30 @@ impl Response {
         self.version
     }
 
+    /// Sets a string representation of the peer address that this
+    /// response was sent to. This might take the form of an ip/fqdn
+    /// and port or a local socket address.
+    pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
+        self.peer_addr = peer_addr.map(|addr| addr.to_string());
+    }
+
+    /// Sets a string representation of the local address that this
+    /// response was sent on. This might take the form of an ip/fqdn and
+    /// port, or a local socket address.
+    pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
+        self.local_addr = local_addr.map(|addr| addr.to_string());
+    }
+
+    /// Get the peer socket address for the underlying transport, if appropriate
+    pub fn peer_addr(&self) -> Option<&str> {
+        self.peer_addr.as_deref()
+    }
+
+    /// Get the local socket address for the underlying transport, if appropriate
+    pub fn local_addr(&self) -> Option<&str> {
+        self.local_addr.as_deref()
+    }
+
     /// Set the HTTP version.
     ///
     /// # Examples
@@ -488,6 +516,8 @@ impl Clone for Response {
             receiver: self.receiver.clone(),
             body: Body::empty(),
             local: TypeMap::new(),
+            peer_addr: self.peer_addr.clone(),
+            local_addr: self.local_addr.clone(),
         }
     }
 }
