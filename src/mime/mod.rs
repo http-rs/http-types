@@ -8,7 +8,6 @@ mod parse;
 pub use constants::*;
 
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use std::option;
 use std::str::FromStr;
@@ -18,6 +17,15 @@ use crate::headers::{HeaderValue, ToHeaderValues};
 use infer::Infer;
 
 /// An IANA media type.
+///
+/// ```
+/// use http_types::Mime;
+/// use std::str::FromStr;
+///
+/// let mime = Mime::from_str("text/html;charset=utf-8").unwrap();
+/// assert_eq!(mime.essence(), "text/html");
+/// assert_eq!(mime.param("charset").unwrap(), "utf-8");
+/// ```
 // NOTE: we cannot statically initialize Strings with values yet, so we keep dedicated static
 // fields for the static strings.
 #[derive(Clone)]
@@ -39,16 +47,7 @@ impl Mime {
             Some(info) => info.mime,
             None => crate::bail!("Could not sniff the mime type"),
         };
-
-        Ok(Self {
-            essence: mime,
-            static_essence: None,
-            basetype: String::new(), // TODO: fill in.
-            subtype: String::new(),  // TODO: fill in.
-            static_basetype: None,   // TODO: fill in
-            static_subtype: None,
-            params: None, // TODO: fill in.
-        })
+        Mime::from_str(&mime)
     }
 
     /// Access the Mime's `type` value.
@@ -87,7 +86,9 @@ impl Mime {
         self.params
             .as_ref()
             .map(|inner| match inner {
-                ParamKind::Map(hm) => hm.get(&name),
+                ParamKind::Vec(v) => v
+                    .iter()
+                    .find_map(|(k, v)| if k == &name { Some(v) } else { None }),
                 ParamKind::Utf8 => match name {
                     ParamName(Cow::Borrowed("charset")) => Some(&ParamValue(Cow::Borrowed("utf8"))),
                     _ => None,
@@ -99,27 +100,7 @@ impl Mime {
 
 impl Display for Mime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(essence) = self.static_essence {
-            write!(f, "{}", essence)?
-        } else {
-            write!(f, "{}", &self.essence)?
-        }
-        if let Some(params) = &self.params {
-            match params {
-                ParamKind::Utf8 => write!(f, "; charset=utf-8")?,
-                ParamKind::Map(params) => {
-                    assert!(!params.is_empty());
-                    write!(f, "; ")?;
-                    for (i, (key, value)) in params.iter().enumerate() {
-                        write!(f, "{}={}", key, value)?;
-                        if i != params.len() - 1 {
-                            write!(f, ",")?;
-                        }
-                    }
-                }
-            }
-        }
-        Ok(())
+        parse::format(self, f)
     }
 }
 
@@ -136,20 +117,11 @@ impl Debug for Mime {
 impl FromStr for Mime {
     type Err = crate::Error;
 
-    /// Create a new `HeaderName`.
+    /// Create a new `Mime`.
     ///
-    /// This checks it's valid ASCII, and lowercases it.
+    /// Follows the [WHATWG MIME parsing algorithm](https://mimesniff.spec.whatwg.org/#parsing-a-mime-type).
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
-        Ok(Self {
-            essence: s.to_ascii_lowercase(),
-            static_essence: None,
-            basetype: String::new(), // TODO: fill in.
-            subtype: String::new(),  // TODO: fill in.
-            static_basetype: None,   // TODO: fill in
-            static_subtype: None,    // TODO: fill in
-            params: None,            // TODO: fill in.
-        })
+        parse::parse(s)
     }
 }
 
@@ -210,7 +182,7 @@ impl<'a> PartialEq<&'a str> for ParamValue {
 
 impl PartialEq<str> for ParamValue {
     fn eq(&self, other: &str) -> bool {
-        &self.0 == other
+        self.0 == other
     }
 }
 
@@ -219,14 +191,5 @@ impl PartialEq<str> for ParamValue {
 #[derive(Debug, Clone)]
 pub(crate) enum ParamKind {
     Utf8,
-    Map(HashMap<ParamName, ParamValue>),
-}
-
-impl ParamKind {
-    pub(crate) fn unwrap(&mut self) -> &mut HashMap<ParamName, ParamValue> {
-        match self {
-            Self::Map(t) => t,
-            _ => panic!("Unwrapped a ParamKind::utf8"),
-        }
-    }
+    Vec(Vec<(ParamName, ParamValue)>),
 }
