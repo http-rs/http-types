@@ -11,5 +11,5 @@ type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a + Send>>;
 #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
 pub trait Server: Debug + Unpin + Send + Sync + Clone + 'static {
     /// Receive an HTTP request on the server.
-    fn recv_req(&self, req: Request) -> BoxFuture<'static, Result<Response>>;
+    fn respond(&self, req: Request) -> BoxFuture<'static, Result<Response>>;
 }
