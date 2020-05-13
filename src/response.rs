@@ -1,7 +1,7 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
-use std::convert::TryInto;
+use std::convert::Into;
 use std::mem;
 use std::ops::Index;
 use std::pin::Pin;
@@ -74,7 +74,7 @@ impl Response {
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: &HeaderName) -> Option<&HeaderValues> {
+    pub fn header(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
@@ -93,15 +93,15 @@ impl Response {
     /// use http_types::{Url, Method, Response, StatusCode};
     ///
     /// let mut req = Response::new(StatusCode::Ok);
-    /// req.insert_header("Content-Type", "text/plain")?;
+    /// req.insert_header("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
     /// ```
     pub fn insert_header(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<HeaderValues>> {
+    ) -> Option<HeaderValues> {
         self.headers.insert(name, values)
     }
 
@@ -124,7 +124,7 @@ impl Response {
     /// ```
     pub fn append_header(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
         self.headers.append(name, values)
@@ -349,12 +349,12 @@ impl Response {
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(CONTENT_TYPE, value).unwrap()
+        self.insert_header(CONTENT_TYPE, value)
     }
 
     /// Copy MIME data from the body.
     fn copy_content_type_from_body(&mut self) {
-        if self.header(&CONTENT_TYPE).is_none() {
+        if self.header(CONTENT_TYPE).is_none() {
             self.set_content_type(self.body.mime().clone());
         }
     }
@@ -563,7 +563,7 @@ impl From<()> for Response {
         Response::new(StatusCode::NoContent)
     }
 }
-impl Index<&HeaderName> for Response {
+impl Index<HeaderName> for Response {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
@@ -572,7 +572,7 @@ impl Index<&HeaderName> for Response {
     ///
     /// Panics if the name is not present in `Response`.
     #[inline]
-    fn index(&self, name: &HeaderName) -> &HeaderValues {
+    fn index(&self, name: HeaderName) -> &HeaderValues {
         self.headers.index(name)
     }
 }

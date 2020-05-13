@@ -1,7 +1,7 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
-use std::convert::TryInto;
+use std::convert::Into;
 use std::mem;
 use std::ops::Index;
 use std::pin::Pin;
@@ -93,7 +93,7 @@ impl Request {
     }
 
     fn forwarded_for(&self) -> Option<&str> {
-        if let Some(header) = self.header(&"Forwarded".parse().unwrap()) {
+        if let Some(header) = self.header("Forwarded") {
             header.as_str().split(";").find_map(|key_equals_value| {
                 let parts = key_equals_value.split("=").collect::<Vec<_>>();
                 if parts.len() == 2 && parts[0].eq_ignore_ascii_case("for") {
@@ -102,7 +102,7 @@ impl Request {
                     None
                 }
             })
-        } else if let Some(header) = self.header(&"X-Forwarded-For".parse().unwrap()) {
+        } else if let Some(header) = self.header("X-Forwarded-For") {
             header.as_str().split(",").next()
         } else {
             None
@@ -364,7 +364,7 @@ impl Request {
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: &HeaderName) -> Option<&HeaderValues> {
+    pub fn header(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
@@ -388,15 +388,15 @@ impl Request {
     /// use http_types::{Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
-    /// req.insert_header("Content-Type", "text/plain")?;
+    /// req.insert_header("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
     /// ```
     pub fn insert_header(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<HeaderValues>> {
+    ) -> Option<HeaderValues> {
         self.headers.insert(name, values)
     }
 
@@ -419,7 +419,7 @@ impl Request {
     /// ```
     pub fn append_header(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
         self.headers.append(name, values)
@@ -431,19 +431,19 @@ impl Request {
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(CONTENT_TYPE, value).unwrap()
+        self.insert_header(CONTENT_TYPE, value)
     }
 
     /// Copy MIME data from the body.
     fn copy_content_type_from_body(&mut self) {
-        if self.header(&CONTENT_TYPE).is_none() {
+        if self.header(CONTENT_TYPE).is_none() {
             self.set_content_type(self.body.mime().clone());
         }
     }
 
     /// Get the current content type
     pub fn content_type(&self) -> Option<Mime> {
-        self.header(&CONTENT_TYPE)?.last().as_str().parse().ok()
+        self.header(CONTENT_TYPE)?.last().as_str().parse().ok()
     }
 
     /// Get the length of the body stream, if it has been set.
@@ -623,7 +623,7 @@ impl From<Request> for Body {
     }
 }
 
-impl Index<&HeaderName> for Request {
+impl Index<HeaderName> for Request {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
@@ -632,7 +632,7 @@ impl Index<&HeaderName> for Request {
     ///
     /// Panics if the name is not present in `Request`.
     #[inline]
-    fn index(&self, name: &HeaderName) -> &HeaderValues {
+    fn index(&self, name: HeaderName) -> &HeaderValues {
         self.headers.index(name)
     }
 }
@@ -691,21 +691,17 @@ mod tests {
     }
 
     fn set_x_forwarded_for(request: &mut Request, client: &'static str) {
-        request
-            .insert_header(
-                "x-forwarded-for",
-                format!("{},proxy.com,other-proxy.com", client),
-            )
-            .unwrap();
+        request.insert_header(
+            "x-forwarded-for",
+            format!("{},proxy.com,other-proxy.com", client),
+        );
     }
 
     fn set_forwarded(request: &mut Request, client: &'static str) {
-        request
-            .insert_header(
-                "Forwarded",
-                format!("by=something.com;for={};host=host.com;proto=http", client),
-            )
-            .unwrap();
+        request.insert_header(
+            "Forwarded",
+            format!("by=something.com;for={};host=host.com;proto=http", client),
+        );
     }
 
     #[test]
@@ -725,9 +721,7 @@ mod tests {
             "127.0.0.1:8000".parse::<std::net::SocketAddr>().unwrap(),
         ));
 
-        request
-            .insert_header("Forwarded", "this is an improperly ;;; formatted header")
-            .unwrap();
+        request.insert_header("Forwarded", "this is an improperly ;;; formatted header");
 
         assert_eq!(request.forwarded_for(), None);
         assert_eq!(request.remote(), Some("127.0.0.1:8000"));

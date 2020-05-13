@@ -95,6 +95,12 @@ impl<'a> PartialEq<&'a str> for HeaderValues {
     }
 }
 
+impl<'a> PartialEq<[&'a str]> for HeaderValues {
+    fn eq(&self, other: &[&'a str]) -> bool {
+        self.inner.iter().eq(other.iter())
+    }
+}
+
 impl PartialEq<String> for HeaderValues {
     fn eq(&self, other: &String) -> bool {
         self.inner.len() == 1 && &self.inner[0] == other
