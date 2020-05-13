@@ -121,17 +121,17 @@ impl Trailers {
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
+    pub fn get(&self, name: &impl Into<HeaderName>) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
+    pub fn get_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
         self.headers.get_mut(name)
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: &HeaderName) -> Option<HeaderValues> {
+    pub fn remove(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
         self.headers.remove(name)
     }
 

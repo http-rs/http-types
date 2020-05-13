@@ -64,7 +64,7 @@ impl Headers {
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
         let name = name.into();
-        match self.get_mut(&name) {
+        match self.get_mut(name.clone()) {
             Some(headers) => {
                 let mut values: HeaderValues = values.to_header_values()?.collect();
                 headers.append(&mut values);
@@ -82,13 +82,13 @@ impl Headers {
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
-        self.headers.get_mut(name)
+    pub fn get_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+        self.headers.get_mut(&name.into())
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: &HeaderName) -> Option<HeaderValues> {
-        self.headers.remove(name)
+    pub fn remove(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+        self.headers.remove(&name.into())
     }
 
     /// An iterator visiting all header pairs in arbitrary order.

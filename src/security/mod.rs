@@ -105,7 +105,7 @@ pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<HeaderValue>) 
             headers.as_mut().insert(name, value);
         }
         None => {
-            headers.as_mut().remove(&name);
+            headers.as_mut().remove(name);
         }
     };
 }

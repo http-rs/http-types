@@ -69,18 +69,18 @@ impl Response {
     }
 
     /// Get a mutable reference to a header.
-    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
-        self.headers.get_mut(name)
+    pub fn header_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+        self.headers.get_mut(name.into())
     }
 
     /// Get an HTTP header.
     pub fn header(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
-        self.headers.get(name)
+        self.headers.get(name.into())
     }
 
     /// Remove a header.
-    pub fn remove_header(&mut self, name: &HeaderName) -> Option<HeaderValues> {
-        self.headers.remove(name)
+    pub fn remove_header(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+        self.headers.remove(name.into())
     }
 
     /// Set an HTTP header.
