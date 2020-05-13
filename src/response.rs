@@ -647,3 +647,11 @@ impl<'a> IntoIterator for &'a mut Response {
         self.headers.iter_mut()
     }
 }
+
+mod test {
+    use super::Response;
+    #[test]
+    fn construct_shorthand() {
+        let _res = Response::new(200);
+    }
+}
