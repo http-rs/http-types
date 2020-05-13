@@ -121,7 +121,7 @@ impl Trailers {
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: &impl Into<HeaderName>) -> Option<&HeaderValues> {
+    pub fn get(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 

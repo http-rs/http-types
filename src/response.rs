@@ -1,7 +1,8 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
-use std::convert::Into;
+use std::convert::{Into, TryInto};
+use std::fmt::Debug;
 use std::mem;
 use std::ops::Index;
 use std::pin::Pin;
@@ -48,7 +49,14 @@ pin_project_lite::pin_project! {
 
 impl Response {
     /// Create a new response.
-    pub fn new(status: StatusCode) -> Self {
+    pub fn new<S>(status: S) -> Self
+    where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+    {
+        let status = status
+            .try_into()
+            .expect("Could not convert into a valid `StatusCode`");
         let (sender, receiver) = sync::channel(1);
         Self {
             status,

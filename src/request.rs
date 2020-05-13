@@ -1,7 +1,7 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
-use std::convert::Into;
+use std::convert::{Into, TryInto};
 use std::mem;
 use std::ops::Index;
 use std::pin::Pin;
@@ -45,7 +45,12 @@ pin_project_lite::pin_project! {
 
 impl Request {
     /// Create a new request.
-    pub fn new(method: Method, url: Url) -> Self {
+    pub fn new<U>(method: Method, url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        let url = url.try_into().expect("Could not convert into a valid url");
         let (sender, receiver) = sync::channel(1);
         Self {
             method,
@@ -687,7 +692,8 @@ mod tests {
     use super::*;
 
     fn build_test_request() -> Request {
-        Request::new(Method::Get, "http://irrelevant/".parse().unwrap())
+        let url = Url::parse("http://irrelevant/").unwrap();
+        Request::new(Method::Get, url)
     }
 
     fn set_x_forwarded_for(request: &mut Request, client: &'static str) {
