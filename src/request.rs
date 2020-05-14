@@ -20,6 +20,33 @@ cfg_unstable! {
     use crate::upgrade;
 }
 
+#[cfg(not(feature = "unstable"))]
+pin_project_lite::pin_project! {
+    /// An HTTP request.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Url, Method, Request};
+    ///
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// req.set_body("Hello, Nori!");
+    /// ```
+    #[derive(Debug)]
+    pub struct Request {
+        method: Method,
+        url: Url,
+        headers: Headers,
+        version: Option<Version>,
+        trailers_sender: Option<sync::Sender<Trailers>>,
+        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        #[pin]
+        body: Body,
+        local: TypeMap,
+    }
+}
+
+#[cfg(feature = "unstable")]
 pin_project_lite::pin_project! {
     /// An HTTP request.
     ///
@@ -924,7 +951,9 @@ impl Clone for Request {
             version: self.version.clone(),
             trailers_sender: None,
             trailers_receiver: None,
+            #[cfg(feature = "unstable")]
             upgrade_sender: None,
+            #[cfg(feature = "unstable")]
             upgrade_receiver: None,
             body: Body::empty(),
             ext: Extensions::new(),
