@@ -38,13 +38,13 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command:  check
-        args: --all --benches --bins --examples --tests --features hyperium_http
+        args: --all --benches --bins --examples --tests --features "hyperium_http,unstable"
 
     - name: tests
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --all
+        args: --all --features "hyperium_http,unstable"
 
   check_fmt_and_docs:
     name: Checking fmt and docs
