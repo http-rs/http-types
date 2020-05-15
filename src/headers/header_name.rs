@@ -71,7 +71,7 @@ impl From<&HeaderName> for HeaderName {
 
 impl<'a> From<&'a str> for HeaderName {
     fn from(value: &'a str) -> Self {
-        Self::from_str(value).unwrap()
+        Self::from_str(value).expect("String slice should be valid ASCII")
     }
 }
 
