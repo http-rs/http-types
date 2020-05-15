@@ -120,8 +120,7 @@ impl From<Request> for http::Request<Body> {
 impl From<http::Response<Body>> for Response {
     fn from(res: http::Response<Body>) -> Self {
         let (parts, body) = res.into_parts();
-        let status = parts.status.into();
-        let mut res = Response::new(status);
+        let mut res = Response::new(parts.status);
         res.set_body(body);
         res.set_version(Some(parts.version.into()));
         hyperium_headers_to_headers(parts.headers, res.as_mut());

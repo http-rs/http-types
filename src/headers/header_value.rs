@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
@@ -83,7 +84,7 @@ impl FromStr for HeaderValue {
     }
 }
 
-impl<'a> std::convert::TryFrom<&'a str> for HeaderValue {
+impl<'a> TryFrom<&'a str> for HeaderValue {
     type Error = Error;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {

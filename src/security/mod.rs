@@ -50,10 +50,7 @@ pub fn default(mut headers: impl AsMut<Headers>) {
 // /// ```
 #[inline]
 pub fn dns_prefetch_control(mut headers: impl AsMut<Headers>) {
-    headers
-        .as_mut()
-        .insert("X-DNS-Prefetch-Control", "on")
-        .unwrap();
+    headers.as_mut().insert("X-DNS-Prefetch-Control", "on");
 }
 
 /// Set the frameguard level.
@@ -83,7 +80,7 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
         None | Some(FrameOptions::SameOrigin) => "sameorigin",
         Some(FrameOptions::Deny) => "deny",
     };
-    headers.as_mut().insert("X-Frame-Options", kind).unwrap();
+    headers.as_mut().insert("X-Frame-Options", kind);
 }
 
 /// Removes the `X-Powered-By` header to make it slightly harder for attackers to see what
@@ -96,7 +93,7 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
 // /// use http_types::Response;
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
-// /// headers.as_mut().insert("X-Powered-By", "Tide/Rust".parse().unwrap());
+// /// headers.as_mut().insert("X-Powered-By", "Tide/Rust".parse());
 // /// http_types::security::hide_powered_by(&mut headers);
 // /// assert_eq!(headers.get("X-Powered-By"), None);
 // /// ```
@@ -105,10 +102,10 @@ pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<HeaderValue>) 
     let name = HeaderName::from_lowercase_str("X-Powered-By");
     match value {
         Some(value) => {
-            headers.as_mut().insert(name, value).unwrap();
+            headers.as_mut().insert(name, value);
         }
         None => {
-            headers.as_mut().remove(&name);
+            headers.as_mut().remove(name);
         }
     };
 }
@@ -132,8 +129,7 @@ pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<HeaderValue>) 
 pub fn hsts(mut headers: impl AsMut<Headers>) {
     headers
         .as_mut()
-        .insert("Strict-Transport-Security", "max-age=5184000")
-        .unwrap();
+        .insert("Strict-Transport-Security", "max-age=5184000");
 }
 
 /// Prevent browsers from trying to guess (“sniff”) the MIME type, which can have security
@@ -151,10 +147,7 @@ pub fn hsts(mut headers: impl AsMut<Headers>) {
 // /// ```
 #[inline]
 pub fn nosniff(mut headers: impl AsMut<Headers>) {
-    headers
-        .as_mut()
-        .insert("X-Content-Type-Options", "nosniff")
-        .unwrap();
+    headers.as_mut().insert("X-Content-Type-Options", "nosniff");
 }
 
 /// Sets the `X-XSS-Protection` header to prevent reflected XSS attacks.
@@ -171,10 +164,7 @@ pub fn nosniff(mut headers: impl AsMut<Headers>) {
 // /// ```
 #[inline]
 pub fn xss_filter(mut headers: impl AsMut<Headers>) {
-    headers
-        .as_mut()
-        .insert("X-XSS-Protection", "1; mode=block")
-        .unwrap();
+    headers.as_mut().insert("X-XSS-Protection", "1; mode=block");
 }
 
 /// Set the Referrer-Policy level

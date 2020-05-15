@@ -1,7 +1,8 @@
 use async_std::io::{self, BufRead, Read};
 use async_std::sync;
 
-use std::convert::TryInto;
+use std::convert::{Into, TryInto};
+use std::fmt::Debug;
 use std::mem;
 use std::ops::Index;
 use std::pin::Pin;
@@ -48,7 +49,14 @@ pin_project_lite::pin_project! {
 
 impl Response {
     /// Create a new response.
-    pub fn new(status: StatusCode) -> Self {
+    pub fn new<S>(status: S) -> Self
+    where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+    {
+        let status = status
+            .try_into()
+            .expect("Could not convert into a valid `StatusCode`");
         let (sender, receiver) = sync::channel(1);
         Self {
             status,
@@ -69,18 +77,18 @@ impl Response {
     }
 
     /// Get a mutable reference to a header.
-    pub fn header_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
-        self.headers.get_mut(name)
+    pub fn header_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+        self.headers.get_mut(name.into())
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: &HeaderName) -> Option<&HeaderValues> {
-        self.headers.get(name)
+    pub fn header(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
+        self.headers.get(name.into())
     }
 
     /// Remove a header.
-    pub fn remove_header(&mut self, name: &HeaderName) -> Option<HeaderValues> {
-        self.headers.remove(name)
+    pub fn remove_header(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+        self.headers.remove(name.into())
     }
 
     /// Set an HTTP header.
@@ -93,15 +101,15 @@ impl Response {
     /// use http_types::{Url, Method, Response, StatusCode};
     ///
     /// let mut req = Response::new(StatusCode::Ok);
-    /// req.insert_header("Content-Type", "text/plain")?;
+    /// req.insert_header("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
     /// ```
     pub fn insert_header(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<HeaderValues>> {
+    ) -> Option<HeaderValues> {
         self.headers.insert(name, values)
     }
 
@@ -124,7 +132,7 @@ impl Response {
     /// ```
     pub fn append_header(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
         self.headers.append(name, values)
@@ -349,12 +357,12 @@ impl Response {
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(CONTENT_TYPE, value).unwrap()
+        self.insert_header(CONTENT_TYPE, value)
     }
 
     /// Copy MIME data from the body.
     fn copy_content_type_from_body(&mut self) {
-        if self.header(&CONTENT_TYPE).is_none() {
+        if self.header(CONTENT_TYPE).is_none() {
             self.set_content_type(self.body.mime().clone());
         }
     }
@@ -563,7 +571,7 @@ impl From<()> for Response {
         Response::new(StatusCode::NoContent)
     }
 }
-impl Index<&HeaderName> for Response {
+impl Index<HeaderName> for Response {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
@@ -572,7 +580,7 @@ impl Index<&HeaderName> for Response {
     ///
     /// Panics if the name is not present in `Response`.
     #[inline]
-    fn index(&self, name: &HeaderName) -> &HeaderValues {
+    fn index(&self, name: HeaderName) -> &HeaderValues {
         self.headers.index(name)
     }
 }
@@ -637,5 +645,14 @@ impl<'a> IntoIterator for &'a mut Response {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.headers.iter_mut()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Response;
+    #[test]
+    fn construct_shorthand() {
+        let _res = Response::new(200);
     }
 }

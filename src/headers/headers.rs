@@ -1,7 +1,7 @@
 //! HTTP headers.
 
 use std::collections::HashMap;
-use std::convert::TryInto;
+use std::convert::Into;
 use std::iter::IntoIterator;
 use std::ops::Index;
 use std::str::FromStr;
@@ -23,7 +23,7 @@ use crate::headers::{
 /// use http_types::{Response, StatusCode};
 ///
 /// let mut res = Response::new(StatusCode::Ok);
-/// res.insert_header("hello", "foo0").unwrap();
+/// res.insert_header("hello", "foo0");
 /// assert_eq!(res["hello"], "foo0");
 /// ```
 #[derive(Debug, Clone)]
@@ -46,14 +46,12 @@ impl Headers {
     /// use `Headers::append`
     pub fn insert(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<HeaderValues>> {
-        let name = name
-            .try_into()
-            .map_err(|_| crate::format_err!("Could not convert into header name"))?;
-        let values: HeaderValues = values.to_header_values()?.collect();
-        Ok(self.headers.insert(name, values))
+    ) -> Option<HeaderValues> {
+        let name = name.into();
+        let values: HeaderValues = values.to_header_values().unwrap().collect();
+        self.headers.insert(name, values)
     }
 
     /// Append a header to the headers.
@@ -62,37 +60,35 @@ impl Headers {
     /// header if there aren't any. Or else append to the existing list of headers.
     pub fn append(
         &mut self,
-        name: impl TryInto<HeaderName>,
+        name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
-        let name = name
-            .try_into()
-            .map_err(|_| crate::format_err!("Could not convert into header name"))?;
-        match self.get_mut(&name) {
+        let name = name.into();
+        match self.get_mut(name.clone()) {
             Some(headers) => {
                 let mut values: HeaderValues = values.to_header_values()?.collect();
                 headers.append(&mut values);
             }
             None => {
-                self.insert(name, values)?;
+                self.insert(name, values);
             }
         }
         Ok(())
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: &HeaderName) -> Option<&HeaderValues> {
-        self.headers.get(name)
+    pub fn get(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
+        self.headers.get(&name.into())
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: &HeaderName) -> Option<&mut HeaderValues> {
-        self.headers.get_mut(name)
+    pub fn get_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+        self.headers.get_mut(&name.into())
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: &HeaderName) -> Option<HeaderValues> {
-        self.headers.remove(name)
+    pub fn remove(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+        self.headers.remove(&name.into())
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -123,7 +119,7 @@ impl Headers {
     }
 }
 
-impl Index<&HeaderName> for Headers {
+impl Index<HeaderName> for Headers {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
@@ -132,7 +128,7 @@ impl Index<&HeaderName> for Headers {
     ///
     /// Panics if the name is not present in `Headers`.
     #[inline]
-    fn index(&self, name: &HeaderName) -> &HeaderValues {
+    fn index(&self, name: HeaderName) -> &HeaderValues {
         self.get(name).expect("no entry found for name")
     }
 }
@@ -148,7 +144,7 @@ impl Index<&str> for Headers {
     #[inline]
     fn index(&self, name: &str) -> &HeaderValues {
         let name = HeaderName::from_str(name).expect("string slice needs to be valid ASCII");
-        self.get(&name).expect("no entry found for name")
+        self.get(name).expect("no entry found for name")
     }
 }
 
@@ -202,20 +198,9 @@ mod tests {
         headers.append(static_header.clone(), "foo1")?;
         headers.append(non_static_header.clone(), "foo2")?;
 
-        assert_eq!(
-            &headers.get(&STATIC_HEADER).unwrap()[..],
-            &["foo0", "foo1", "foo2",][..]
-        );
-
-        assert_eq!(
-            &headers.get(&static_header).unwrap()[..],
-            &["foo0", "foo1", "foo2",][..]
-        );
-
-        assert_eq!(
-            &headers.get(&non_static_header).unwrap()[..],
-            &["foo0", "foo1", "foo2",][..]
-        );
+        assert_eq!(headers[STATIC_HEADER], ["foo0", "foo1", "foo2",][..]);
+        assert_eq!(headers[static_header], ["foo0", "foo1", "foo2",][..]);
+        assert_eq!(headers[non_static_header], ["foo0", "foo1", "foo2",][..]);
 
         Ok(())
     }
@@ -223,7 +208,8 @@ mod tests {
     #[test]
     fn index_into_headers() {
         let mut headers = Headers::new();
-        headers.insert("hello", "foo0").unwrap();
+        headers.insert("hello", "foo0");
         assert_eq!(headers["hello"], "foo0");
+        assert_eq!(headers.get("hello").unwrap(), "foo0");
     }
 }

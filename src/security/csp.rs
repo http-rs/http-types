@@ -121,11 +121,7 @@ pub struct ReportToEndpoint {
 /// security::default(&mut res);
 /// policy.apply(&mut res);
 ///
-/// let name =
-///     headers::HeaderName::from_ascii("content-security-policy".to_owned().into_bytes()).unwrap();
-/// let headers = res.header(&name).unwrap();
-/// let header = headers.iter().next().unwrap();
-/// assert_eq!(header, "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests");
+/// assert_eq!(res["content-security-policy"], "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContentSecurityPolicy {
@@ -358,9 +354,6 @@ impl ContentSecurityPolicy {
         } else {
             "Content-Security-Policy"
         };
-        headers
-            .as_mut()
-            .insert(name, self.value().to_owned())
-            .unwrap();
+        headers.as_mut().insert(name, self.value().to_owned());
     }
 }

@@ -63,11 +63,15 @@ impl FromStr for HeaderName {
     }
 }
 
-impl<'a> std::convert::TryFrom<&'a str> for HeaderName {
-    type Error = Error;
+impl From<&HeaderName> for HeaderName {
+    fn from(value: &HeaderName) -> HeaderName {
+        value.clone()
+    }
+}
 
-    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
-        Self::from_str(value)
+impl<'a> From<&'a str> for HeaderName {
+    fn from(value: &'a str) -> Self {
+        Self::from_str(value).expect("String slice should be valid ASCII")
     }
 }
 
@@ -135,5 +139,11 @@ mod tests {
 
         // Must validate regardless of casing.
         assert_eq!(static_header, &String::from("Hello"));
+    }
+
+    #[test]
+    fn pass_name_by_ref() {
+        let mut res = crate::Response::new(200);
+        res.insert_header(&crate::headers::HOST, "127.0.0.1");
     }
 }
