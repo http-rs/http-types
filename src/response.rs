@@ -648,6 +648,7 @@ impl<'a> IntoIterator for &'a mut Response {
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::Response;
     #[test]
