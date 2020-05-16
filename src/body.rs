@@ -467,9 +467,12 @@ impl BufRead for Body {
 /// This is used for various binary formats such as images and videos.
 #[cfg(feature = "async_std")]
 async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
+    // Reading the first 8 bytes should be enough to sniff the mime type.
     let mut buf = [0_u8; 8];
-    file.read_exact(&mut buf).await?;
+    file.read(&mut buf).await?;
     let mime = Mime::sniff(&buf).ok();
+
+    // Reset the file cursor back to the start.
     file.seek(io::SeekFrom::Start(0)).await?;
     Ok(mime)
 }
