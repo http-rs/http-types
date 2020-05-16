@@ -1,5 +1,5 @@
-use async_std::io;
 use async_std::fs;
+use async_std::io;
 use http_types::{mime, Body, Response};
 
 #[async_std::test]
