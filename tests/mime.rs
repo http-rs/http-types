@@ -1,5 +1,5 @@
-use http_types::{Response, Body, mime};
 use async_std::io;
+use http_types::{mime, Body, Response};
 
 #[async_std::test]
 async fn guess_plain_text_mime() -> io::Result<()> {
