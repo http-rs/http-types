@@ -86,6 +86,77 @@ pub const HTML: Mime = Mime {
     static_subtype: Some("html"),
 };
 
+/// Content-Type for SVG.
+///
+/// # Mime Type
+///
+/// ```txt
+/// image/svg+xml
+/// ```
+pub const SVG: Mime = Mime {
+    static_essence: Some("image/svg+xml"),
+    essence: String::new(),
+    basetype: String::new(),
+    subtype: String::new(),
+    params: None,
+    static_basetype: Some("image"),
+    static_subtype: Some("svg+xml"),
+};
+
+/// Content-Type for ICO icons.
+///
+/// # Mime Type
+///
+/// ```txt
+/// image/x-icon
+/// ```
+// There are multiple `.ico` mime types known, but `image/x-icon`
+// is what most browser use. See:
+// https://en.wikipedia.org/wiki/ICO_%28file_format%29#MIME_type
+pub const ICO: Mime = Mime {
+    static_essence: Some("image/x-icon"),
+    essence: String::new(),
+    basetype: String::new(),
+    subtype: String::new(),
+    params: None,
+    static_basetype: Some("image"),
+    static_subtype: Some("x-icon"),
+};
+
+/// Content-Type for PNG images.
+///
+/// # Mime Type
+///
+/// ```txt
+/// image/png
+/// ```
+pub const PNG: Mime = Mime {
+    static_essence: Some("image/png"),
+    essence: String::new(),
+    basetype: String::new(),
+    subtype: String::new(),
+    params: None,
+    static_basetype: Some("image"),
+    static_subtype: Some("png"),
+};
+
+/// Content-Type for JPEG images.
+///
+/// # Mime Type
+///
+/// ```txt
+/// image/jpeg
+/// ```
+pub const JPEG: Mime = Mime {
+    static_essence: Some("image/jpeg"),
+    essence: String::new(),
+    basetype: String::new(),
+    subtype: String::new(),
+    params: None,
+    static_basetype: Some("image"),
+    static_subtype: Some("jpeg"),
+};
+
 /// Content-Type for Server Sent Events
 ///
 /// # Mime Type
@@ -168,5 +239,22 @@ pub const MULTIPART_FORM: Mime = Mime {
     subtype: String::new(),
     static_basetype: Some("multipart"),
     static_subtype: Some("form-data"),
+    params: None,
+};
+
+/// Content-Type for webassembly.
+///
+/// # Mime Type
+///
+/// ```txt
+/// application/wasm
+/// ```
+pub const WASM: Mime = Mime {
+    static_essence: Some("application/wasm"),
+    essence: String::new(),
+    basetype: String::new(),
+    subtype: String::new(),
+    static_basetype: Some("application"),
+    static_subtype: Some("wasm"),
     params: None,
 };

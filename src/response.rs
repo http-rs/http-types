@@ -367,6 +367,11 @@ impl Response {
         }
     }
 
+    /// Get the current content type
+    pub fn content_type(&self) -> Option<Mime> {
+        self.header(CONTENT_TYPE)?.last().as_str().parse().ok()
+    }
+
     /// Get the length of the body stream, if it has been set.
     ///
     /// This value is set when passing a fixed-size object into as the body. E.g. a string, or a
