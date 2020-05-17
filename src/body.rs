@@ -467,8 +467,8 @@ impl BufRead for Body {
 /// This is used for various binary formats such as images and videos.
 #[cfg(feature = "async_std")]
 async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
-    // Reading the first 8 bytes should be enough to sniff the mime type.
-    let mut buf = [0_u8; 8];
+    // We need to read the first 300 bytes to correctly infer formats such as tar.
+    let mut buf = [0_u8; 300];
     file.read(&mut buf).await?;
     let mime = Mime::sniff(&buf).ok();
 
@@ -484,11 +484,10 @@ fn guess_ext(path: &Path) -> Option<Mime> {
     let ext = path.extension().map(|p| p.to_str()).flatten();
     match ext {
         Some("html") => Some(mime::HTML),
-        Some("js") | Some("mjs") => Some(mime::JAVASCRIPT),
+        Some("js") | Some("mjs") | Some("jsonp") => Some(mime::JAVASCRIPT),
         Some("json") => Some(mime::JSON),
         Some("css") => Some(mime::CSS),
         Some("svg") => Some(mime::SVG),
-        Some("wasm") => Some(mime::WASM),
         None | Some(_) => None,
     }
 }
