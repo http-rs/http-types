@@ -93,25 +93,48 @@ impl Request {
     }
 
     /// Get the remote address for this request.
+    /// This is determined in the following priority:
+    /// 1. `Forwarded` header `for` key
+    /// 2. The first `X-Forwarded-For` header
+    /// 3. Peer address of the transport
     pub fn remote(&self) -> Option<&str> {
-        self.forwarded_for().or(self.peer_addr())
+        self.forwarded_for().or_else(|| self.peer_addr())
     }
 
-    fn forwarded_for(&self) -> Option<&str> {
-        if let Some(header) = self.header("Forwarded") {
+    /// Get the destination host for this request.
+    /// This is determined in the following priority:
+    /// 1. `Forwarded` header `host` key
+    /// 2. The first `X-Forwarded-Host` header
+    /// 3. `Host` header
+    /// 4. URL domain, if any
+    pub fn host(&self) -> Option<&str> {
+        self.forwarded_header_part("host")
+            .or_else(|| {
+                self.header("X-Forwarded-Host")
+                    .and_then(|h| h.as_str().split(",").next())
+            })
+            .or_else(|| self.header(&headers::HOST).map(|h| h.as_str()))
+            .or_else(|| self.url().host_str())
+    }
+
+    fn forwarded_header_part(&self, part: &str) -> Option<&str> {
+        self.header("Forwarded").and_then(|header| {
             header.as_str().split(";").find_map(|key_equals_value| {
                 let parts = key_equals_value.split("=").collect::<Vec<_>>();
-                if parts.len() == 2 && parts[0].eq_ignore_ascii_case("for") {
+                if parts.len() == 2 && parts[0].eq_ignore_ascii_case(part) {
                     Some(parts[1])
                 } else {
                     None
                 }
             })
-        } else if let Some(header) = self.header("X-Forwarded-For") {
-            header.as_str().split(",").next()
-        } else {
-            None
-        }
+        })
+    }
+
+    fn forwarded_for(&self) -> Option<&str> {
+        self.forwarded_header_part("for").or_else(|| {
+            self.header("X-Forwarded-For")
+                .and_then(|header| header.as_str().split(",").next())
+        })
     }
 
     /// Get the HTTP method
@@ -689,9 +712,122 @@ impl<'a> IntoIterator for &'a mut Request {
 #[cfg(test)]
 mod tests {
     use super::*;
+    mod host {
+        use super::*;
+
+        #[test]
+        fn when_forwarded_header_is_set() {
+            let mut request = build_test_request();
+            set_forwarded(&mut request, "-");
+            set_x_forwarded_host(&mut request, "this will not be used");
+            assert_eq!(request.forwarded_header_part("host"), Some("host.com"));
+            assert_eq!(request.host(), Some("host.com"));
+        }
+
+        #[test]
+        fn when_several_x_forwarded_hosts_exist() {
+            let mut request = build_test_request();
+            set_x_forwarded_host(&mut request, "expected.host");
+
+            assert_eq!(request.forwarded_header_part("host"), None);
+            assert_eq!(request.host(), Some("expected.host"));
+        }
+
+        #[test]
+        fn when_only_one_x_forwarded_hosts_exist() {
+            let mut request = build_test_request();
+            request.insert_header("x-forwarded-host", "expected.host");
+            assert_eq!(request.host(), Some("expected.host"));
+        }
+
+        #[test]
+        fn when_host_header_is_set() {
+            let mut request = build_test_request();
+            request.insert_header("host", "host.header");
+            assert_eq!(request.host(), Some("host.header"));
+        }
+
+        #[test]
+        fn when_there_are_no_headers() {
+            let request = build_test_request();
+            assert_eq!(request.host(), Some("async.rs"));
+        }
+
+        #[test]
+        fn when_url_has_no_domain() {
+            let mut request = build_test_request();
+            *request.url_mut() = Url::parse("x:").unwrap();
+            assert_eq!(request.host(), None);
+        }
+    }
+
+    mod remote {
+        use super::*;
+        #[test]
+        fn when_forwarded_is_properly_formatted() {
+            let mut request = build_test_request();
+            request.set_peer_addr(Some("127.0.0.1:8000"));
+            set_forwarded(&mut request, "127.0.0.1:8001");
+
+            assert_eq!(request.forwarded_for(), Some("127.0.0.1:8001"));
+            assert_eq!(request.remote(), Some("127.0.0.1:8001"));
+        }
+
+        #[test]
+        fn when_forwarded_is_improperly_formatted() {
+            let mut request = build_test_request();
+            request.set_peer_addr(Some(
+                "127.0.0.1:8000".parse::<std::net::SocketAddr>().unwrap(),
+            ));
+
+            request.insert_header("Forwarded", "this is an improperly ;;; formatted header");
+
+            assert_eq!(request.forwarded_for(), None);
+            assert_eq!(request.remote(), Some("127.0.0.1:8000"));
+        }
+
+        #[test]
+        fn when_x_forwarded_for_is_set() {
+            let mut request = build_test_request();
+            request.set_peer_addr(Some(
+                std::path::PathBuf::from("/dev/random").to_str().unwrap(),
+            ));
+            set_x_forwarded_for(&mut request, "forwarded-host.com");
+
+            assert_eq!(request.forwarded_for(), Some("forwarded-host.com"));
+            assert_eq!(request.remote(), Some("forwarded-host.com"));
+        }
+
+        #[test]
+        fn when_both_forwarding_headers_are_set() {
+            let mut request = build_test_request();
+            set_forwarded(&mut request, "forwarded.com");
+            set_x_forwarded_for(&mut request, "forwarded-for-client.com");
+            request.peer_addr = Some("127.0.0.1:8000".into());
+
+            assert_eq!(request.forwarded_for(), Some("forwarded.com".into()));
+            assert_eq!(request.remote(), Some("forwarded.com".into()));
+        }
+
+        #[test]
+        fn falling_back_to_peer_addr() {
+            let mut request = build_test_request();
+            request.peer_addr = Some("127.0.0.1:8000".into());
+
+            assert_eq!(request.forwarded_for(), None);
+            assert_eq!(request.remote(), Some("127.0.0.1:8000".into()));
+        }
+
+        #[test]
+        fn when_no_remote_available() {
+            let request = build_test_request();
+            assert_eq!(request.forwarded_for(), None);
+            assert_eq!(request.remote(), None);
+        }
+    }
 
     fn build_test_request() -> Request {
-        let url = Url::parse("http://irrelevant/").unwrap();
+        let url = Url::parse("http://async.rs/").unwrap();
         Request::new(Method::Get, url)
     }
 
@@ -702,72 +838,17 @@ mod tests {
         );
     }
 
+    fn set_x_forwarded_host(request: &mut Request, host: &'static str) {
+        request.insert_header(
+            "x-forwarded-host",
+            format!("{},proxy.com,other-proxy.com", host),
+        );
+    }
+
     fn set_forwarded(request: &mut Request, client: &'static str) {
         request.insert_header(
             "Forwarded",
             format!("by=something.com;for={};host=host.com;proto=http", client),
         );
-    }
-
-    #[test]
-    fn test_remote_and_forwarded_for_when_forwarded_is_properly_formatted() {
-        let mut request = build_test_request();
-        request.set_peer_addr(Some("127.0.0.1:8000"));
-        set_forwarded(&mut request, "127.0.0.1:8001");
-
-        assert_eq!(request.forwarded_for(), Some("127.0.0.1:8001"));
-        assert_eq!(request.remote(), Some("127.0.0.1:8001"));
-    }
-
-    #[test]
-    fn test_remote_and_forwarded_for_when_forwarded_is_improperly_formatted() {
-        let mut request = build_test_request();
-        request.set_peer_addr(Some(
-            "127.0.0.1:8000".parse::<std::net::SocketAddr>().unwrap(),
-        ));
-
-        request.insert_header("Forwarded", "this is an improperly ;;; formatted header");
-
-        assert_eq!(request.forwarded_for(), None);
-        assert_eq!(request.remote(), Some("127.0.0.1:8000"));
-    }
-
-    #[test]
-    fn test_remote_and_forwarded_for_when_x_forwarded_for_is_set() {
-        let mut request = build_test_request();
-        request.set_peer_addr(Some(
-            std::path::PathBuf::from("/dev/random").to_str().unwrap(),
-        ));
-        set_x_forwarded_for(&mut request, "forwarded-host.com");
-
-        assert_eq!(request.forwarded_for(), Some("forwarded-host.com"));
-        assert_eq!(request.remote(), Some("forwarded-host.com"));
-    }
-
-    #[test]
-    fn test_remote_and_forwarded_for_when_both_forwarding_headers_are_set() {
-        let mut request = build_test_request();
-        set_forwarded(&mut request, "forwarded.com");
-        set_x_forwarded_for(&mut request, "forwarded-for-client.com");
-        request.peer_addr = Some("127.0.0.1:8000".into());
-
-        assert_eq!(request.forwarded_for(), Some("forwarded.com".into()));
-        assert_eq!(request.remote(), Some("forwarded.com".into()));
-    }
-
-    #[test]
-    fn test_remote_falling_back_to_peer_addr() {
-        let mut request = build_test_request();
-        request.peer_addr = Some("127.0.0.1:8000".into());
-
-        assert_eq!(request.forwarded_for(), None);
-        assert_eq!(request.remote(), Some("127.0.0.1:8000".into()));
-    }
-
-    #[test]
-    fn test_remote_and_forwarded_for_when_no_remote_available() {
-        let request = build_test_request();
-        assert_eq!(request.forwarded_for(), None);
-        assert_eq!(request.remote(), None);
     }
 }
