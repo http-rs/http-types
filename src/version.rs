@@ -17,3 +17,16 @@ pub enum Version {
     /// HTTP/3.0
     Http3_0,
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn ord() {
+        use Version::*;
+        assert!(Http3_0 > Http2_0);
+        assert!(Http2_0 > Http1_1);
+        assert!(Http1_1 > Http1_0);
+        assert!(Http1_0 > Http0_9);
+    }
+}
