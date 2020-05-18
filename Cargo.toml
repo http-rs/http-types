@@ -42,3 +42,4 @@ serde_urlencoded = "0.6.1"
 
 [dev-dependencies]
 http = "0.2.0"
+async-std = { version = "1.4.0", features = ["unstable", "attributes"] }

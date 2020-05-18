@@ -98,6 +98,20 @@ impl Mime {
     }
 }
 
+impl PartialEq<Mime> for Mime {
+    fn eq(&self, other: &Mime) -> bool {
+        let left = match self.static_essence {
+            Some(essence) => essence,
+            None => &self.essence,
+        };
+        let right = match other.static_essence {
+            Some(essence) => essence,
+            None => &other.essence,
+        };
+        left == right
+    }
+}
+
 impl Display for Mime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         parse::format(self, f)
@@ -188,7 +202,7 @@ impl PartialEq<str> for ParamValue {
 
 /// This is a hack that allows us to mark a trait as utf8 during compilation. We
 /// can remove this once we can construct HashMap during compilation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum ParamKind {
     Utf8,
     Vec(Vec<(ParamName, ParamValue)>),

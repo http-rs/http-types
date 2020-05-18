@@ -358,12 +358,26 @@ impl Body {
     /// # Ok(()) }) }
     /// ```
     #[cfg(feature = "async_std")]
-    pub async fn from_file<P>(file: P) -> io::Result<Self>
+    pub async fn from_file<P>(path: P) -> io::Result<Self>
     where
         P: AsRef<Path>,
     {
-        let file = fs::read(file.as_ref()).await?;
-        Ok(file.into())
+        let path = path.as_ref();
+        let mut file = fs::File::open(path).await?;
+        let len = file.metadata().await?.len();
+
+        // Look at magic bytes first, look at extension second, fall back to
+        // octet stream.
+        let mime = peek_mime(&mut file)
+            .await?
+            .or_else(|| guess_ext(path))
+            .unwrap_or(mime::BYTE_STREAM);
+
+        Ok(Self {
+            mime,
+            length: Some(len as usize),
+            reader: Box::new(io::BufReader::new(file)),
+        })
     }
 
     /// Get the length of the body in bytes.
@@ -446,5 +460,34 @@ impl BufRead for Body {
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
         Pin::new(&mut self.reader).consume(amt)
+    }
+}
+
+/// Look at first few bytes of a file to determine the mime type.
+/// This is used for various binary formats such as images and videos.
+#[cfg(feature = "async_std")]
+async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
+    // We need to read the first 300 bytes to correctly infer formats such as tar.
+    let mut buf = [0_u8; 300];
+    file.read(&mut buf).await?;
+    let mime = Mime::sniff(&buf).ok();
+
+    // Reset the file cursor back to the start.
+    file.seek(io::SeekFrom::Start(0)).await?;
+    Ok(mime)
+}
+
+/// Look at the extension of a file to determine the mime type.
+/// This is useful for plain-text formats such as HTML and CSS.
+#[cfg(feature = "async_std")]
+fn guess_ext(path: &Path) -> Option<Mime> {
+    let ext = path.extension().map(|p| p.to_str()).flatten();
+    match ext {
+        Some("html") => Some(mime::HTML),
+        Some("js") | Some("mjs") | Some("jsonp") => Some(mime::JAVASCRIPT),
+        Some("json") => Some(mime::JSON),
+        Some("css") => Some(mime::CSS),
+        Some("svg") => Some(mime::SVG),
+        None | Some(_) => None,
     }
 }
