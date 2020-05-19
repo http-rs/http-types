@@ -1,18 +1,22 @@
 use async_std::io::{self, prelude::*};
 
-use std::fmt;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
 /// An upgraded HTTP connection.
-pub struct Connection {
-    inner: Pin<Box<dyn InnerConnection + 'static>>,
+#[derive(Debug, Clone)]
+pub struct RawConnection<Inner> {
+    inner: Inner,
 }
 
-pub(crate) trait InnerConnection: Read + Write + Send + Sync + Unpin {}
+/// A boxed upgraded HTTP connection.
+pub type Connection = RawConnection<Box<dyn InnerConnection + 'static>>;
+
+/// Trait to signal the requirements for an underlying connection type.
+pub trait InnerConnection: Read + Write + Send + Sync + Unpin {}
 impl<T: Read + Write + Send + Sync + Unpin> InnerConnection for T {}
 
-impl Read for Connection {
+impl<Inner: Read + Unpin> Read for RawConnection<Inner> {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -22,7 +26,7 @@ impl Read for Connection {
     }
 }
 
-impl Write for Connection {
+impl<Inner: Write + Unpin> Write for RawConnection<Inner> {
     fn poll_write(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -37,13 +41,5 @@ impl Write for Connection {
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         Pin::new(&mut self.inner).poll_close(cx)
-    }
-}
-
-impl fmt::Debug for Connection {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Connection")
-            .field("inner", &"Pin<Box<dyn Inner>>")
-            .finish()
     }
 }
