@@ -9,8 +9,12 @@ use crate::Error;
 pub struct HeaderName(Cow<'static, str>);
 
 impl HeaderName {
-    /// Create a new `HeaderName`.
-    pub fn from_ascii(mut bytes: Vec<u8>) -> Result<Self, Error> {
+    /// Create a new `HeaderName` from a Vec of ASCII bytes.
+    ///
+    /// # Error
+    ///
+    /// This function will error if the bytes is not valid ASCII.
+    pub fn from_bytes(mut bytes: Vec<u8>) -> Result<Self, Error> {
         crate::ensure!(bytes.is_ascii(), "Bytes should be valid ASCII");
         bytes.make_ascii_lowercase();
 
@@ -33,7 +37,7 @@ impl HeaderName {
     /// ASCII. If this constraint is violated, it may cause memory
     /// unsafety issues with future users of the HeaderName, as the rest of the library assumes
     /// that Strings are valid ASCII.
-    pub unsafe fn from_ascii_unchecked(mut bytes: Vec<u8>) -> Self {
+    pub unsafe fn from_bytes_unchecked(mut bytes: Vec<u8>) -> Self {
         bytes.make_ascii_lowercase();
         let string = String::from_utf8_unchecked(bytes);
         HeaderName(Cow::Owned(string))
