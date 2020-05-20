@@ -13,12 +13,12 @@ pub struct HeaderValue {
 }
 
 impl HeaderValue {
-    /// Create a new `HeaderValue` from ASCII bytes.
+    /// Create a new `HeaderValue` from a Vec of ASCII bytes.
     ///
     /// # Error
     ///
-    /// This function will error if the string is not a valid ASCII.
-    pub fn from_ascii(bytes: &[u8]) -> Result<Self, Error> {
+    /// This function will error if the bytes is not valid ASCII.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
         crate::ensure!(bytes.is_ascii(), "Bytes should be valid ASCII");
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
@@ -35,7 +35,7 @@ impl HeaderValue {
     /// ASCII. If this constraint is violated, it may cause memory
     /// unsafety issues with future users of the HeaderValue, as the rest of the library assumes
     /// that Strings are valid ASCII.
-    pub unsafe fn from_ascii_unchecked(bytes: Vec<u8>) -> Self {
+    pub unsafe fn from_bytes_unchecked(bytes: Vec<u8>) -> Self {
         let string = String::from_utf8_unchecked(bytes);
         Self { inner: string }
     }

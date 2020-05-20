@@ -57,10 +57,10 @@ impl From<Version> for http::Version {
 fn hyperium_headers_to_headers(hyperium_headers: http::HeaderMap, headers: &mut Headers) {
     for (name, value) in hyperium_headers {
         let value = value.as_bytes().to_owned();
-        let value = unsafe { HeaderValue::from_ascii_unchecked(value) };
+        let value = unsafe { HeaderValue::from_bytes_unchecked(value) };
         if let Some(name) = name {
             let name = name.as_str().as_bytes().to_owned();
-            let name = unsafe { HeaderName::from_ascii_unchecked(name) };
+            let name = unsafe { HeaderName::from_bytes_unchecked(name) };
             headers.insert(name, value).unwrap();
         }
     }
