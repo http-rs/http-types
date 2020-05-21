@@ -304,7 +304,7 @@ impl Request {
     /// assert_eq!(&req.body_string().await.unwrap(), "Hello Nori");
     /// # Ok(()) }) }
     /// ```
-    pub async fn body_string(self) -> io::Result<String> {
+    pub async fn body_string(self) -> crate::Result<String> {
         self.body.into_string().await
     }
 
@@ -441,15 +441,11 @@ impl Request {
     /// use http_types::{Url, Method, Request};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
-    /// req.append_header("Content-Type", "text/plain")?;
+    /// req.append_header("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn append_header(
-        &mut self,
-        name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
-    ) -> crate::Result<()> {
+    pub fn append_header(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
         self.headers.append(name, values)
     }
 

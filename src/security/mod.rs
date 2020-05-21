@@ -220,5 +220,5 @@ pub fn referrer_policy(mut headers: impl AsMut<Headers>, referrer: Option<Referr
 
     // We MUST allow for multiple Referrer-Policy headers to be set.
     // See: https://w3c.github.io/webappsec-referrer-policy/#unknown-policy-values example #13
-    headers.as_mut().append("Referrer-Policy", policy).unwrap();
+    headers.as_mut().append("Referrer-Policy", policy);
 }

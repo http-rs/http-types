@@ -219,7 +219,7 @@ impl Body {
     /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
     /// # Ok(()) }) }
     /// ```
-    pub async fn into_string(mut self) -> io::Result<String> {
+    pub async fn into_string(mut self) -> crate::Result<String> {
         let mut result = String::with_capacity(self.len().unwrap_or(0));
         self.read_to_string(&mut result).await?;
         Ok(result)

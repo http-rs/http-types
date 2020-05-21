@@ -108,15 +108,11 @@ impl Trailers {
     /// use http_types::Trailers;
     ///
     /// let mut trailers = Trailers::new();
-    /// trailers.append("Content-Type", "text/plain")?;
+    /// trailers.append("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn append(
-        &mut self,
-        name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
-    ) -> crate::Result<()> {
+    pub fn append(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
         self.headers.append(name, values)
     }
 
