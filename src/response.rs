@@ -126,7 +126,7 @@ impl Response {
     /// use http_types::{Response, StatusCode};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
-    /// res.append_header("Content-Type", "text/plain")?;
+    /// res.append_header("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
     /// ```
@@ -261,7 +261,7 @@ impl Response {
     /// assert_eq!(&res.body_string().await.unwrap(), "Hello Nori");
     /// # Ok(()) }) }
     /// ```
-    pub async fn body_string(self) -> io::Result<String> {
+    pub async fn body_string(self) -> crate::Result<String> {
         self.body.into_string().await
     }
 
