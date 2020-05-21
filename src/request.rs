@@ -7,7 +7,7 @@ use std::ops::Index;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::convert::DeserializeOwned;
+use crate::convert::{DeserializeOwned, Serialize};
 use crate::headers::{
     self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
     CONTENT_TYPE,
@@ -588,6 +588,63 @@ impl Request {
     /// ```
     pub fn ext_mut(&mut self) -> &mut Extensions {
         &mut self.ext
+    }
+
+    /// Get the URL querystring.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> http_types::Result<()> {
+    /// use http_types::{Url, Method, Request};
+    /// use http_types::convert::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Index {
+    ///     page: u32
+    /// }
+    ///
+    /// let req = Request::new(Method::Get, Url::parse("https://httpbin.org/get?page=2").unwrap());
+    /// let Index { page } = req.query()?;
+    /// assert_eq!(page, 2);
+    /// # Ok(()) }
+    /// ```
+    pub fn query<T: serde::de::DeserializeOwned>(&self) -> crate::Result<T> {
+        use std::io::{Error, ErrorKind};
+        let query = self
+            .url
+            .query()
+            .ok_or_else(|| Error::from(ErrorKind::InvalidData))?;
+        Ok(serde_urlencoded::from_str(query)?)
+    }
+
+    /// Set the URL querystring.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> http_types::Result<()> {
+    /// use http_types::{Url, Method, Request};
+    /// use http_types::convert::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Index {
+    ///     page: u32
+    /// }
+    ///
+    /// let query = Index { page: 2 };
+    /// let mut req = Request::new(Method::Get, Url::parse("https://httpbin.org/get?page=2").unwrap());
+    /// req.set_query(&query)?;
+    /// assert_eq!(req.url().query(), Some("page=2"));
+    /// assert_eq!(req.url().as_str(), "https://httpbin.org/get?page=2");
+    /// # Ok(()) }
+    /// ```
+    pub fn set_query(&mut self, query: &(impl Serialize + ?Sized)) -> crate::Result<()> {
+        let query = serde_urlencoded::to_string(query)?;
+        self.url.set_query(Some(&query));
+        Ok(())
     }
 }
 
