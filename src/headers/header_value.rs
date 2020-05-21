@@ -18,11 +18,11 @@ impl HeaderValue {
     /// # Error
     ///
     /// This function will error if the bytes is not valid ASCII.
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
+    pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, Error> {
         crate::ensure!(bytes.is_ascii(), "Bytes should be valid ASCII");
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
-        let string = unsafe { String::from_utf8_unchecked(bytes.to_vec()) };
+        let string = unsafe { String::from_utf8_unchecked(bytes) };
         Ok(Self { inner: string })
     }
 
