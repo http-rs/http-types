@@ -58,22 +58,17 @@ impl Headers {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append(
-        &mut self,
-        name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
-    ) -> crate::Result<()> {
+    pub fn append(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
         let name = name.into();
         match self.get_mut(name.clone()) {
             Some(headers) => {
-                let mut values: HeaderValues = values.to_header_values()?.collect();
+                let mut values: HeaderValues = values.to_header_values().unwrap().collect();
                 headers.append(&mut values);
             }
             None => {
                 self.insert(name, values);
             }
         }
-        Ok(())
     }
 
     /// Get a reference to a header.
@@ -194,9 +189,9 @@ mod tests {
         let non_static_header = HeaderName::from_str("hello")?;
 
         let mut headers = Headers::new();
-        headers.append(STATIC_HEADER, "foo0")?;
-        headers.append(static_header.clone(), "foo1")?;
-        headers.append(non_static_header.clone(), "foo2")?;
+        headers.append(STATIC_HEADER, "foo0");
+        headers.append(static_header.clone(), "foo1");
+        headers.append(non_static_header.clone(), "foo2");
 
         assert_eq!(headers[STATIC_HEADER], ["foo0", "foo1", "foo2",][..]);
         assert_eq!(headers[static_header], ["foo0", "foo1", "foo2",][..]);

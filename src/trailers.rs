@@ -112,11 +112,7 @@ impl Trailers {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn append(
-        &mut self,
-        name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
-    ) -> crate::Result<()> {
+    pub fn append(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
         self.headers.append(name, values)
     }
 

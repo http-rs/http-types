@@ -130,11 +130,7 @@ impl Response {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn append_header(
-        &mut self,
-        name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
-    ) -> crate::Result<()> {
+    pub fn append_header(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
         self.headers.append(name, values)
     }
 
