@@ -416,6 +416,12 @@ impl Debug for Body {
     }
 }
 
+impl From<serde_json::Value> for Body {
+    fn from(json_value: serde_json::Value) -> Self {
+        Self::from_json(&json_value).unwrap()
+    }
+}
+
 impl From<String> for Body {
     fn from(s: String) -> Self {
         Self::from_string(s)
