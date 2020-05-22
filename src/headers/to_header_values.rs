@@ -3,7 +3,7 @@ use std::iter;
 use std::option;
 use std::slice;
 
-use crate::headers::HeaderValue;
+use crate::headers::{HeaderValue, HeaderValues, Values};
 
 /// A trait for objects which can be converted or resolved to one or more `HeaderValue`s.
 pub trait ToHeaderValues {
@@ -19,6 +19,14 @@ impl ToHeaderValues for HeaderValue {
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         Ok(Some(self.clone()).into_iter())
+    }
+}
+
+impl<'a> ToHeaderValues for &'a HeaderValues {
+    type Iter = iter::Cloned<Values<'a>>;
+
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
+        Ok(self.iter().cloned())
     }
 }
 
