@@ -441,7 +441,7 @@ impl Request {
 
     /// Receive trailers from a sender.
     pub async fn recv_trailers(&self) -> Option<crate::Result<Trailers>> {
-        self.receiver.recv().await
+        self.receiver.recv().await.ok()
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
