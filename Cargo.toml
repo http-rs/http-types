@@ -21,6 +21,7 @@ docs = ["unstable"]
 unstable = []
 hyperium_http = ["http"]
 async_std = [] # "async-std" when it is not default
+cookie-secure = ["cookie/secure"]
 
 [dependencies]
 # Note(yoshuawuyts): used for async_std's `channel` only; use "core" once possible.
