@@ -93,6 +93,7 @@ impl Request {
     }
 
     /// Get the remote address for this request.
+    ///
     /// This is determined in the following priority:
     /// 1. `Forwarded` header `for` key
     /// 2. The first `X-Forwarded-For` header
@@ -102,6 +103,7 @@ impl Request {
     }
 
     /// Get the destination host for this request.
+    ///
     /// This is determined in the following priority:
     /// 1. `Forwarded` header `host` key
     /// 2. The first `X-Forwarded-Host` header
@@ -304,8 +306,9 @@ impl Request {
     /// assert_eq!(&req.body_string().await.unwrap(), "Hello Nori");
     /// # Ok(()) }) }
     /// ```
-    pub async fn body_string(self) -> crate::Result<String> {
-        self.body.into_string().await
+    pub async fn body_string(&mut self) -> crate::Result<String> {
+        let body = self.take_body();
+        body.into_string().await
     }
 
     /// Read the body as bytes.
@@ -329,8 +332,9 @@ impl Request {
     /// assert_eq!(bytes, vec![1, 2, 3]);
     /// # Ok(()) }) }
     /// ```
-    pub async fn body_bytes(self) -> crate::Result<Vec<u8>> {
-        self.body.into_bytes().await
+    pub async fn body_bytes(&mut self) -> crate::Result<Vec<u8>> {
+        let body = self.take_body();
+        body.into_bytes().await
     }
 
     /// Read the body as JSON.
@@ -358,8 +362,9 @@ impl Request {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
-    pub async fn body_json<T: DeserializeOwned>(self) -> crate::Result<T> {
-        self.body.into_json().await
+    pub async fn body_json<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
+        let body = self.take_body();
+        body.into_json().await
     }
 
     /// Read the body as `x-www-form-urlencoded`.
@@ -387,8 +392,9 @@ impl Request {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
-    pub async fn body_form<T: DeserializeOwned>(self) -> crate::Result<T> {
-        self.body.into_form().await
+    pub async fn body_form<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
+        let body = self.take_body();
+        body.into_form().await
     }
 
     /// Get an HTTP header.
