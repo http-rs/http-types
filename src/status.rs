@@ -123,3 +123,21 @@ pub(crate) mod private {
     impl<T, E> Sealed for Result<T, E> {}
     impl<T> Sealed for Option<T> {}
 }
+
+#[cfg(test)]
+mod test {
+    use super::Status;
+
+    #[test]
+    fn construct_shorthand_with_valid_status_code() {
+        let _res = Some(()).status(200).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Could not convert into a valid `StatusCode`")]
+    fn construct_shorthand_with_invalid_status_code() {
+        let res: Result<(), std::io::Error> =
+            Err(std::io::Error::new(std::io::ErrorKind::Other, "oh no!"));
+        let _res = res.status(600).unwrap();
+    }
+}
