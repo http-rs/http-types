@@ -26,6 +26,14 @@ impl<T, E> Status<T, E> for Result<T, E>
 where
     E: StdError + Send + Sync + 'static,
 {
+    /// Wrap the error value with an additional status code.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
+    ///
+    /// [status]: crate::Status
+    /// [statuscode]: crate::StatusCode
     fn status<S>(self, status: S) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -39,6 +47,15 @@ where
         })
     }
 
+    /// Wrap the error value with an additional status code that is evaluated
+    /// lazily only once an error does occur.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
+    ///
+    /// [status]: crate::Status
+    /// [statuscode]: crate::StatusCode
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -55,6 +72,14 @@ where
 }
 
 impl<T> Status<T, Infallible> for Option<T> {
+    /// Wrap the error value with an additional status code.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
+    ///
+    /// [status]: crate::Status
+    /// [statuscode]: crate::StatusCode
     fn status<S>(self, status: S) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -68,6 +93,15 @@ impl<T> Status<T, Infallible> for Option<T> {
         })
     }
 
+    /// Wrap the error value with an additional status code that is evaluated
+    /// lazily only once an error does occur.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
+    ///
+    /// [status]: crate::Status
+    /// [statuscode]: crate::StatusCode
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
