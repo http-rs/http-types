@@ -1,5 +1,5 @@
 use crate::{Error, StatusCode};
-use core::convert::{Infallible, Into, TryInto};
+use core::convert::{Infallible, TryInto};
 use std::error::Error as StdError;
 use std::fmt::Debug;
 
@@ -17,7 +17,8 @@ pub trait Status<T, E>: private::Sealed {
     /// lazily only once an error does occur.
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
-        S: Into<StatusCode>,
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
         F: FnOnce() -> S;
 }
 
@@ -40,11 +41,14 @@ where
 
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
-        S: Into<StatusCode>,
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
         F: FnOnce() -> S,
     {
         self.map_err(|error| {
-            let status = f().into();
+            let status = f()
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`");
             Error::new(status, error)
         })
     }
@@ -66,11 +70,14 @@ impl<T> Status<T, Infallible> for Option<T> {
 
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
-        S: Into<StatusCode>,
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
         F: FnOnce() -> S,
     {
         self.ok_or_else(|| {
-            let status = f().into();
+            let status = f()
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`");
             Error::from_str(status, "NoneError")
         })
     }
