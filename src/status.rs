@@ -1,6 +1,7 @@
 use crate::{Error, StatusCode};
-use core::convert::{Infallible, Into};
+use core::convert::{Infallible, Into, TryInto};
 use std::error::Error as StdError;
+use std::fmt::Debug;
 
 /// Provides the `status` method for `Result` and `Option`.
 ///
@@ -9,7 +10,8 @@ pub trait Status<T, E>: private::Sealed {
     /// Wrap the error value with an additional status code.
     fn status<S>(self, status: S) -> Result<T, Error>
     where
-        S: Into<StatusCode>;
+        S: TryInto<StatusCode>,
+        S::Error: Debug;
 
     /// Wrap the error value with an additional status code that is evaluated
     /// lazily only once an error does occur.
@@ -25,10 +27,13 @@ where
 {
     fn status<S>(self, status: S) -> Result<T, Error>
     where
-        S: Into<StatusCode>,
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
     {
         self.map_err(|error| {
-            let status = status.into();
+            let status = status
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`");
             Error::new(status, error)
         })
     }
@@ -48,10 +53,13 @@ where
 impl<T> Status<T, Infallible> for Option<T> {
     fn status<S>(self, status: S) -> Result<T, Error>
     where
-        S: Into<StatusCode>,
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
     {
         self.ok_or_else(|| {
-            let status = status.into();
+            let status = status
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`");
             Error::from_str(status, "NoneError")
         })
     }
