@@ -656,8 +656,15 @@ impl<'a> IntoIterator for &'a mut Response {
 #[cfg(test)]
 mod test {
     use super::Response;
+
     #[test]
-    fn construct_shorthand() {
+    fn construct_shorthand_with_valid_status_code() {
         let _res = Response::new(200);
+    }
+
+    #[test]
+    #[should_panic(expected = "Could not convert into a valid `StatusCode`")]
+    fn construct_shorthand_with_invalid_status_code() {
+        let _res = Response::new(600);
     }
 }
