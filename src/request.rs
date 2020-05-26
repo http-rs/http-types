@@ -666,9 +666,20 @@ impl Request {
         Ok(())
     }
 
-    /// Create a GET request.
+    /// Create a `GET` request.
+    ///
+    /// The `GET` method requests a representation of the specified resource.
+    /// Requests using `GET` should only retrieve data.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::get(Url::parse("https://example.com").unwrap());
+    /// req.set_body("Hello, Nori!");
+    /// assert_eq!(req.method(), Method::Get);
+    /// ```
     pub fn get<U>(url: U) -> Self
     where
         U: TryInto<Url>,
@@ -677,9 +688,19 @@ impl Request {
         Request::new(Method::Get, url)
     }
 
-    /// Create a HEAD request.
+    /// Create a `HEAD` request.
+    ///
+    /// The `HEAD` method asks for a response identical to that of a `GET`
+    /// request, but without the response body.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::head(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Head);
+    /// ```
     pub fn head<U>(url: U) -> Self
     where
         U: TryInto<Url>,
@@ -688,9 +709,19 @@ impl Request {
         Request::new(Method::Head, url)
     }
 
-    /// Create a POST request.
+    /// Create a `POST` request.
+    ///
+    /// The `POST` method is used to submit an entity to the specified resource,
+    /// often causing a change in state or side effects on the server.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::post(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Post);
+    /// ```
     pub fn post<U>(url: U) -> Self
     where
         U: TryInto<Url>,
@@ -699,9 +730,19 @@ impl Request {
         Request::new(Method::Post, url)
     }
 
-    /// Create a PUT request.
+    /// Create a `PUT` request.
+    ///
+    /// The `PUT` method replaces all current representations of the target
+    /// resource with the request payload.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::put(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Put);
+    /// ```
     pub fn put<U>(url: U) -> Self
     where
         U: TryInto<Url>,
@@ -710,9 +751,18 @@ impl Request {
         Request::new(Method::Put, url)
     }
 
-    /// Create a DELETE request.
+    /// Create a `DELETE` request.
+    ///
+    /// The `DELETE` method deletes the specified resource.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::delete(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Delete);
+    /// ```
     pub fn delete<U>(url: U) -> Self
     where
         U: TryInto<Url>,
@@ -721,9 +771,19 @@ impl Request {
         Request::new(Method::Delete, url)
     }
 
-    /// Create a CONNECT request.
+    /// Create a `CONNECT` request.
+    ///
+    /// The `CONNECT` method establishes a tunnel to the server identified by
+    /// the target resource.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::connect(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Connect);
+    /// ```
     pub fn connect<U>(url: U) -> Self
     where
         U: TryInto<Url>,
@@ -732,10 +792,20 @@ impl Request {
         Request::new(Method::Connect, url)
     }
 
-    /// Create a OPTIONS request.
+    /// Create a `OPTIONS` request.
+    ///
+    /// The `OPTIONS` method is used to describe the communication options for
+    /// the target resource.
     ///
     /// # Examples
-    pub fn optiond<U>(url: U) -> Self
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::options(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Options);
+    /// ```
+    pub fn options<U>(url: U) -> Self
     where
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
@@ -743,9 +813,19 @@ impl Request {
         Request::new(Method::Options, url)
     }
 
-    /// Create a TRACE request.
+    /// Create a `TRACE` request.
+    ///
+    /// The `TRACE` method performs a message loop-back test along the path to
+    /// the target resource.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::trace(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Trace);
+    /// ```
     pub fn trace<U>(url: U) -> Self
     where
         U: TryInto<Url>,
@@ -754,9 +834,18 @@ impl Request {
         Request::new(Method::Trace, url)
     }
 
-    /// Create a PATCH request.
+    /// Create a `PATCH` request.
+    ///
+    /// The `PATCH` method is used to apply partial modifications to a resource.
     ///
     /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Method, Request, Url};
+    ///
+    /// let mut req = Request::patch(Url::parse("https://example.com").unwrap());
+    /// assert_eq!(req.method(), Method::Patch);
+    /// ```
     pub fn patch<U>(url: U) -> Self
     where
         U: TryInto<Url>,
