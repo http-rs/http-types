@@ -156,7 +156,7 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// use http_types::{Url, Method, Request, Response, StatusCode};
+    /// use http_types::{Method, Request, Response, StatusCode, Url};
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// assert_eq!(req.url().scheme(), "https");
     /// #
@@ -173,7 +173,7 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// use http_types::{Url, Method, Request, Response, StatusCode};
+    /// use http_types::{Method, Request, Response, StatusCode, Url};
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.url_mut().set_scheme("http");
     /// assert_eq!(req.url().scheme(), "http");
@@ -189,7 +189,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
@@ -208,7 +208,7 @@ impl Request {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
@@ -235,7 +235,7 @@ impl Request {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
@@ -262,7 +262,7 @@ impl Request {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
@@ -295,8 +295,8 @@ impl Request {
     /// # use std::io::prelude::*;
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Request};
     /// use async_std::io::Cursor;
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     ///
@@ -322,7 +322,7 @@ impl Request {
     ///
     /// ```
     /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// let bytes = vec![1, 2, 3];
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
@@ -348,13 +348,17 @@ impl Request {
     ///
     /// ```
     /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Request};
-    /// use http_types::convert::{Serialize, Deserialize};
+    /// use http_types::convert::{Deserialize, Serialize};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
-    /// struct Cat { name: String }
+    /// struct Cat {
+    ///     name: String,
+    /// }
     ///
-    /// let cat = Cat { name: String::from("chashu") };
+    /// let cat = Cat {
+    ///     name: String::from("chashu"),
+    /// };
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body(Body::from_json(&cat)?);
     ///
@@ -378,13 +382,17 @@ impl Request {
     ///
     /// ```
     /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Request};
-    /// use http_types::convert::{Serialize, Deserialize};
+    /// use http_types::convert::{Deserialize, Serialize};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
-    /// struct Cat { name: String }
+    /// struct Cat {
+    ///     name: String,
+    /// }
     ///
-    /// let cat = Cat { name: String::from("chashu") };
+    /// let cat = Cat {
+    ///     name: String::from("chashu"),
+    /// };
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body(Body::from_form(&cat)?);
     ///
@@ -419,7 +427,7 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.insert_header("Content-Type", "text/plain");
@@ -436,15 +444,16 @@ impl Request {
 
     /// Append a header to the headers.
     ///
-    /// Unlike `insert` this function will not override the contents of a header, but insert a
-    /// header if there aren't any. Or else append to the existing list of headers.
+    /// Unlike `insert` this function will not override the contents of a
+    /// header, but insert a header if there aren't any. Or else append to
+    /// the existing list of headers.
     ///
     /// # Examples
     ///
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #
-    /// use http_types::{Url, Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.append_header("Content-Type", "text/plain");
@@ -478,14 +487,16 @@ impl Request {
 
     /// Get the length of the body stream, if it has been set.
     ///
-    /// This value is set when passing a fixed-size object into as the body. E.g. a string, or a
-    /// buffer. Consumers of this API should check this value to decide whether to use `Chunked`
-    /// encoding, or set the response length.
+    /// This value is set when passing a fixed-size object into as the body.
+    /// E.g. a string, or a buffer. Consumers of this API should check this
+    /// value to decide whether to use `Chunked` encoding, or set the
+    /// response length.
     pub fn len(&self) -> Option<usize> {
         self.body.len()
     }
 
-    /// Returns `true` if the request has a set body stream length of zero, `false` otherwise.
+    /// Returns `true` if the request has a set body stream length of zero,
+    /// `false` otherwise.
     pub fn is_empty(&self) -> Option<bool> {
         self.body.is_empty()
     }
@@ -495,7 +506,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Url, Method, Request, Version};
+    /// use http_types::{Method, Request, Url, Version};
     ///
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
@@ -516,7 +527,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Url, Method, Request, Version};
+    /// use http_types::{Method, Request, Url, Version};
     ///
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
@@ -552,8 +563,8 @@ impl Request {
         self.headers.iter()
     }
 
-    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
-    /// values.
+    /// An iterator visiting all header pairs in arbitrary order, with mutable
+    /// references to the values.
     pub fn iter_mut(&mut self) -> headers::IterMut<'_> {
         self.headers.iter_mut()
     }
@@ -580,7 +591,7 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// use http_types::{Url, Method, Request, Version};
+    /// use http_types::{Method, Request, Url, Version};
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.ext_mut().insert("hello from the extension");
@@ -599,15 +610,18 @@ impl Request {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> http_types::Result<()> {
-    /// use http_types::{Url, Method, Request};
-    /// use http_types::convert::{Serialize, Deserialize};
+    /// use http_types::convert::{Deserialize, Serialize};
+    /// use http_types::{Method, Request, Url};
     ///
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
-    ///     page: u32
+    ///     page: u32,
     /// }
     ///
-    /// let req = Request::new(Method::Get, Url::parse("https://httpbin.org/get?page=2").unwrap());
+    /// let req = Request::new(
+    ///     Method::Get,
+    ///     Url::parse("https://httpbin.org/get?page=2").unwrap(),
+    /// );
     /// let Index { page } = req.query()?;
     /// assert_eq!(page, 2);
     /// # Ok(()) }
@@ -628,16 +642,19 @@ impl Request {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> http_types::Result<()> {
-    /// use http_types::{Url, Method, Request};
-    /// use http_types::convert::{Serialize, Deserialize};
+    /// use http_types::convert::{Deserialize, Serialize};
+    /// use http_types::{Method, Request, Url};
     ///
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
-    ///     page: u32
+    ///     page: u32,
     /// }
     ///
     /// let query = Index { page: 2 };
-    /// let mut req = Request::new(Method::Get, Url::parse("https://httpbin.org/get?page=2").unwrap());
+    /// let mut req = Request::new(
+    ///     Method::Get,
+    ///     Url::parse("https://httpbin.org/get?page=2").unwrap(),
+    /// );
     /// req.set_query(&query)?;
     /// assert_eq!(req.url().query(), Some("page=2"));
     /// assert_eq!(req.url().as_str(), "https://httpbin.org/get?page=2");
