@@ -665,10 +665,110 @@ impl Request {
         self.url.set_query(Some(&query));
         Ok(())
     }
+
+    /// Create a GET request.
+    ///
+    /// # Examples
+    pub fn get<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Get, url)
+    }
+
+    /// Create a HEAD request.
+    ///
+    /// # Examples
+    pub fn head<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Head, url)
+    }
+
+    /// Create a POST request.
+    ///
+    /// # Examples
+    pub fn post<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Post, url)
+    }
+
+    /// Create a PUT request.
+    ///
+    /// # Examples
+    pub fn put<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Put, url)
+    }
+
+    /// Create a DELETE request.
+    ///
+    /// # Examples
+    pub fn delete<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Delete, url)
+    }
+
+    /// Create a CONNECT request.
+    ///
+    /// # Examples
+    pub fn connect<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Connect, url)
+    }
+
+    /// Create a OPTIONS request.
+    ///
+    /// # Examples
+    pub fn optiond<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Options, url)
+    }
+
+    /// Create a TRACE request.
+    ///
+    /// # Examples
+    pub fn trace<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Trace, url)
+    }
+
+    /// Create a PATCH request.
+    ///
+    /// # Examples
+    pub fn patch<U>(url: U) -> Self
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
+        Request::new(Method::Patch, url)
+    }
 }
 
 impl Clone for Request {
-    /// Clone the request, resolving the body to `Body::empty()` and removing extensions.
+    /// Clone the request, resolving the body to `Body::empty()` and removing
+    /// extensions.
     fn clone(&self) -> Self {
         Request {
             method: self.method.clone(),
