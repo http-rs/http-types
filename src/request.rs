@@ -1024,6 +1024,69 @@ mod tests {
             *request.url_mut() = Url::parse("x:").unwrap();
             assert_eq!(request.host(), None);
         }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_get() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::get(url);
+            assert_eq!(req.method(), Method::Get);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_head() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::head(url);
+            assert_eq!(req.method(), Method::Head);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_post() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::post(url);
+            assert_eq!(req.method(), Method::Post);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_put() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::put(url);
+            assert_eq!(req.method(), Method::Put);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_delete() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::delete(url);
+            assert_eq!(req.method(), Method::Delete);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_connect() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::connect(url);
+            assert_eq!(req.method(), Method::Connect);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_options() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::options(url);
+            assert_eq!(req.method(), Method::Options);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_trace() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::trace(url);
+            assert_eq!(req.method(), Method::Trace);
+        }
+
+        #[test]
+        fn when_using_shorthand_with_valid_url_to_create_request_patch() {
+            let url = Url::parse("https://example.com").unwrap();
+            let req = Request::patch(url);
+            assert_eq!(req.method(), Method::Patch);
+        }
     }
 
     mod remote {
