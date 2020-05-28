@@ -30,7 +30,7 @@ fn unsuccessfully_deserialize_query() {
 
     let params = req.query::<Params>();
     assert!(params.is_err());
-    assert_eq!(params.err().unwrap().to_string(), "invalid data");
+    assert_eq!(params.err().unwrap().to_string(), "missing field `msg`");
 }
 
 #[test]
