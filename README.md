@@ -35,7 +35,7 @@
       Releases
     </a>
     <span> | </span>
-    <a href="https://github.com/http-rs/http-types/blob/master.github/CONTRIBUTING.md">
+    <a href="https://github.com/http-rs/http-types/blob/master/.github/CONTRIBUTING.md">
       Contributing
     </a>
   </h3>
@@ -57,7 +57,7 @@ look at some of these issues:
 - [Issues labeled "good first issue"][good-first-issue]
 - [Issues labeled "help wanted"][help-wanted]
 
-[contributing]: https://github.com/http-rs/http-types/blob/master.github/CONTRIBUTING.md
+[contributing]: https://github.com/http-rs/http-types/blob/master/.github/CONTRIBUTING.md
 [good-first-issue]: https://github.com/http-rs/http-types/labels/good%20first%20issue
 [help-wanted]: https://github.com/http-rs/http-types/labels/help%20wanted
 
