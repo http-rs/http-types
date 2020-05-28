@@ -14,7 +14,7 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
-use crate::{Body, Extensions, Method, Url, Version};
+use crate::{Body, Extensions, Method, StatusCode, Url, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -627,12 +627,15 @@ impl Request {
     /// # Ok(()) }
     /// ```
     pub fn query<T: serde::de::DeserializeOwned>(&self) -> crate::Result<T> {
-        use std::io::{Error, ErrorKind};
-        let query = self
-            .url
-            .query()
-            .ok_or_else(|| Error::from(ErrorKind::InvalidData))?;
-        Ok(serde_urlencoded::from_str(query)?)
+        // Default to an empty query string if no query parameter has been specified.
+        // This allows successful deserialisation of structs where all fields are optional
+        // when none of those fields has actually been passed by the caller.
+        let query = self.url().query().unwrap_or("");
+        serde_urlencoded::from_str(query).map_err(|e| {
+            // Return the displayable version of the deserialisation error to the caller
+            // for easier debugging.
+            crate::Error::from_str(StatusCode::BadRequest, format!("{}", e))
+        })
     }
 
     /// Set the URL querystring.
