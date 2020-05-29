@@ -16,7 +16,7 @@ features = ["docs"]
 rustdoc-args = ["--cfg", "feature=\"docs\""]
 
 [features]
-default = ["async_std"]
+default = ["async_std", "cookie-secure"]
 docs = ["unstable"]
 unstable = []
 hyperium_http = ["http"]
