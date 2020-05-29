@@ -98,7 +98,7 @@ impl Response {
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #
-    /// use http_types::{Url, Method, Response, StatusCode};
+    /// use http_types::{Method, Response, StatusCode, Url};
     ///
     /// let mut req = Response::new(StatusCode::Ok);
     /// req.insert_header("Content-Type", "text/plain");
@@ -115,8 +115,9 @@ impl Response {
 
     /// Append a header to the headers.
     ///
-    /// Unlike `insert` this function will not override the contents of a header, but insert a
-    /// header if there aren't any. Or else append to the existing list of headers.
+    /// Unlike `insert` this function will not override the contents of a
+    /// header, but insert a header if there aren't any. Or else append to
+    /// the existing list of headers.
     ///
     /// # Examples
     ///
@@ -161,7 +162,7 @@ impl Response {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Response, StatusCode};
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// let mut req = Response::new(StatusCode::Ok);
     /// req.set_body("Hello, Nori!");
@@ -190,7 +191,7 @@ impl Response {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Response, StatusCode};
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// let mut req = Response::new(StatusCode::Ok);
     /// req.set_body("Hello, Nori!");
@@ -218,7 +219,7 @@ impl Response {
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Url, Method, Response, StatusCode};
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// let mut req = Response::new(StatusCode::Ok);
     /// req.set_body("Hello, Nori!");
@@ -251,10 +252,10 @@ impl Response {
     /// # use std::io::prelude::*;
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// # async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Response, StatusCode};    
     /// use async_std::io::Cursor;
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
-    /// let mut res = Response::new(StatusCode::Ok);    
+    /// let mut res = Response::new(StatusCode::Ok);
     /// let cursor = Cursor::new("Hello Nori");
     /// let body = Body::from_reader(cursor, None);
     /// res.set_body(body);
@@ -277,7 +278,7 @@ impl Response {
     ///
     /// ```
     /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Response, StatusCode};
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// let bytes = vec![1, 2, 3];
     /// let mut res = Response::new(StatusCode::Ok);
@@ -303,14 +304,18 @@ impl Response {
     ///
     /// ```
     /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Response, StatusCode};    
-    /// use http_types::convert::{Serialize, Deserialize};
+    /// use http_types::convert::{Deserialize, Serialize};
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
-    /// struct Cat { name: String }
+    /// struct Cat {
+    ///     name: String,
+    /// }
     ///
-    /// let cat = Cat { name: String::from("chashu") };
-    /// let mut res = Response::new(StatusCode::Ok);    
+    /// let cat = Cat {
+    ///     name: String::from("chashu"),
+    /// };
+    /// let mut res = Response::new(StatusCode::Ok);
     /// res.set_body(Body::from_json(&cat)?);
     ///
     /// let cat: Cat = res.body_json().await?;
@@ -333,14 +338,18 @@ impl Response {
     ///
     /// ```
     /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
-    /// use http_types::{Body, Url, Method, Response, StatusCode};    
-    /// use http_types::convert::{Serialize, Deserialize};
+    /// use http_types::convert::{Deserialize, Serialize};
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
-    /// struct Cat { name: String }
+    /// struct Cat {
+    ///     name: String,
+    /// }
     ///
-    /// let cat = Cat { name: String::from("chashu") };
-    /// let mut res = Response::new(StatusCode::Ok);    
+    /// let cat = Cat {
+    ///     name: String::from("chashu"),
+    /// };
+    /// let mut res = Response::new(StatusCode::Ok);
     /// res.set_body(Body::from_form(&cat)?);
     ///
     /// let cat: Cat = res.body_form().await?;
@@ -374,14 +383,16 @@ impl Response {
 
     /// Get the length of the body stream, if it has been set.
     ///
-    /// This value is set when passing a fixed-size object into as the body. E.g. a string, or a
-    /// buffer. Consumers of this API should check this value to decide whether to use `Chunked`
-    /// encoding, or set the response length.
+    /// This value is set when passing a fixed-size object into as the body.
+    /// E.g. a string, or a buffer. Consumers of this API should check this
+    /// value to decide whether to use `Chunked` encoding, or set the
+    /// response length.
     pub fn len(&self) -> Option<usize> {
         self.body.len()
     }
 
-    /// Returns `true` if the set length of the body stream is zero, `false` otherwise.
+    /// Returns `true` if the set length of the body stream is zero, `false`
+    /// otherwise.
     pub fn is_empty(&self) -> Option<bool> {
         self.body.is_empty()
     }
@@ -426,7 +437,8 @@ impl Response {
         self.peer_addr.as_deref()
     }
 
-    /// Get the local socket address for the underlying transport, if appropriate
+    /// Get the local socket address for the underlying transport, if
+    /// appropriate
     pub fn local_addr(&self) -> Option<&str> {
         self.local_addr.as_deref()
     }
@@ -477,8 +489,8 @@ impl Response {
         self.headers.iter()
     }
 
-    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
-    /// values.
+    /// An iterator visiting all header pairs in arbitrary order, with mutable
+    /// references to the values.
     pub fn iter_mut(&mut self) -> headers::IterMut<'_> {
         self.headers.iter_mut()
     }
@@ -506,7 +518,7 @@ impl Response {
     /// ```
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// use http_types::{StatusCode, Response, Version};
+    /// use http_types::{Response, StatusCode, Version};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
     /// res.ext_mut().insert("hello from the extension");
@@ -520,7 +532,8 @@ impl Response {
 }
 
 impl Clone for Response {
-    /// Clone the response, resolving the body to `Body::empty()` and removing extensions.
+    /// Clone the response, resolving the body to `Body::empty()` and removing
+    /// extensions.
     fn clone(&self) -> Self {
         Self {
             status: self.status.clone(),
@@ -656,8 +669,15 @@ impl<'a> IntoIterator for &'a mut Response {
 #[cfg(test)]
 mod test {
     use super::Response;
+
     #[test]
-    fn construct_shorthand() {
+    fn construct_shorthand_with_valid_status_code() {
         let _res = Response::new(200);
+    }
+
+    #[test]
+    #[should_panic(expected = "Could not convert into a valid `StatusCode`")]
+    fn construct_shorthand_with_invalid_status_code() {
+        let _res = Response::new(600);
     }
 }
