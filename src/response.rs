@@ -77,6 +77,7 @@ pin_project_lite::pin_project! {
         trailers_receiver: Option<sync::Receiver<Trailers>>,
         upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
         upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
+        is_upgrade: bool,
         #[pin]
         body: Body,
         ext: Extensions,
@@ -131,6 +132,7 @@ impl Response {
             trailers_receiver: Some(trailers_receiver),
             upgrade_sender: Some(upgrade_sender),
             upgrade_receiver: Some(upgrade_receiver),
+            is_upgrade: false,
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
@@ -542,6 +544,7 @@ impl Response {
     #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub fn send_upgrade(&mut self) -> upgrade::Sender {
+        self.is_upgrade = true;
         let sender = self
             .upgrade_sender
             .take()
@@ -553,11 +556,19 @@ impl Response {
     #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub async fn recv_upgrade(&mut self) -> upgrade::Receiver {
+        self.is_upgrade = true;
         let receiver = self
             .upgrade_receiver
             .take()
             .expect("Upgrade receiver can only be constructed once");
         upgrade::Receiver::new(receiver)
+    }
+
+    /// Returns `true` if a protocol upgrade is in progress.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    pub fn is_upgrade(&self) -> bool {
+        self.is_upgrade
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -620,6 +631,8 @@ impl Clone for Response {
             upgrade_sender: self.upgrade_sender.clone(),
             #[cfg(feature = "unstable")]
             upgrade_receiver: self.upgrade_receiver.clone(),
+            #[cfg(feature = "unstable")]
+            is_upgrade: false,
             body: Body::empty(),
             ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),
