@@ -33,13 +33,13 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
-        sender: Option<sync::Sender<Trailers>>,
-        receiver: Option<sync::Receiver<Trailers>>,
         #[pin]
         body: Body,
         local_addr: Option<String>,
         peer_addr: Option<String>,
         ext: Extensions,
+        trailers_sender: Option<sync::Sender<Trailers>>,
+        trailers_receiver: Option<sync::Receiver<Trailers>>,
     }
 }
 
@@ -51,18 +51,18 @@ impl Request {
         U::Error: std::fmt::Debug,
     {
         let url = url.try_into().expect("Could not convert into a valid url");
-        let (sender, receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = sync::channel(1);
         Self {
             method,
             url,
             headers: Headers::new(),
             version: None,
             body: Body::empty(),
-            sender: Some(sender),
-            receiver: Some(receiver),
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
+            trailers_receiver: Some(trailers_receiver),
+            trailers_sender: Some(trailers_sender),
         }
     }
 
@@ -543,7 +543,7 @@ impl Request {
     /// Sends trailers to the a receiver.
     pub fn send_trailers(&mut self) -> trailers::Sender {
         let sender = self
-            .sender
+            .trailers_sender
             .take()
             .expect("Trailers sender can only be constructed once");
         trailers::Sender::new(sender)
@@ -552,7 +552,7 @@ impl Request {
     /// Receive trailers from a sender.
     pub async fn recv_trailers(&mut self) -> trailers::Receiver {
         let receiver = self
-            .receiver
+            .trailers_receiver
             .take()
             .expect("Trailers receiver can only be constructed once");
         trailers::Receiver::new(receiver)
@@ -867,8 +867,8 @@ impl Clone for Request {
             url: self.url.clone(),
             headers: self.headers.clone(),
             version: self.version.clone(),
-            sender: self.sender.clone(),
-            receiver: self.receiver.clone(),
+            trailers_sender: None,
+            trailers_receiver: None,
             body: Body::empty(),
             ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),

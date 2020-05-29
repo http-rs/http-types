@@ -17,6 +17,11 @@ use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
 use crate::{Body, Extensions, StatusCode, Version};
 
+cfg_unstable! {
+    use crate::upgrade;
+}
+
+#[cfg(not(feature = "unstable"))]
 pin_project_lite::pin_project! {
     /// An HTTP response.
     ///
@@ -37,8 +42,42 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        sender: Option<sync::Sender<Trailers>>,
-        receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<sync::Sender<Trailers>>,
+        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        #[pin]
+        body: Body,
+        ext: Extensions,
+        local_addr: Option<String>,
+        peer_addr: Option<String>,
+    }
+}
+
+#[cfg(feature = "unstable")]
+pin_project_lite::pin_project! {
+    /// An HTTP response.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> {
+    /// #
+    /// use http_types::{Response, StatusCode};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_body("Hello, Nori!");
+    /// #
+    /// # Ok(()) }
+    /// ```
+    #[derive(Debug)]
+    pub struct Response {
+        status: StatusCode,
+        headers: Headers,
+        version: Option<Version>,
+        trailers_sender: Option<sync::Sender<Trailers>>,
+        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
+        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
+        has_upgrade: bool,
         #[pin]
         body: Body,
         ext: Extensions,
@@ -49,6 +88,7 @@ pin_project_lite::pin_project! {
 
 impl Response {
     /// Create a new response.
+    #[cfg(not(feature = "unstable"))]
     pub fn new<S>(status: S) -> Self
     where
         S: TryInto<StatusCode>,
@@ -57,14 +97,42 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (sender, receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = sync::channel(1);
         Self {
             status,
             headers: Headers::new(),
             version: None,
             body: Body::empty(),
-            sender: Some(sender),
-            receiver: Some(receiver),
+            trailers_sender: Some(trailers_sender),
+            trailers_receiver: Some(trailers_receiver),
+            ext: Extensions::new(),
+            peer_addr: None,
+            local_addr: None,
+        }
+    }
+
+    /// Create a new response.
+    #[cfg(feature = "unstable")]
+    pub fn new<S>(status: S) -> Self
+    where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+    {
+        let status = status
+            .try_into()
+            .expect("Could not convert into a valid `StatusCode`");
+        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
+        Self {
+            status,
+            headers: Headers::new(),
+            version: None,
+            body: Body::empty(),
+            trailers_sender: Some(trailers_sender),
+            trailers_receiver: Some(trailers_receiver),
+            upgrade_sender: Some(upgrade_sender),
+            upgrade_receiver: Some(upgrade_receiver),
+            has_upgrade: false,
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
@@ -469,7 +537,7 @@ impl Response {
     /// Sends trailers to the a receiver.
     pub fn send_trailers(&mut self) -> trailers::Sender {
         let sender = self
-            .sender
+            .trailers_sender
             .take()
             .expect("Trailers sender can only be constructed once");
         trailers::Sender::new(sender)
@@ -478,10 +546,41 @@ impl Response {
     /// Receive trailers from a sender.
     pub async fn recv_trailers(&mut self) -> trailers::Receiver {
         let receiver = self
-            .receiver
+            .trailers_receiver
             .take()
             .expect("Trailers receiver can only be constructed once");
         trailers::Receiver::new(receiver)
+    }
+
+    /// Sends an upgrade connection to the a receiver.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    pub fn send_upgrade(&mut self) -> upgrade::Sender {
+        self.has_upgrade = true;
+        let sender = self
+            .upgrade_sender
+            .take()
+            .expect("Upgrade sender can only be constructed once");
+        upgrade::Sender::new(sender)
+    }
+
+    /// Receive an upgraded connection from a sender.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    pub async fn recv_upgrade(&mut self) -> upgrade::Receiver {
+        self.has_upgrade = true;
+        let receiver = self
+            .upgrade_receiver
+            .take()
+            .expect("Upgrade receiver can only be constructed once");
+        upgrade::Receiver::new(receiver)
+    }
+
+    /// Returns `true` if a protocol upgrade is in progress.
+    #[cfg(feature = "unstable")]
+    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    pub fn has_upgrade(&self) -> bool {
+        self.has_upgrade
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -539,8 +638,14 @@ impl Clone for Response {
             status: self.status.clone(),
             headers: self.headers.clone(),
             version: self.version.clone(),
-            sender: self.sender.clone(),
-            receiver: self.receiver.clone(),
+            trailers_sender: self.trailers_sender.clone(),
+            trailers_receiver: self.trailers_receiver.clone(),
+            #[cfg(feature = "unstable")]
+            upgrade_sender: self.upgrade_sender.clone(),
+            #[cfg(feature = "unstable")]
+            upgrade_receiver: self.upgrade_receiver.clone(),
+            #[cfg(feature = "unstable")]
+            has_upgrade: false,
             body: Body::empty(),
             ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),
