@@ -9,6 +9,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::{mime, Mime};
+use crate::{Status, StatusCode};
 
 pin_project_lite::pin_project! {
     /// A streaming HTTP body.
@@ -173,7 +174,9 @@ impl Body {
     /// ```
     pub async fn into_bytes(mut self) -> crate::Result<Vec<u8>> {
         let mut buf = Vec::with_capacity(1024);
-        self.read_to_end(&mut buf).await?;
+        self.read_to_end(&mut buf)
+            .await
+            .status(StatusCode::UnprocessableEntity)?;
         Ok(buf)
     }
 
@@ -221,7 +224,9 @@ impl Body {
     /// ```
     pub async fn into_string(mut self) -> crate::Result<String> {
         let mut result = String::with_capacity(self.len().unwrap_or(0));
-        self.read_to_string(&mut result).await?;
+        self.read_to_string(&mut result)
+            .await
+            .status(StatusCode::UnprocessableEntity)?;
         Ok(result)
     }
 
@@ -271,7 +276,7 @@ impl Body {
     pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
         let mut buf = Vec::with_capacity(1024);
         self.read_to_end(&mut buf).await?;
-        Ok(serde_json::from_slice(&buf).map_err(io::Error::from)?)
+        Ok(serde_json::from_slice(&buf).status(StatusCode::UnprocessableEntity)?)
     }
 
     /// Creates a `Body` from a type, serializing it using form encoding.
@@ -339,7 +344,7 @@ impl Body {
     /// ```
     pub async fn into_form<T: DeserializeOwned>(self) -> crate::Result<T> {
         let s = self.into_string().await?;
-        Ok(serde_urlencoded::from_str(&s)?)
+        Ok(serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)?)
     }
 
     /// Create a `Body` from a file.
@@ -495,5 +500,33 @@ fn guess_ext(path: &Path) -> Option<Mime> {
         Some("css") => Some(mime::CSS),
         Some("svg") => Some(mime::SVG),
         None | Some(_) => None,
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use serde::Deserialize;
+
+    #[async_std::test]
+    async fn json_status() {
+        #[derive(Debug, Deserialize)]
+        struct Foo {
+            inner: String,
+        }
+        let body = Body::empty();
+        let res = body.into_json::<Foo>().await;
+        assert_eq!(res.unwrap_err().status(), 422);
+    }
+
+    #[async_std::test]
+    async fn form_status() {
+        #[derive(Debug, Deserialize)]
+        struct Foo {
+            inner: String,
+        }
+        let body = Body::empty();
+        let res = body.into_form::<Foo>().await;
+        assert_eq!(res.unwrap_err().status(), 422);
     }
 }
