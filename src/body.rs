@@ -1,10 +1,8 @@
-use async_std::fs;
 use async_std::io::prelude::*;
 use async_std::io::{self, Cursor};
 use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
-use std::path::Path;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -362,13 +360,13 @@ impl Body {
     /// res.set_body(Body::from_file("/path/to/file").await?);
     /// # Ok(()) }) }
     /// ```
-    #[cfg(feature = "async_std")]
+    #[cfg(all(feature = "async_std", not(target_os = "unknown")))]
     pub async fn from_file<P>(path: P) -> io::Result<Self>
     where
-        P: AsRef<Path>,
+        P: AsRef<std::path::Path>,
     {
         let path = path.as_ref();
-        let mut file = fs::File::open(path).await?;
+        let mut file = async_std::fs::File::open(path).await?;
         let len = file.metadata().await?.len();
 
         // Look at magic bytes first, look at extension second, fall back to
@@ -476,7 +474,7 @@ impl BufRead for Body {
 
 /// Look at first few bytes of a file to determine the mime type.
 /// This is used for various binary formats such as images and videos.
-#[cfg(feature = "async_std")]
+#[cfg(all(feature = "async_std", not(target_os = "unknown")))]
 async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
     // We need to read the first 300 bytes to correctly infer formats such as tar.
     let mut buf = [0_u8; 300];
@@ -490,8 +488,8 @@ async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
 
 /// Look at the extension of a file to determine the mime type.
 /// This is useful for plain-text formats such as HTML and CSS.
-#[cfg(feature = "async_std")]
-fn guess_ext(path: &Path) -> Option<Mime> {
+#[cfg(all(feature = "async_std", not(target_os = "unknown")))]
+fn guess_ext(path: &std::path::Path) -> Option<Mime> {
     let ext = path.extension().map(|p| p.to_str()).flatten();
     match ext {
         Some("html") => Some(mime::HTML),

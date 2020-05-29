@@ -92,3 +92,19 @@ impl<'a> std::convert::TryFrom<&'a str> for Method {
         Self::from_str(value)
     }
 }
+
+impl AsRef<str> for Method {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Get => "GET",
+            Self::Head => "HEAD",
+            Self::Post => "POST",
+            Self::Put => "PUT",
+            Self::Delete => "DELETE",
+            Self::Connect => "CONNECT",
+            Self::Options => "OPTIONS",
+            Self::Trace => "TRACE",
+            Self::Patch => "PATCH",
+        }
+    }
+}
