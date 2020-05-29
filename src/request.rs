@@ -38,11 +38,13 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
         #[pin]
         body: Body,
-        local: TypeMap,
+        local_addr: Option<String>,
+        peer_addr: Option<String>,
+        ext: Extensions,
+        trailers_sender: Option<sync::Sender<Trailers>>,
+        trailers_receiver: Option<sync::Receiver<Trailers>>,
     }
 }
 
@@ -64,15 +66,15 @@ pin_project_lite::pin_project! {
         url: Url,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
-        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
-        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
         #[pin]
         body: Body,
         local_addr: Option<String>,
         peer_addr: Option<String>,
         ext: Extensions,
+        trailers_sender: Option<sync::Sender<Trailers>>,
+        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
+        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
     }
 }
 
