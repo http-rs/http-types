@@ -16,11 +16,6 @@ use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
 use crate::{Body, Extensions, Method, StatusCode, Url, Version};
 
-cfg_unstable! {
-    use crate::upgrade;
-}
-
-#[cfg(not(feature = "unstable"))]
 pin_project_lite::pin_project! {
     /// An HTTP request.
     ///
@@ -45,68 +40,11 @@ pin_project_lite::pin_project! {
         ext: Extensions,
         trailers_sender: Option<sync::Sender<Trailers>>,
         trailers_receiver: Option<sync::Receiver<Trailers>>,
-    }
-}
-
-#[cfg(feature = "unstable")]
-pin_project_lite::pin_project! {
-    /// An HTTP request.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use http_types::{Url, Method, Request};
-    ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
-    /// req.set_body("Hello, Nori!");
-    /// ```
-    #[derive(Debug)]
-    pub struct Request {
-        method: Method,
-        url: Url,
-        headers: Headers,
-        version: Option<Version>,
-        #[pin]
-        body: Body,
-        local_addr: Option<String>,
-        peer_addr: Option<String>,
-        ext: Extensions,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
-        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
-        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
     }
 }
 
 impl Request {
     /// Create a new request.
-    #[cfg(feature = "unstable")]
-    pub fn new<U>(method: Method, url: U) -> Self
-    where
-        U: TryInto<Url>,
-        U::Error: std::fmt::Debug,
-    {
-        let url = url.try_into().expect("Could not convert into a valid url");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
-        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
-        Self {
-            method,
-            url,
-            headers: Headers::new(),
-            version: None,
-            body: Body::empty(),
-            ext: Extensions::new(),
-            peer_addr: None,
-            local_addr: None,
-            trailers_receiver: Some(trailers_receiver),
-            trailers_sender: Some(trailers_sender),
-            upgrade_sender: Some(upgrade_sender),
-            upgrade_receiver: Some(upgrade_receiver),
-        }
-    }
-
-    /// Create a new request.
-    #[cfg(not(feature = "unstable"))]
     pub fn new<U>(method: Method, url: U) -> Self
     where
         U: TryInto<Url>,
@@ -620,28 +558,6 @@ impl Request {
         trailers::Receiver::new(receiver)
     }
 
-    /// Sends an upgrade connection to the a receiver.
-    #[cfg(feature = "unstable")]
-    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
-    pub fn send_upgrade(&mut self) -> upgrade::Sender {
-        let sender = self
-            .upgrade_sender
-            .take()
-            .expect("Upgrade sender can only be constructed once");
-        upgrade::Sender::new(sender)
-    }
-
-    /// Receive an upgraded connection from a sender.
-    #[cfg(feature = "unstable")]
-    #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
-    pub async fn recv_upgrade(&mut self) -> upgrade::Receiver {
-        let receiver = self
-            .upgrade_receiver
-            .take()
-            .expect("Upgrade receiver can only be constructed once");
-        upgrade::Receiver::new(receiver)
-    }
-
     /// An iterator visiting all header pairs in arbitrary order.
     pub fn iter(&self) -> headers::Iter<'_> {
         self.headers.iter()
@@ -953,10 +869,6 @@ impl Clone for Request {
             version: self.version.clone(),
             trailers_sender: None,
             trailers_receiver: None,
-            #[cfg(feature = "unstable")]
-            upgrade_sender: None,
-            #[cfg(feature = "unstable")]
-            upgrade_receiver: None,
             body: Body::empty(),
             ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),
