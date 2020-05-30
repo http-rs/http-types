@@ -1,6 +1,7 @@
 use futures_lite::{io, prelude::*, ready};
 use serde::{de::DeserializeOwned, Serialize};
 
+use std::convert::TryFrom;
 use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -55,8 +56,8 @@ pin_project_lite::pin_project! {
         #[pin]
         reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
         mime: Mime,
-        length: Option<usize>,
-        bytes_read: usize
+        length: Option<u64>,
+        bytes_read: u64,
     }
 }
 
@@ -104,12 +105,12 @@ impl Body {
     /// ```
     pub fn from_reader(
         reader: impl AsyncBufRead + Unpin + Send + Sync + 'static,
-        len: Option<usize>,
+        length: Option<u64>,
     ) -> Self {
         Self {
             reader: Box::new(reader),
             mime: mime::BYTE_STREAM,
-            length: len,
+            length,
             bytes_read: 0,
         }
     }
@@ -152,7 +153,7 @@ impl Body {
     pub fn from_bytes(bytes: Vec<u8>) -> Self {
         Self {
             mime: mime::BYTE_STREAM,
-            length: Some(bytes.len()),
+            length: Some(bytes.len() as u64),
             reader: Box::new(io::Cursor::new(bytes)),
             bytes_read: 0,
         }
@@ -202,7 +203,7 @@ impl Body {
     pub fn from_string(s: String) -> Self {
         Self {
             mime: mime::PLAIN,
-            length: Some(s.len()),
+            length: Some(s.len() as u64),
             reader: Box::new(io::Cursor::new(s.into_bytes())),
             bytes_read: 0,
         }
@@ -223,7 +224,8 @@ impl Body {
     /// # Ok(()) }) }
     /// ```
     pub async fn into_string(mut self) -> crate::Result<String> {
-        let mut result = String::with_capacity(self.len().unwrap_or(0));
+        let len = usize::try_from(self.len().unwrap_or(0)).status(StatusCode::PayloadTooLarge)?;
+        let mut result = String::with_capacity(len);
         self.read_to_string(&mut result)
             .await
             .status(StatusCode::UnprocessableEntity)?;
@@ -247,7 +249,7 @@ impl Body {
     pub fn from_json(json: &impl Serialize) -> crate::Result<Self> {
         let bytes = serde_json::to_vec(&json)?;
         let body = Self {
-            length: Some(bytes.len()),
+            length: Some(bytes.len() as u64),
             reader: Box::new(io::Cursor::new(bytes)),
             mime: mime::JSON,
             bytes_read: 0,
@@ -312,7 +314,7 @@ impl Body {
         let bytes = query.into_bytes();
 
         let body = Self {
-            length: Some(bytes.len()),
+            length: Some(bytes.len() as u64),
             reader: Box::new(io::Cursor::new(bytes)),
             mime: mime::FORM,
             bytes_read: 0,
@@ -382,7 +384,7 @@ impl Body {
 
         Ok(Self {
             mime,
-            length: Some(len as usize),
+            length: Some(len),
             reader: Box::new(io::BufReader::new(file)),
             bytes_read: 0,
         })
@@ -401,7 +403,7 @@ impl Body {
     /// let body = Body::from_reader(cursor, Some(len));
     /// assert_eq!(body.len(), Some(10));
     /// ```
-    pub fn len(&self) -> Option<usize> {
+    pub fn len(&self) -> Option<u64> {
         self.length
     }
 
@@ -472,13 +474,15 @@ impl AsyncRead for Body {
             None => buf,
             Some(length) if length == self.bytes_read => return Poll::Ready(Ok(0)),
             Some(length) => {
-                let max_len = (length - self.bytes_read).min(buf.len());
+                // Compute `min` using u64, then truncate back to usize. Since
+                // buf.len() is a usize, this can never overflow.
+                let max_len = (length - self.bytes_read).min(buf.len() as u64) as usize;
                 &mut buf[0..max_len]
             }
         };
 
         let bytes = ready!(Pin::new(&mut self.reader).poll_read(cx, &mut buf))?;
-        self.bytes_read += bytes;
+        self.bytes_read += bytes as u64;
         Poll::Ready(Ok(bytes))
     }
 }

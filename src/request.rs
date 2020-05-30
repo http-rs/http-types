@@ -488,7 +488,7 @@ impl Request {
     /// E.g. a string, or a buffer. Consumers of this API should check this
     /// value to decide whether to use `Chunked` encoding, or set the
     /// response length.
-    pub fn len(&self) -> Option<usize> {
+    pub fn len(&self) -> Option<u64> {
         self.body.len()
     }
 
