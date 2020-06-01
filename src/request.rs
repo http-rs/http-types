@@ -1,5 +1,5 @@
-use async_std::io::{self, BufRead, Read};
-use async_std::sync;
+//use async_std::io::{self, BufRead, Read};
+//use async_std::sync;
 
 use std::convert::{Into, TryInto};
 use std::mem;
@@ -15,6 +15,7 @@ use crate::headers::{
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
 use crate::{Body, Extensions, Method, StatusCode, Url, Version};
+use futures_io::{AsyncRead, AsyncBufRead};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -38,8 +39,8 @@ pin_project_lite::pin_project! {
         local_addr: Option<String>,
         peer_addr: Option<String>,
         ext: Extensions,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<piper::Sender<Trailers>>,
+        trailers_receiver: Option<piper::Receiver<Trailers>>,
     }
 }
 
@@ -51,7 +52,7 @@ impl Request {
         U::Error: std::fmt::Debug,
     {
         let url = url.try_into().expect("Could not convert into a valid url");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = piper::chan(1);
         Self {
             method,
             url,
@@ -877,20 +878,20 @@ impl Clone for Request {
     }
 }
 
-impl Read for Request {
+impl AsyncRead for Request {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
+    ) -> Poll<futures_io::Result<usize>> {
         Pin::new(&mut self.body).poll_read(cx, buf)
     }
 }
 
-impl BufRead for Request {
+impl AsyncBufRead for Request {
     #[allow(missing_doc_code_examples)]
-    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
+    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<futures_io::Result<&'_ [u8]>> {
         let this = self.project();
         this.body.poll_fill_buf(cx)
     }

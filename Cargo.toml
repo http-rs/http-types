@@ -16,17 +16,27 @@ features = ["docs"]
 rustdoc-args = ["--cfg", "feature=\"docs\""]
 
 [features]
-default = ["async_std", "cookie-secure"]
+default = ["cookie-secure"]
 docs = ["unstable"]
 unstable = []
 hyperium_http = ["http"]
-async_std = [] # "async-std" when it is not default
+async_std = ["async-std"] # "async-std" when it is not default
 cookie-secure = ["cookie/secure"]
+
+[dependencies.futures-io]
+default-features = false
+features = ["std"]
+version = "0.3"
+
+[dependencies.futures-util]
+default-features = false
+features = ["std","sink"]
+version = "0.3"
 
 [dependencies]
 # Note(yoshuawuyts): used for async_std's `channel` only; use "core" once possible.
 # features: async_std
-async-std = { version = "1.6.0", features = ["unstable"] }
+async-std = { version = "1.6.0", optional = true, features = ["unstable"] }
 
 # features: hyperium/http
 http = { version = "0.2.0", optional = true }
@@ -39,6 +49,7 @@ url = "2.1.1"
 serde_json = "1.0.51"
 serde = { version = "1.0.106", features = ["derive"] }
 serde_urlencoded = "0.6.1"
+piper = "*"
 
 [dev-dependencies]
 http = "0.2.0"

@@ -1,5 +1,5 @@
-use async_std::io::prelude::*;
-use async_std::io::{self, Cursor};
+//use async_std::io::prelude::*;
+//use async_std::io::{self, Cursor};
 use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
@@ -8,6 +8,9 @@ use std::task::{Context, Poll};
 
 use crate::{mime, Mime};
 use crate::{Status, StatusCode};
+use futures_io::{AsyncRead, AsyncBufRead};
+use futures_util::{AsyncReadExt};
+use futures_util::io::Cursor;
 
 pin_project_lite::pin_project! {
     /// A streaming HTTP body.
@@ -54,7 +57,7 @@ pin_project_lite::pin_project! {
     /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
-        reader: Box<dyn BufRead + Unpin + Send + Sync + 'static>,
+        reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
         mime: Mime,
         length: Option<usize>,
     }
@@ -76,7 +79,7 @@ impl Body {
     /// ```
     pub fn empty() -> Self {
         Self {
-            reader: Box::new(io::empty()),
+            reader: Box::new(futures_util::io::empty()),
             mime: mime::BYTE_STREAM,
             length: Some(0),
         }
@@ -102,7 +105,7 @@ impl Body {
     /// req.set_body(Body::from_reader(cursor, Some(len)));
     /// ```
     pub fn from_reader(
-        reader: impl BufRead + Unpin + Send + Sync + 'static,
+        reader: impl AsyncBufRead + Unpin + Send + Sync + 'static,
         len: Option<usize>,
     ) -> Self {
         Self {
@@ -125,7 +128,7 @@ impl Body {
     /// let body = Body::from_reader(cursor, None);
     /// let _ = body.into_reader();
     /// ```
-    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
+    pub fn into_reader(self) -> Box<dyn AsyncBufRead + Unpin + Send + 'static> {
         self.reader
     }
 
@@ -151,7 +154,7 @@ impl Body {
         Self {
             mime: mime::BYTE_STREAM,
             length: Some(bytes.len()),
-            reader: Box::new(io::Cursor::new(bytes)),
+            reader: Box::new(Cursor::new(bytes)),
         }
     }
 
@@ -200,7 +203,7 @@ impl Body {
         Self {
             mime: mime::PLAIN,
             length: Some(s.len()),
-            reader: Box::new(io::Cursor::new(s.into_bytes())),
+            reader: Box::new(Cursor::new(s.into_bytes())),
         }
     }
 
@@ -449,20 +452,20 @@ impl<'a> From<&'a [u8]> for Body {
     }
 }
 
-impl Read for Body {
+impl AsyncRead for Body {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
+    ) -> Poll<futures_io::Result<usize>> {
         Pin::new(&mut self.reader).poll_read(cx, buf)
     }
 }
 
-impl BufRead for Body {
+impl AsyncBufRead for Body {
     #[allow(missing_doc_code_examples)]
-    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
+    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<futures_io::Result<&'_ [u8]>> {
         let this = self.project();
         this.reader.poll_fill_buf(cx)
     }
@@ -475,14 +478,14 @@ impl BufRead for Body {
 /// Look at first few bytes of a file to determine the mime type.
 /// This is used for various binary formats such as images and videos.
 #[cfg(all(feature = "async_std", not(target_os = "unknown")))]
-async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
+async fn peek_mime(file: &mut async_std::fs::File) -> futures_io::Result<Option<Mime>> {
     // We need to read the first 300 bytes to correctly infer formats such as tar.
     let mut buf = [0_u8; 300];
     file.read(&mut buf).await?;
     let mime = Mime::sniff(&buf).ok();
 
     // Reset the file cursor back to the start.
-    file.seek(io::SeekFrom::Start(0)).await?;
+    file.seek(futures_io::SeekFrom::Start(0)).await?;
     Ok(mime)
 }
 

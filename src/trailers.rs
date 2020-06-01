@@ -50,14 +50,15 @@
 use crate::headers::{
     HeaderName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
-use async_std::prelude::*;
-use async_std::sync;
+//use async_std::prelude::*;
+//use async_std::sync;
 
 use std::convert::Into;
 use std::future::Future;
 use std::ops::{Deref, DerefMut, Index};
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use futures_util::stream::Stream;
 
 /// A collection of trailing HTTP headers.
 #[derive(Debug)]
@@ -212,13 +213,13 @@ impl Index<&str> for Trailers {
 /// `Trailers` should be created.
 #[derive(Debug)]
 pub struct Sender {
-    sender: sync::Sender<Trailers>,
+    sender: piper::Sender<Trailers>,
 }
 
 impl Sender {
     /// Create a new instance of `Sender`.
     #[doc(hidden)]
-    pub fn new(sender: sync::Sender<Trailers>) -> Self {
+    pub fn new(sender: piper::Sender<Trailers>) -> Self {
         Self { sender }
     }
 
@@ -238,12 +239,12 @@ impl Sender {
 #[must_use = "Futures do nothing unless polled or .awaited"]
 #[derive(Debug)]
 pub struct Receiver {
-    receiver: sync::Receiver<Trailers>,
+    receiver: piper::Receiver<Trailers>,
 }
 
 impl Receiver {
     /// Create a new instance of `Receiver`.
-    pub(crate) fn new(receiver: sync::Receiver<Trailers>) -> Self {
+    pub(crate) fn new(receiver: piper::Receiver<Trailers>) -> Self {
         Self { receiver }
     }
 }

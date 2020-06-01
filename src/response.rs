@@ -1,5 +1,5 @@
-use async_std::io::{self, BufRead, Read};
-use async_std::sync;
+//use async_std::io::{self, BufRead, Read};
+//use async_std::sync;
 
 use std::convert::{Into, TryInto};
 use std::fmt::Debug;
@@ -16,6 +16,7 @@ use crate::headers::{
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
 use crate::{Body, Extensions, StatusCode, Version};
+use futures_io::{AsyncRead, AsyncBufRead};
 
 cfg_unstable! {
     use crate::upgrade;
@@ -42,8 +43,8 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<piper::Sender<Trailers>>,
+        trailers_receiver: Option<piper::Receiver<Trailers>>,
         #[pin]
         body: Body,
         ext: Extensions,
@@ -73,10 +74,10 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
-        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
-        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
+        trailers_sender: Option<piper::Sender<Trailers>>,
+        trailers_receiver: Option<piper::Receiver<Trailers>>,
+        upgrade_sender: Option<piper::Sender<upgrade::Connection>>,
+        upgrade_receiver: Option<piper::Receiver<upgrade::Connection>>,
         has_upgrade: bool,
         #[pin]
         body: Body,
@@ -97,7 +98,7 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = piper::chan(1);
         Self {
             status,
             headers: Headers::new(),
@@ -121,8 +122,8 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
-        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = piper::chan(1);
+        let (upgrade_sender, upgrade_receiver) = piper::chan(1);
         Self {
             status,
             headers: Headers::new(),
@@ -268,7 +269,7 @@ impl Response {
     /// req.swap_body(&mut body);
     ///
     /// let mut string = String::new();
-    /// body.read_to_string(&mut string).await?;
+    /// body.read_to(&mut string).await?;
     /// assert_eq!(&string, "Hello, Nori!");
     /// #
     /// # Ok(()) }) }
@@ -654,20 +655,20 @@ impl Clone for Response {
     }
 }
 
-impl Read for Response {
+impl AsyncRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &mut [u8],
-    ) -> Poll<io::Result<usize>> {
+    ) -> Poll<futures_io::Result<usize>> {
         Pin::new(&mut self.body).poll_read(cx, buf)
     }
 }
 
-impl BufRead for Response {
+impl AsyncBufRead for Response {
     #[allow(missing_doc_code_examples)]
-    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
+    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<futures_io::Result<&'_ [u8]>> {
         let this = self.project();
         this.body.poll_fill_buf(cx)
     }
