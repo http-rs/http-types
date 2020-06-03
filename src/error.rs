@@ -2,8 +2,13 @@
 
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
+use std::mem;
 
-use crate::StatusCode;
+use crate::headers::{
+    HeaderName, HeaderValue, HeaderValues, Headers, ToHeaderValues, CONTENT_TYPE,
+};
+use crate::mime::Mime;
+use crate::{Body, StatusCode};
 
 /// A specialized `Result` type for HTTP operations.
 ///
@@ -14,7 +19,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// The error type for HTTP operations.
 pub struct Error {
     error: anyhow::Error,
-    status: crate::StatusCode,
+    status: StatusCode,
+    headers: Option<Headers>,
+    body: Option<Body>,
 }
 
 impl Error {
@@ -23,24 +30,28 @@ impl Error {
     /// The error type must be threadsafe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new<E>(status: StatusCode, error: E) -> Self
+    pub fn new<E>(status: impl Into<StatusCode>, error: E) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
         Self {
-            status,
+            status: status.into(),
             error: anyhow::Error::new(error),
+            headers: None,
+            body: None,
         }
     }
 
     /// Create a new error object from static string.
-    pub fn from_str<M>(status: StatusCode, msg: M) -> Self
+    pub fn from_str<M>(status: impl Into<StatusCode>, msg: M) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {
         Self {
-            status,
+            status: status.into(),
             error: anyhow::Error::msg(msg),
+            headers: None,
+            body: None,
         }
     }
 
@@ -60,6 +71,112 @@ impl Error {
     /// Set the status code associated with this error.
     pub fn set_status(&mut self, status: StatusCode) {
         self.status = status;
+    }
+
+    /// Get a mutable reference to a header.
+    pub fn header_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+        self.headers.as_mut()?.get_mut(name.into())
+    }
+
+    /// Get an HTTP header.
+    pub fn header(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
+        self.headers.as_ref()?.get(name.into())
+    }
+
+    /// Remove a header.
+    pub fn remove_header(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+        self.headers.as_mut()?.remove(name.into())
+    }
+
+    /// Set an HTTP header.
+    pub fn insert_header(
+        &mut self,
+        name: impl Into<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> Option<HeaderValues> {
+        if self.headers.is_none() {
+            self.headers = Some(Headers::new());
+        }
+        self.headers.as_mut()?.insert(name, values)
+    }
+
+    /// Append a header to the headers.
+    pub fn append_header(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
+        if self.headers.is_none() {
+            self.headers = Some(Headers::new());
+        }
+        if let Some(headers) = &mut self.headers {
+            headers.append(name, values);
+        }
+    }
+
+    /// Take the headers.
+    pub fn take_headers(&mut self) -> Option<Headers> {
+        mem::replace(&mut self.headers, None)
+    }
+
+    /// Set the body reader.
+    pub fn set_body(&mut self, body: impl Into<Body>) {
+        self.body = Some(body.into());
+    }
+
+    /// Replace the response body with a new body, returning the old body.
+    pub fn replace_body(&mut self, body: Option<impl Into<Body>>) -> Option<Body> {
+        let body = match body {
+            Some(b) => Some(b.into()),
+            None => None,
+        };
+        let body = mem::replace(&mut self.body, body);
+        self.copy_content_type_from_body();
+        body
+    }
+
+    /// Swaps the value of the body with another body, without deinitializing
+    /// either one.
+    pub fn swap_body(&mut self, body: &mut Option<Body>) {
+        mem::swap(&mut self.body, body);
+        self.copy_content_type_from_body();
+    }
+
+    /// Take the response body, replacing it with an empty body.
+    pub fn take_body(&mut self) -> Option<Body> {
+        self.replace_body(None::<Body>)
+    }
+
+    /// Set the response MIME.
+    pub fn set_content_type(&mut self, mime: Mime) -> Option<HeaderValues> {
+        let value: HeaderValue = mime.into();
+
+        // A Mime instance is guaranteed to be valid header name.
+        self.insert_header(CONTENT_TYPE, value)
+    }
+
+    /// Copy MIME data from the body.
+    fn copy_content_type_from_body(&mut self) {
+        if self.header(CONTENT_TYPE).is_none() && self.body.is_some() {
+            self.set_content_type(self.body.as_ref().unwrap().mime().clone());
+        }
+    }
+
+    /// Get the current content type
+    pub fn content_type(&self) -> Option<Mime> {
+        self.header(CONTENT_TYPE)?.last().as_str().parse().ok()
+    }
+
+    /// Get the length of the body stream, if it has been set.
+    ///
+    /// This value is set when passing a fixed-size object into as the body.
+    /// E.g. a string, or a buffer. Consumers of this API should check this
+    /// value to decide whether to use `Chunked` encoding, or set the
+    /// response length.
+    pub fn len(&self) -> Option<usize> {
+        self.body.as_ref()?.len()
+    }
+
+    /// Returns `true` if the set length of the body stream is zero, `false`
+    /// otherwise.
+    pub fn is_empty(&self) -> Option<bool> {
+        self.body.as_ref()?.is_empty()
     }
 
     /// Get the backtrace for this Error.
@@ -127,6 +244,8 @@ where
         Self {
             error: anyhow::Error::new(error),
             status: StatusCode::InternalServerError,
+            headers: None,
+            body: None,
         }
     }
 }
