@@ -114,6 +114,12 @@ impl Headers {
     }
 }
 
+impl Default for Headers {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Index<HeaderName> for Headers {
     type Output = HeaderValues;
 
