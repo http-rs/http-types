@@ -132,6 +132,7 @@ mod version;
 
 cfg_unstable! {
     pub mod upgrade;
+    pub mod trace;
 
     mod client;
     mod server;
@@ -165,10 +166,8 @@ pub use crate::url::Url;
 #[doc(inline)]
 pub use crate::cookies::Cookie;
 
-#[doc(inline)]
-pub mod trailers;
-
 pub mod security;
+pub mod trailers;
 
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;
