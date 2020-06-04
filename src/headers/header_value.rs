@@ -1,5 +1,5 @@
 use std::convert::TryFrom;
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
 use crate::headers::HeaderValues;
@@ -7,7 +7,7 @@ use crate::Error;
 use crate::{Cookie, Mime};
 
 /// A header value.
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct HeaderValue {
     inner: String,
 }
@@ -92,6 +92,12 @@ impl<'a> TryFrom<&'a str> for HeaderValue {
     }
 }
 
+impl Debug for HeaderValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.inner)
+    }
+}
+
 impl Display for HeaderValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.inner)
@@ -129,5 +135,16 @@ impl From<HeaderValues> for HeaderValue {
             .inner
             .pop()
             .expect("HeaderValues should contain at least one value")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_debug() {
+        let header_value = HeaderValue::from_str("foo0").unwrap();
+        assert_eq!(format!("{:?}", header_value), "\"foo0\"");
     }
 }
