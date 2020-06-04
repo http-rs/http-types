@@ -6,6 +6,8 @@ use std::fmt::Debug;
 use std::mem;
 use std::ops::Index;
 use std::pin::Pin;
+#[cfg(feature = "unstable")]
+use std::rc::Rc;
 use std::task::{Context, Poll};
 
 use crate::convert::DeserializeOwned;
@@ -83,7 +85,7 @@ pin_project_lite::pin_project! {
         ext: Extensions,
         local_addr: Option<String>,
         peer_addr: Option<String>,
-        error: Option<Error>,
+        error: Option<Rc<Error>>,
     }
 }
 
@@ -207,7 +209,7 @@ impl Response {
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
-            error: Some(error),
+            error: Some(Rc::new(error)),
         };
         res.set_content_type(mime::PLAIN);
         res
@@ -539,19 +541,16 @@ impl Response {
         self.body.is_empty()
     }
 
-    // XXX(Jeremiah) What should this be called?
     #[cfg(feature = "unstable")]
     /// Returns true if the response was created from an `Error`.
-    pub fn was_from_error(&self) -> bool {
+    pub fn has_error(&self) -> bool {
         self.error.is_some()
     }
 
-    // XXX(Jeremiah) What should this be called?
     #[cfg(feature = "unstable")]
-    /// Returns an `Error` if the response was created from one, or else `None`.
-    pub fn get_from_error(&mut self) -> Option<Error> {
-        // TODO(Jeremiah) Clone the error instead.
-        mem::replace(&mut self.error, None)
+    /// Returns a reference-counted `Error` if the response was created from one, or else `None`.
+    pub fn error(&mut self) -> Option<Rc<Error>> {
+        Some(self.error.as_ref()?.clone())
     }
 
     /// Get the HTTP version, if one has been set.
