@@ -49,6 +49,7 @@ pin_project_lite::pin_project! {
         ext: Extensions,
         local_addr: Option<String>,
         peer_addr: Option<String>,
+        error: Option<Error>,
     }
 }
 
@@ -109,6 +110,7 @@ impl Response {
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
+            error: None,
         }
     }
 
@@ -170,6 +172,7 @@ impl Response {
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
+            error: Some(error),
         };
         res.set_content_type(mime::PLAIN);
         res
@@ -539,13 +542,11 @@ impl Response {
         self.body.is_empty()
     }
 
-    #[cfg(feature = "unstable")]
     /// Returns an optional reference to the `Error` if the response was created from one, or else `None`.
     pub fn error(&mut self) -> Option<&Error> {
         self.error.as_ref()
     }
 
-    #[cfg(feature = "unstable")]
     /// Takes the `Error` from the response if one exists, replacing it with `None`.
     pub fn take_error(&mut self) -> Option<Error> {
         self.error.take()
@@ -717,8 +718,8 @@ impl Response {
 }
 
 impl Clone for Response {
-    /// Clone the response, resolving the body to `Body::empty()` and removing
-    /// extensions.
+    /// Clone the response, resolving the body to `Body::empty()`, removing
+    /// extensions, and unsetting any `Error`.
     fn clone(&self) -> Self {
         Self {
             status: self.status.clone(),
@@ -736,8 +737,6 @@ impl Clone for Response {
             ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),
             local_addr: self.local_addr.clone(),
-            // XXX(Jeremiah): Clone the referenced error properly?
-            #[cfg(feature = "unstable")]
             error: None,
         }
     }
