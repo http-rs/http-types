@@ -112,7 +112,7 @@ impl Error {
 
     /// Take the headers.
     pub fn take_headers(&mut self) -> Option<Headers> {
-        mem::replace(&mut self.headers, None)
+        self.headers.take()
     }
 
     /// Set the body reader.
@@ -123,10 +123,9 @@ impl Error {
     /// Replace the response body with a new body, returning the old body.
     pub fn replace_body(&mut self, body: Option<impl Into<Body>>) -> Option<Body> {
         let body = match body {
-            Some(b) => Some(b.into()),
-            None => None,
+            Some(b) => self.body.replace(b.into()),
+            None => self.body.take(),
         };
-        let body = mem::replace(&mut self.body, body);
         self.copy_content_type_from_body();
         body
     }
@@ -140,7 +139,7 @@ impl Error {
 
     /// Take the response body, replacing it with an empty body.
     pub fn take_body(&mut self) -> Option<Body> {
-        self.replace_body(None::<Body>)
+        self.body.take()
     }
 
     /// Set the response MIME.
