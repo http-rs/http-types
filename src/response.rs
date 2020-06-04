@@ -6,8 +6,6 @@ use std::fmt::Debug;
 use std::mem;
 use std::ops::Index;
 use std::pin::Pin;
-#[cfg(feature = "unstable")]
-use std::rc::Rc;
 use std::task::{Context, Poll};
 
 use crate::convert::DeserializeOwned;
@@ -85,7 +83,7 @@ pin_project_lite::pin_project! {
         ext: Extensions,
         local_addr: Option<String>,
         peer_addr: Option<String>,
-        error: Option<Rc<Error>>,
+        error: Option<Error>,
     }
 }
 
@@ -209,7 +207,7 @@ impl Response {
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
-            error: Some(Rc::new(error)),
+            error: Some(error),
         };
         res.set_content_type(mime::PLAIN);
         res
@@ -542,15 +540,15 @@ impl Response {
     }
 
     #[cfg(feature = "unstable")]
-    /// Returns true if the response was created from an `Error`.
-    pub fn has_error(&self) -> bool {
-        self.error.is_some()
+    /// Returns an optional reference to the `Error` if the response was created from one, or else `None`.
+    pub fn error(&mut self) -> Option<&Error> {
+        self.error.as_ref()
     }
 
     #[cfg(feature = "unstable")]
-    /// Returns a reference-counted `Error` if the response was created from one, or else `None`.
-    pub fn error(&mut self) -> Option<Rc<Error>> {
-        Some(self.error.as_ref()?.clone())
+    /// Takes the `Error` from the response if one exists, replacing it with `None`.
+    pub fn take_error(&mut self) -> Option<Error> {
+        self.error.take()
     }
 
     /// Get the HTTP version, if one has been set.
