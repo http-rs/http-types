@@ -39,8 +39,8 @@ pin_project_lite::pin_project! {
         local_addr: Option<String>,
         peer_addr: Option<String>,
         ext: Extensions,
-        trailers_sender: Option<piper::Sender<Trailers>>,
-        trailers_receiver: Option<piper::Receiver<Trailers>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
     }
 }
 
@@ -52,7 +52,7 @@ impl Request {
         U::Error: std::fmt::Debug,
     {
         let url = url.try_into().expect("Could not convert into a valid url");
-        let (trailers_sender, trailers_receiver) = piper::chan(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
         Self {
             method,
             url,

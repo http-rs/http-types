@@ -43,8 +43,8 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<piper::Sender<Trailers>>,
-        trailers_receiver: Option<piper::Receiver<Trailers>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
         #[pin]
         body: Body,
         ext: Extensions,
@@ -74,10 +74,10 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<piper::Sender<Trailers>>,
-        trailers_receiver: Option<piper::Receiver<Trailers>>,
-        upgrade_sender: Option<piper::Sender<upgrade::Connection>>,
-        upgrade_receiver: Option<piper::Receiver<upgrade::Connection>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
+        upgrade_sender: Option<async_channel::Sender<upgrade::Connection>>,
+        upgrade_receiver: Option<async_channel::Receiver<upgrade::Connection>>,
         has_upgrade: bool,
         #[pin]
         body: Body,
@@ -98,7 +98,7 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = piper::chan(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
         Self {
             status,
             headers: Headers::new(),
@@ -122,8 +122,8 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = piper::chan(1);
-        let (upgrade_sender, upgrade_receiver) = piper::chan(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
+        let (upgrade_sender, upgrade_receiver) = async_channel::bounded(1);
         Self {
             status,
             headers: Headers::new(),

@@ -213,13 +213,13 @@ impl Index<&str> for Trailers {
 /// `Trailers` should be created.
 #[derive(Debug)]
 pub struct Sender {
-    sender: piper::Sender<Trailers>,
+    sender: async_channel::Sender<Trailers>,
 }
 
 impl Sender {
     /// Create a new instance of `Sender`.
     #[doc(hidden)]
-    pub fn new(sender: piper::Sender<Trailers>) -> Self {
+    pub fn new(sender: async_channel::Sender<Trailers>) -> Self {
         Self { sender }
     }
 
@@ -227,7 +227,7 @@ impl Sender {
     ///
     /// The channel will be consumed after having sent trailers.
     pub async fn send(self, trailers: Trailers) {
-        self.sender.send(trailers).await
+        let _ = self.sender.send(trailers).await;
     }
 }
 
@@ -239,12 +239,12 @@ impl Sender {
 #[must_use = "Futures do nothing unless polled or .awaited"]
 #[derive(Debug)]
 pub struct Receiver {
-    receiver: piper::Receiver<Trailers>,
+    receiver: async_channel::Receiver<Trailers>,
 }
 
 impl Receiver {
     /// Create a new instance of `Receiver`.
-    pub(crate) fn new(receiver: piper::Receiver<Trailers>) -> Self {
+    pub(crate) fn new(receiver: async_channel::Receiver<Trailers>) -> Self {
         Self { receiver }
     }
 }
