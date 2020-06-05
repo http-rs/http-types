@@ -5,7 +5,7 @@ use std::str::FromStr;
 use crate::Error;
 
 /// A header name.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct HeaderName(Cow<'static, str>);
 
 impl HeaderName {
@@ -46,6 +46,12 @@ impl HeaderName {
     /// Converts a string assumed to lowercase into a `HeaderName`
     pub(crate) const fn from_lowercase_str(str: &'static str) -> Self {
         HeaderName(Cow::Borrowed(str))
+    }
+}
+
+impl Debug for HeaderName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.0)
     }
 }
 
@@ -149,5 +155,11 @@ mod tests {
     fn pass_name_by_ref() {
         let mut res = crate::Response::new(200);
         res.insert_header(&crate::headers::HOST, "127.0.0.1");
+    }
+
+    #[test]
+    fn test_debug() {
+        let header_name = HeaderName::from_str("hello").unwrap();
+        assert_eq!(format!("{:?}", header_name), "\"hello\"");
     }
 }

@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::convert::Into;
+use std::fmt::{self, Debug};
 use std::iter::IntoIterator;
 use std::ops::Index;
 use std::str::FromStr;
@@ -26,7 +27,7 @@ use crate::headers::{
 /// res.insert_header("hello", "foo0");
 /// assert_eq!(res["hello"], "foo0");
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Headers {
     pub(crate) headers: HashMap<HeaderName, HeaderValues>,
 }
@@ -176,6 +177,12 @@ impl<'a> IntoIterator for &'a mut Headers {
     }
 }
 
+impl Debug for Headers {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_map().entries(self.headers.iter()).finish()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -206,5 +213,20 @@ mod tests {
         headers.insert("hello", "foo0");
         assert_eq!(headers["hello"], "foo0");
         assert_eq!(headers.get("hello").unwrap(), "foo0");
+    }
+
+    #[test]
+    fn test_debug_single() {
+        let mut headers = Headers::new();
+        headers.insert("single", "foo0");
+        assert_eq!(format!("{:?}", headers), r#"{"single": "foo0"}"#);
+    }
+
+    #[test]
+    fn test_debug_multiple() {
+        let mut headers = Headers::new();
+        headers.append("multi", "foo0");
+        headers.append("multi", "foo1");
+        assert_eq!(format!("{:?}", headers), r#"{"multi": ["foo0", "foo1"]}"#);
     }
 }

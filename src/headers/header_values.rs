@@ -1,6 +1,6 @@
 use crate::headers::{HeaderValue, Values};
 
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut, Index};
 use std::slice::SliceIndex;
@@ -8,7 +8,7 @@ use std::slice::SliceIndex;
 /// A list of `HeaderValue`s.
 ///
 /// This always contains at least one header value.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct HeaderValues {
     pub(crate) inner: Vec<HeaderValue>,
 }
@@ -70,6 +70,16 @@ impl FromIterator<HeaderValue> for HeaderValues {
             output.push(v);
         }
         HeaderValues { inner: output }
+    }
+}
+
+impl Debug for HeaderValues {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.inner.len() == 1 {
+            write!(f, "{:?}", self.inner[0])
+        } else {
+            f.debug_list().entries(self.inner.iter()).finish()
+        }
     }
 }
 
@@ -151,5 +161,25 @@ impl<'a> IntoIterator for &'a HeaderValues {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_debug_single() {
+        let header_values = HeaderValues {
+            inner: vec!["foo0".parse().unwrap()],
+        };
+        assert_eq!(format!("{:?}", header_values), "\"foo0\"");
+    }
+    #[test]
+    fn test_debug_multiple() {
+        let header_values = HeaderValues {
+            inner: vec!["foo0".parse().unwrap(), "foo1".parse().unwrap()],
+        };
+        assert_eq!(format!("{:?}", header_values), r#"["foo0", "foo1"]"#);
     }
 }
