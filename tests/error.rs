@@ -1,4 +1,4 @@
-use http_types::{bail, ensure, ensure_eq, Error, StatusCode};
+use http_types::{bail, ensure, ensure_eq, Error, Response, StatusCode};
 use std::io;
 
 #[test]
@@ -70,4 +70,22 @@ fn option_ext() {
 
     let err = res.unwrap_err();
     assert_eq!(err.status(), StatusCode::NotFound);
+}
+
+#[test]
+fn to_response() {
+    let msg = "This is an error";
+
+    let error = Error::from_str(StatusCode::NotFound, msg);
+    let mut res: Response = error.into();
+
+    assert!(res.error().is_some());
+    // Ensure we did not consume the error
+    assert!(res.error().is_some());
+
+    assert_eq!(res.error().unwrap().status(), StatusCode::NotFound);
+    assert_eq!(res.error().unwrap().to_string(), msg);
+
+    res.take_error();
+    assert!(res.error().is_none());
 }
