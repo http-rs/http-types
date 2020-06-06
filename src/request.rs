@@ -40,6 +40,7 @@ pin_project_lite::pin_project! {
         ext: Extensions,
         trailers_sender: Option<sync::Sender<Trailers>>,
         trailers_receiver: Option<sync::Receiver<Trailers>>,
+        has_trailers: bool,
     }
 }
 
@@ -63,6 +64,7 @@ impl Request {
             local_addr: None,
             trailers_receiver: Some(trailers_receiver),
             trailers_sender: Some(trailers_sender),
+            has_trailers: false,
         }
     }
 
@@ -542,6 +544,7 @@ impl Request {
 
     /// Sends trailers to the a receiver.
     pub fn send_trailers(&mut self) -> trailers::Sender {
+        self.has_trailers = true;
         let sender = self
             .trailers_sender
             .take()
@@ -550,12 +553,17 @@ impl Request {
     }
 
     /// Receive trailers from a sender.
-    pub async fn recv_trailers(&mut self) -> trailers::Receiver {
+    pub fn recv_trailers(&mut self) -> trailers::Receiver {
         let receiver = self
             .trailers_receiver
             .take()
             .expect("Trailers receiver can only be constructed once");
         trailers::Receiver::new(receiver)
+    }
+
+    /// Returns `true` if sending trailers is in progress.
+    pub fn has_trailers(&self) -> bool {
+        self.has_trailers
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -873,6 +881,7 @@ impl Clone for Request {
             ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),
             local_addr: self.local_addr.clone(),
+            has_trailers: false,
         }
     }
 }

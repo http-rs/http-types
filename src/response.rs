@@ -42,6 +42,7 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
+        has_trailers: bool,
         trailers_sender: Option<sync::Sender<Trailers>>,
         trailers_receiver: Option<sync::Receiver<Trailers>>,
         #[pin]
@@ -75,6 +76,7 @@ pin_project_lite::pin_project! {
         version: Option<Version>,
         trailers_sender: Option<sync::Sender<Trailers>>,
         trailers_receiver: Option<sync::Receiver<Trailers>>,
+        has_trailers: bool,
         upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
         upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
         has_upgrade: bool,
@@ -105,6 +107,7 @@ impl Response {
             body: Body::empty(),
             trailers_sender: Some(trailers_sender),
             trailers_receiver: Some(trailers_receiver),
+            has_trailers: false,
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
@@ -130,6 +133,7 @@ impl Response {
             body: Body::empty(),
             trailers_sender: Some(trailers_sender),
             trailers_receiver: Some(trailers_receiver),
+            has_trailers: false,
             upgrade_sender: Some(upgrade_sender),
             upgrade_receiver: Some(upgrade_receiver),
             has_upgrade: false,
@@ -536,6 +540,7 @@ impl Response {
 
     /// Sends trailers to the a receiver.
     pub fn send_trailers(&mut self) -> trailers::Sender {
+        self.has_trailers = true;
         let sender = self
             .trailers_sender
             .take()
@@ -544,12 +549,17 @@ impl Response {
     }
 
     /// Receive trailers from a sender.
-    pub async fn recv_trailers(&mut self) -> trailers::Receiver {
+    pub fn recv_trailers(&mut self) -> trailers::Receiver {
         let receiver = self
             .trailers_receiver
             .take()
             .expect("Trailers receiver can only be constructed once");
         trailers::Receiver::new(receiver)
+    }
+
+    /// Returns `true` if sending trailers is in progress.
+    pub fn has_trailers(&self) -> bool {
+        self.has_trailers
     }
 
     /// Sends an upgrade connection to the a receiver.
@@ -640,6 +650,7 @@ impl Clone for Response {
             version: self.version.clone(),
             trailers_sender: self.trailers_sender.clone(),
             trailers_receiver: self.trailers_receiver.clone(),
+            has_trailers: false,
             #[cfg(feature = "unstable")]
             upgrade_sender: self.upgrade_sender.clone(),
             #[cfg(feature = "unstable")]
