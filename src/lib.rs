@@ -131,6 +131,10 @@ pub mod trace;
 pub mod transfer;
 pub mod upgrade;
 
+cfg_unstable! {
+    pub mod multipart;
+}
+
 mod body;
 mod error;
 mod extensions;
