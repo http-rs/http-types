@@ -354,6 +354,6 @@ impl ContentSecurityPolicy {
         } else {
             "Content-Security-Policy"
         };
-        headers.as_mut().insert(name, self.value().to_owned());
+        headers.as_mut().insert(name, self.value());
     }
 }

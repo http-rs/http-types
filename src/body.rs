@@ -439,7 +439,7 @@ impl<'a> From<&'a str> for Body {
 
 impl From<Vec<u8>> for Body {
     fn from(b: Vec<u8>) -> Self {
-        Self::from_bytes(b.to_owned())
+        Self::from_bytes(b)
     }
 }
 

@@ -13,8 +13,7 @@ fn can_be_boxed() {
 #[test]
 fn internal_server_error_by_default() {
     fn run() -> http_types::Result<()> {
-        Err(io::Error::new(io::ErrorKind::Other, "Oh no"))?;
-        Ok(())
+        Err(io::Error::new(io::ErrorKind::Other, "Oh no").into())
     }
     let err = run().unwrap_err();
     assert_eq!(err.status(), 500);
@@ -23,7 +22,7 @@ fn internal_server_error_by_default() {
 #[test]
 fn ensure() {
     fn inner() -> http_types::Result<()> {
-        ensure!(1 == 1, "Oh yes");
+        ensure!(true, "Oh yes");
         bail!("Oh no!");
     }
     let res = inner();
