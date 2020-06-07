@@ -666,9 +666,9 @@ impl Clone for Response {
     /// - Any attached error is not cloned.
     fn clone(&self) -> Self {
         Self {
-            status: self.status.clone(),
+            status: self.status,
             headers: self.headers.clone(),
-            version: self.version.clone(),
+            version: self.version,
             trailers_sender: self.trailers_sender.clone(),
             trailers_receiver: self.trailers_receiver.clone(),
             has_trailers: false,

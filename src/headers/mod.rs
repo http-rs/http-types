@@ -4,6 +4,7 @@ mod constants;
 mod header_name;
 mod header_value;
 mod header_values;
+#[allow(clippy::module_inception)]
 mod headers;
 mod into_iter;
 mod iter;

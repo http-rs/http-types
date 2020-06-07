@@ -115,7 +115,7 @@ impl Request {
         self.forwarded_header_part("host")
             .or_else(|| {
                 self.header("X-Forwarded-Host")
-                    .and_then(|h| h.as_str().split(",").next())
+                    .and_then(|h| h.as_str().split(',').next())
             })
             .or_else(|| self.header(&headers::HOST).map(|h| h.as_str()))
             .or_else(|| self.url().host_str())
@@ -123,8 +123,8 @@ impl Request {
 
     fn forwarded_header_part(&self, part: &str) -> Option<&str> {
         self.header("Forwarded").and_then(|header| {
-            header.as_str().split(";").find_map(|key_equals_value| {
-                let parts = key_equals_value.split("=").collect::<Vec<_>>();
+            header.as_str().split(';').find_map(|key_equals_value| {
+                let parts = key_equals_value.split('=').collect::<Vec<_>>();
                 if parts.len() == 2 && parts[0].eq_ignore_ascii_case(part) {
                     Some(parts[1])
                 } else {
@@ -137,7 +137,7 @@ impl Request {
     fn forwarded_for(&self) -> Option<&str> {
         self.forwarded_header_part("for").or_else(|| {
             self.header("X-Forwarded-For")
-                .and_then(|header| header.as_str().split(",").next())
+                .and_then(|header| header.as_str().split(',').next())
         })
     }
 
@@ -871,10 +871,10 @@ impl Clone for Request {
     /// extensions.
     fn clone(&self) -> Self {
         Request {
-            method: self.method.clone(),
+            method: self.method,
             url: self.url.clone(),
             headers: self.headers.clone(),
-            version: self.version.clone(),
+            version: self.version,
             trailers_sender: None,
             trailers_receiver: None,
             body: Body::empty(),
@@ -1145,8 +1145,8 @@ mod tests {
             set_x_forwarded_for(&mut request, "forwarded-for-client.com");
             request.peer_addr = Some("127.0.0.1:8000".into());
 
-            assert_eq!(request.forwarded_for(), Some("forwarded.com".into()));
-            assert_eq!(request.remote(), Some("forwarded.com".into()));
+            assert_eq!(request.forwarded_for(), Some("forwarded.com"));
+            assert_eq!(request.remote(), Some("forwarded.com"));
         }
 
         #[test]
@@ -1155,7 +1155,7 @@ mod tests {
             request.peer_addr = Some("127.0.0.1:8000".into());
 
             assert_eq!(request.forwarded_for(), None);
-            assert_eq!(request.remote(), Some("127.0.0.1:8000".into()));
+            assert_eq!(request.remote(), Some("127.0.0.1:8000"));
         }
 
         #[test]
