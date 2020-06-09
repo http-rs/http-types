@@ -139,6 +139,12 @@ impl FromStr for Mime {
     }
 }
 
+impl<'a> From<&'a str> for Mime {
+    fn from(value: &'a str) -> Self {
+        Self::from_str(value).unwrap()
+    }
+}
+
 impl ToHeaderValues for Mime {
     type Iter = option::IntoIter<HeaderValue>;
 
