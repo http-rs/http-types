@@ -125,6 +125,7 @@ pub mod headers;
 pub mod mime;
 pub mod other;
 pub mod proxies;
+pub mod range;
 pub mod server;
 
 mod body;
