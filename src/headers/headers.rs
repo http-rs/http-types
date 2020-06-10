@@ -61,7 +61,7 @@ impl Headers {
     /// header if there aren't any. Or else append to the existing list of headers.
     pub fn append(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
         let name = name.into();
-        match self.get_mut(name.clone()) {
+        match self.get_mut(&name) {
             Some(headers) => {
                 let mut values: HeaderValues = values.to_header_values().unwrap().collect();
                 headers.append(&mut values);
