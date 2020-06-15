@@ -483,6 +483,11 @@ impl Response {
         self.error.take()
     }
 
+    /// Sets an `Error` on the response, accessible via `error()` and `take_error()`.
+    pub fn set_error(&mut self, error: Error) {
+        self.error = Some(error);
+    }
+
     /// Get the HTTP version, if one has been set.
     ///
     /// # Examples
