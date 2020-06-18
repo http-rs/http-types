@@ -615,31 +615,32 @@ impl Request {
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # #[async_std::main]
-    /// # async fn main() -> http_types::Result<()> {
-    /// use http_types::convert::{Deserialize, Serialize};
+    /// ```
+    /// use http_types::convert::Deserialize;
     /// use http_types::{Method, Request, Url};
+    /// use std::collections::HashMap;
     ///
-    /// #[derive(Serialize, Deserialize)]
+    /// #[derive(Deserialize)]
     /// struct Index {
     ///     page: u32,
+    ///     selections: HashMap<String, String>,
     /// }
     ///
     /// let req = Request::new(
     ///     Method::Get,
-    ///     Url::parse("https://httpbin.org/get?page=2").unwrap(),
+    ///     Url::parse("https://httpbin.org/get?page=2&selections[width]=narrow&selections[height]=tall").unwrap(),
     /// );
-    /// let Index { page } = req.query()?;
+    /// let Index { page, selections } = req.query().unwrap();
     /// assert_eq!(page, 2);
-    /// # Ok(()) }
+    /// assert_eq!(selections["width"], "narrow");
+    /// assert_eq!(selections["height"], "tall");
     /// ```
     pub fn query<T: serde::de::DeserializeOwned>(&self) -> crate::Result<T> {
         // Default to an empty query string if no query parameter has been specified.
         // This allows successful deserialisation of structs where all fields are optional
         // when none of those fields has actually been passed by the caller.
         let query = self.url().query().unwrap_or("");
-        serde_urlencoded::from_str(query).map_err(|e| {
+        serde_qs::from_str(query).map_err(|e| {
             // Return the displayable version of the deserialisation error to the caller
             // for easier debugging.
             crate::Error::from_str(StatusCode::BadRequest, format!("{}", e))
@@ -650,29 +651,28 @@ impl Request {
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # #[async_std::main]
-    /// # async fn main() -> http_types::Result<()> {
-    /// use http_types::convert::{Deserialize, Serialize};
+    /// ```
+    /// use http_types::convert::Serialize;
     /// use http_types::{Method, Request, Url};
+    /// use std::collections::HashMap;
     ///
-    /// #[derive(Serialize, Deserialize)]
+    /// #[derive(Serialize)]
     /// struct Index {
     ///     page: u32,
+    ///     topics: Vec<&'static str>,
     /// }
     ///
-    /// let query = Index { page: 2 };
+    /// let query = Index { page: 2, topics: vec!["rust", "crabs", "crustaceans"] };
     /// let mut req = Request::new(
     ///     Method::Get,
-    ///     Url::parse("https://httpbin.org/get?page=2").unwrap(),
+    ///     Url::parse("https://httpbin.org/get").unwrap(),
     /// );
-    /// req.set_query(&query)?;
-    /// assert_eq!(req.url().query(), Some("page=2"));
-    /// assert_eq!(req.url().as_str(), "https://httpbin.org/get?page=2");
-    /// # Ok(()) }
+    /// req.set_query(&query).unwrap();
+    /// assert_eq!(req.url().query(), Some("page=2&topics[0]=rust&topics[1]=crabs&topics[2]=crustaceans"));
     /// ```
-    pub fn set_query(&mut self, query: &(impl Serialize + ?Sized)) -> crate::Result<()> {
-        let query = serde_urlencoded::to_string(query)?;
+    pub fn set_query(&mut self, query: &impl Serialize) -> crate::Result<()> {
+        let query = serde_qs::to_string(query)
+            .map_err(|e| crate::Error::from_str(StatusCode::BadRequest, format!("{}", e)))?;
         self.url.set_query(Some(&query));
         Ok(())
     }
