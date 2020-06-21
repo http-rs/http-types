@@ -15,7 +15,7 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
-use crate::{Body, Extensions, StatusCode, Version};
+use crate::{Body, Error, Extensions, StatusCode, Version};
 
 cfg_unstable! {
     use crate::upgrade;
@@ -50,6 +50,7 @@ pin_project_lite::pin_project! {
         ext: Extensions,
         local_addr: Option<String>,
         peer_addr: Option<String>,
+        error: Option<Error>,
     }
 }
 
@@ -85,6 +86,7 @@ pin_project_lite::pin_project! {
         ext: Extensions,
         local_addr: Option<String>,
         peer_addr: Option<String>,
+        error: Option<Error>,
     }
 }
 
@@ -111,6 +113,7 @@ impl Response {
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
+            error: None,
         }
     }
 
@@ -140,6 +143,7 @@ impl Response {
             ext: Extensions::new(),
             peer_addr: None,
             local_addr: None,
+            error: None,
         }
     }
 
@@ -469,6 +473,21 @@ impl Response {
         self.body.is_empty()
     }
 
+    /// Returns an optional reference to the `Error` if the response was created from one, or else `None`.
+    pub fn error(&self) -> Option<&Error> {
+        self.error.as_ref()
+    }
+
+    /// Takes the `Error` from the response if one exists, replacing it with `None`.
+    pub fn take_error(&mut self) -> Option<Error> {
+        self.error.take()
+    }
+
+    /// Sets an `Error` on the response, accessible via `error()` and `take_error()`.
+    pub fn set_error(&mut self, error: Error) {
+        self.error = Some(error);
+    }
+
     /// Get the HTTP version, if one has been set.
     ///
     /// # Examples
@@ -641,8 +660,10 @@ impl Response {
 }
 
 impl Clone for Response {
-    /// Clone the response, resolving the body to `Body::empty()` and removing
-    /// extensions.
+    /// Clone the response, with some exceptions:
+    /// - The body is resolved to `Body::empty()`.
+    /// - Any attached extensions are not cloned.
+    /// - Any attached error is not cloned.
     fn clone(&self) -> Self {
         Self {
             status: self.status.clone(),
@@ -661,6 +682,7 @@ impl Clone for Response {
             ext: Extensions::new(),
             peer_addr: self.peer_addr.clone(),
             local_addr: self.local_addr.clone(),
+            error: None,
         }
     }
 }
@@ -730,6 +752,58 @@ impl Index<&str> for Response {
     #[inline]
     fn index(&self, name: &str) -> &HeaderValues {
         self.headers.index(name)
+    }
+}
+
+#[cfg(not(feature = "unstable"))]
+impl From<Error> for Response {
+    /// Create a new response from an `http_types::Error`.
+    ///
+    /// This will store the error in the `Response`, allowing it to later be
+    /// checked via `Response::error()`.
+    fn from(error: Error) -> Self {
+        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        Self {
+            status: error.status(),
+            headers: Headers::new(),
+            version: None,
+            body: Body::empty(),
+            trailers_sender: Some(trailers_sender),
+            trailers_receiver: Some(trailers_receiver),
+            has_trailers: false,
+            ext: Extensions::new(),
+            peer_addr: None,
+            local_addr: None,
+            error: Some(error),
+        }
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl From<Error> for Response {
+    /// Create a new response from an `http_types::Error`.
+    ///
+    /// This will store the error in the `Response`, allowing it to later be
+    /// checked via `Response::error()`.
+    fn from(error: Error) -> Self {
+        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
+        Self {
+            status: error.status(),
+            headers: Headers::new(),
+            version: None,
+            body: Body::empty(),
+            trailers_sender: Some(trailers_sender),
+            trailers_receiver: Some(trailers_receiver),
+            has_trailers: false,
+            upgrade_sender: Some(upgrade_sender),
+            upgrade_receiver: Some(upgrade_receiver),
+            has_upgrade: false,
+            ext: Extensions::new(),
+            peer_addr: None,
+            local_addr: None,
+            error: Some(error),
+        }
     }
 }
 
