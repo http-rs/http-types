@@ -125,7 +125,7 @@ impl Body {
     /// let body = Body::from_reader(cursor, None);
     /// let _ = body.into_reader();
     /// ```
-    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + 'static> {
+    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + Sync + 'static> {
         self.reader
     }
 
