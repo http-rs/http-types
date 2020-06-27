@@ -154,6 +154,13 @@ impl ToHeaderValues for Mime {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ParamName(Cow<'static, str>);
 
+impl ParamName {
+    /// Get the name as a `&str`
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 impl Display for ParamName {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         Display::fmt(&self.0, f)
@@ -181,6 +188,13 @@ impl<'a> From<&'a str> for ParamName {
 /// A parameter value.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ParamValue(Cow<'static, str>);
+
+impl ParamValue {
+    /// Get the value as a `&str`
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
 
 impl Display for ParamValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
