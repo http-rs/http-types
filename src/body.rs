@@ -405,6 +405,11 @@ impl Body {
         self.length.map(|length| length == 0)
     }
 
+    /// Transform the body into a HEAD body, which potentially has a length but no content
+    pub fn make_head(&mut self) {
+        self.reader = Box::new(io::empty());
+    }
+
     pub(crate) fn mime(&self) -> &Mime {
         &self.mime
     }
@@ -526,5 +531,14 @@ mod test {
         let body = Body::empty();
         let res = body.into_form::<Foo>().await;
         assert_eq!(res.unwrap_err().status(), 422);
+    }
+
+    #[async_std::test]
+    async fn make_head() {
+        let mut body = Body::from_string("hello".into());
+        body.make_head();
+
+        assert_eq!(body.len(), Some(5));
+        assert_eq!(body.into_string().await.unwrap(), "");
     }
 }

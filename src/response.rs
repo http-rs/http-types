@@ -722,6 +722,12 @@ impl AsMut<Headers> for Response {
     }
 }
 
+impl AsMut<Body> for Response {
+    fn as_mut(&mut self) -> &mut Body {
+        &mut self.body
+    }
+}
+
 impl From<()> for Response {
     fn from(_: ()) -> Self {
         Response::new(StatusCode::NoContent)
