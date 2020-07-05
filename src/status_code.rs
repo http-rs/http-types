@@ -75,6 +75,13 @@ pub enum StatusCode {
     /// to request only part of a resource.
     PartialContent = 206,
 
+    /// 207 Multi-Status
+    ///
+    /// A Multi-Status response conveys information about
+    /// multiple resources in situations where multiple
+    /// status codes might be appropriate.
+    MultiStatus = 207,
+
     /// 226 Im Used
     ///
     /// The server has fulfilled a GET request for the resource, and the
@@ -477,6 +484,7 @@ impl StatusCode {
             StatusCode::NoContent => "No Content",
             StatusCode::ResetContent => "Reset Content",
             StatusCode::PartialContent => "Partial Content",
+            StatusCode::MultiStatus => "Multi-Status",
             StatusCode::ImUsed => "Im Used",
             StatusCode::MultipleChoice => "Multiple Choice",
             StatusCode::MovedPermanently => "Moved Permanently",
@@ -550,6 +558,7 @@ impl std::convert::TryFrom<u16> for StatusCode {
             204 => Ok(StatusCode::NoContent),
             205 => Ok(StatusCode::ResetContent),
             206 => Ok(StatusCode::PartialContent),
+            207 => Ok(StatusCode::MultiStatus),
             226 => Ok(StatusCode::ImUsed),
             300 => Ok(StatusCode::MultipleChoice),
             301 => Ok(StatusCode::MovedPermanently),
