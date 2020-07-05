@@ -76,6 +76,7 @@ pub enum StatusCode {
     PartialContent = 206,
 
     /// 207 Multi-Status
+    ///
     /// A Multi-Status response conveys information about
     /// multiple resources in situations where multiple
     /// status codes might be appropriate.
