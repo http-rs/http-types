@@ -214,7 +214,7 @@ impl Body {
     /// # async_std::task::block_on(async {
     /// use http_types::Body;
     /// use async_std::io::Cursor;
-    ///  
+    ///
     /// let cursor = Cursor::new("Hello Nori");
     /// let body = Body::from_reader(cursor, None);
     /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
@@ -497,6 +497,7 @@ fn guess_ext(path: &std::path::Path) -> Option<Mime> {
         Some("json") => Some(mime::JSON),
         Some("css") => Some(mime::CSS),
         Some("svg") => Some(mime::SVG),
+        Some("xml") => Some(mime::XML),
         None | Some(_) => None,
     }
 }

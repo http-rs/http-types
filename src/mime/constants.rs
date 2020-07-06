@@ -47,6 +47,7 @@ utf8_mime_const!(JAVASCRIPT, "JavaScript", "application", "javascript");
 utf8_mime_const!(CSS, "CSS", "text", "css");
 utf8_mime_const!(HTML, "HTML", "text", "html");
 utf8_mime_const!(PLAIN, "Plain text", "text", "plain");
+utf8_mime_const!(XML, "XML", "application", "xml");
 mime_const!(ANY, "matching anything", "*", "*");
 mime_const!(JSON, "JSON", "application", "json");
 mime_const!(SVG, "SVG", "image", "svg+xml");
