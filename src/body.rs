@@ -105,10 +105,35 @@ impl Body {
         reader: impl BufRead + Unpin + Send + Sync + 'static,
         len: Option<usize>,
     ) -> Self {
+        Self::from_reader_with_mime(reader, mime::BYTE_STREAM, len)
+    }
+
+    /// Create a `Body` from a reader with a mime type and optional length.
+    ///
+    /// If a `Body` has no length, HTTP implementations will often switch over to
+    /// framed messages such as [Chunked
+    /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use http_types::{Body, Response, StatusCode, mime};
+    /// use async_std::io::Cursor;
+    ///
+    /// let mut req = Response::new(StatusCode::Ok);
+    ///
+    /// let cursor = Cursor::new("<h1>Hello Nori</h1>");
+    /// req.set_body(Body::from_reader_with_mime(cursor, mime::HTML, None));
+    /// ```
+    pub fn from_reader_with_mime(
+        reader: impl BufRead + Unpin + Send + Sync + 'static,
+        mime: Mime,
+        length: Option<usize>,
+    ) -> Self {
         Self {
             reader: Box::new(reader),
-            mime: mime::BYTE_STREAM,
-            length: len,
+            mime,
+            length,
         }
     }
 
