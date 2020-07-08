@@ -491,15 +491,7 @@ async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
 #[cfg(all(feature = "async_std", not(target_os = "unknown")))]
 fn guess_ext(path: &std::path::Path) -> Option<Mime> {
     let ext = path.extension().map(|p| p.to_str()).flatten();
-    match ext {
-        Some("html") => Some(mime::HTML),
-        Some("js") | Some("mjs") | Some("jsonp") => Some(mime::JAVASCRIPT),
-        Some("json") => Some(mime::JSON),
-        Some("css") => Some(mime::CSS),
-        Some("svg") => Some(mime::SVG),
-        Some("xml") => Some(mime::XML),
-        None | Some(_) => None,
-    }
+    ext.and_then(Mime::from_extension)
 }
 
 #[cfg(test)]
