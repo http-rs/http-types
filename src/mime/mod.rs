@@ -50,6 +50,19 @@ impl Mime {
         Mime::from_str(&mime)
     }
 
+    /// Guess the mime type from a file extension
+    pub fn from_extension(extension: impl AsRef<str>) -> Option<Self> {
+        match extension.as_ref() {
+            "html" => Some(HTML),
+            "js" | "mjs" | "jsonp" => Some(JAVASCRIPT),
+            "json" => Some(JSON),
+            "css" => Some(CSS),
+            "svg" => Some(SVG),
+            "xml" => Some(XML),
+            _ => None,
+        }
+    }
+
     /// Access the Mime's `type` value.
     ///
     /// According to the spec this method should be named `type`, but that's a reserved keyword in
