@@ -405,8 +405,14 @@ impl Body {
         self.length.map(|length| length == 0)
     }
 
-    pub(crate) fn mime(&self) -> &Mime {
+    /// Returns the mime type of this Body.
+    pub fn mime(&self) -> &Mime {
         &self.mime
+    }
+
+    /// Sets the mime type of this Body.
+    pub fn set_mime(&mut self, mime: impl Into<Mime>) {
+        self.mime = mime.into();
     }
 }
 
