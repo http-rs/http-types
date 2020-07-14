@@ -13,7 +13,7 @@ impl From<http::Method> for Method {
 
 impl From<Method> for http::Method {
     fn from(method: Method) -> Self {
-        http::Method::from_str(&format!("{}", method)).unwrap()
+        http::Method::from_str(method.as_ref()).unwrap()
     }
 }
 
