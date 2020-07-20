@@ -41,6 +41,7 @@ serde = { version = "1.0.106", features = ["derive"] }
 serde_urlencoded = "0.6.1"
 rand = "0.7.3"
 serde_qs = "0.6.0"
+pin-project = "0.4.22"
 
 [dev-dependencies]
 http = "0.2.0"

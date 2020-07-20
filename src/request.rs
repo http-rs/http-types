@@ -15,32 +15,43 @@ use crate::headers::{
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
 use crate::{Body, Extensions, Method, StatusCode, Url, Version};
+use pin_project::{pin_project, pinned_drop};
+/// An HTTP request.
+///
+/// # Examples
+///
+/// ```
+/// use http_types::{Url, Method, Request};
+///
+/// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+/// req.set_body("Hello, Nori!");
+/// ```
+#[pin_project(PinnedDrop)]
+#[derive(Debug)]
+pub struct Request {
+    method: Method,
+    url: Url,
+    headers: Headers,
+    version: Option<Version>,
+    #[pin]
+    body: Body,
+    local_addr: Option<String>,
+    peer_addr: Option<String>,
+    ext: Extensions,
+    trailers_sender: Option<sync::Sender<Trailers>>,
+    trailers_receiver: Option<sync::Receiver<Trailers>>,
+    has_trailers: bool,
+    ext_sender: Option<sync::Sender<Extensions>>,
+}
 
-pin_project_lite::pin_project! {
-    /// An HTTP request.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use http_types::{Url, Method, Request};
-    ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
-    /// req.set_body("Hello, Nori!");
-    /// ```
-    #[derive(Debug)]
-    pub struct Request {
-        method: Method,
-        url: Url,
-        headers: Headers,
-        version: Option<Version>,
-        #[pin]
-        body: Body,
-        local_addr: Option<String>,
-        peer_addr: Option<String>,
-        ext: Extensions,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
-        has_trailers: bool,
+#[pinned_drop]
+impl PinnedDrop for Request {
+    fn drop(self: Pin<&mut Self>) {
+        let request = self.project();
+        if let Some(sender) = request.ext_sender.take() {
+            let ext = mem::replace(&mut *request.ext, Extensions::new());
+            async_std::task::spawn(async move { sender.send(ext).await });
+        }
     }
 }
 
@@ -65,6 +76,7 @@ impl Request {
             trailers_receiver: Some(trailers_receiver),
             trailers_sender: Some(trailers_sender),
             has_trailers: false,
+            ext_sender: None,
         }
     }
 
@@ -677,6 +689,14 @@ impl Request {
         Ok(())
     }
 
+    /// registers a channel
+    /// [`Sender<Extensions>`](async_std::sync::Sender), the other end
+    /// of which will receive the [`Extensions`] of this request when
+    /// the request is dropped.
+    pub fn set_ext_sender(&mut self, sender: sync::Sender<Extensions>) {
+        self.ext_sender = Some(sender);
+    }
+
     /// Create a `GET` request.
     ///
     /// The `GET` method requests a representation of the specified resource.
@@ -882,6 +902,7 @@ impl Clone for Request {
             peer_addr: self.peer_addr.clone(),
             local_addr: self.local_addr.clone(),
             has_trailers: false,
+            ext_sender: None,
         }
     }
 }
@@ -922,8 +943,8 @@ impl AsMut<Headers> for Request {
 }
 
 impl From<Request> for Body {
-    fn from(req: Request) -> Body {
-        req.body
+    fn from(mut req: Request) -> Body {
+        req.take_body()
     }
 }
 
@@ -961,8 +982,8 @@ impl IntoIterator for Request {
 
     /// Returns a iterator of references over the remaining items.
     #[inline]
-    fn into_iter(self) -> Self::IntoIter {
-        self.headers.into_iter()
+    fn into_iter(mut self) -> Self::IntoIter {
+        mem::replace(&mut self.headers, Headers::new()).into_iter()
     }
 }
 
@@ -1164,6 +1185,18 @@ mod tests {
             assert_eq!(request.forwarded_for(), None);
             assert_eq!(request.remote(), None);
         }
+    }
+
+    #[async_std::test]
+    async fn sending_ext() -> crate::Result<()> {
+        let (tx, rx) = sync::channel(1);
+        let mut request = Request::new(Method::Get, Url::parse("https://async.rs")?);
+        request.ext_mut().insert(String::from("hello"));
+        request.set_ext_sender(tx);
+        mem::drop(request);
+        let ext = rx.recv().await?;
+        assert_eq!(ext.get::<String>().unwrap(), "hello");
+        Ok(())
     }
 
     fn build_test_request() -> Request {
