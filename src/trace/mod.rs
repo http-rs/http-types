@@ -9,8 +9,9 @@
 //! - [W3C Trace-Context headers](https://w3c.github.io/trace-context/)
 //! - [W3C Server-Timing headers](https://w3c.github.io/server-timing/#the-server-timing-header-field)
 
-mod server_timing;
+pub mod server_timing;
 mod trace_context;
 
-pub use server_timing::{ServerTiming, TimingEntry};
+#[doc(inline)]
+pub use server_timing::ServerTiming;
 pub use trace_context::TraceContext;

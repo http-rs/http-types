@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-/// An individual [`ServerTiming`] entry.
+/// An individual `ServerTiming` entry.
 //
 // # Implementation notes
 //
@@ -13,14 +13,14 @@ use std::time::Duration;
 //
 // Multiple different entries per line are supported; separated with a `,`.
 #[derive(Debug)]
-pub struct TimingEntry {
+pub struct Entry {
     name: String,
     dur: Option<Duration>,
     desc: Option<String>,
 }
 
-impl TimingEntry {
-    /// Create a new instance of `TimingEntry`.
+impl Entry {
+    /// Create a new instance of `Entry`.
     pub fn new(name: String, dur: Option<Duration>, desc: Option<String>) -> Self {
         Self { name, dur, desc }
     }
@@ -54,20 +54,4 @@ impl TimingEntry {
     pub fn set_description(&mut self, desc: Option<String>) {
         self.desc = desc;
     }
-}
-
-/// Communicate one or more metrics and descriptions for the given request-response cycle.
-///
-/// This is an implementation of the W3C [Server
-/// Timing](https://w3c.github.io/server-timing/#the-server-timing-header-field)
-/// header spec. Read more on
-/// [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing).
-#[derive(Debug)]
-pub struct ServerTiming {
-    timings: Vec<TimingEntry>,
-}
-
-mod test {
-    const CASE1: &str =
-        "Server-Timing: metric1; dur=1.1; desc=document, metric1; dur=1.2; desc=document";
 }
