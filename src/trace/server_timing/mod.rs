@@ -128,7 +128,7 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-mod test {
-    const CASE1: &str =
-        "Server-Timing: metric1; dur=1.1; desc=document, metric1; dur=1.2; desc=document";
-}
+// mod test {
+//     const CASE1: &str =
+//         "Server-Timing: metric1; dur=1.1; desc=document, metric1; dur=1.2; desc=document";
+// }

@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use crate::headers::HeaderValue;
+
 /// An individual `ServerTiming` entry.
 //
 // # Implementation notes
@@ -21,8 +23,17 @@ pub struct Entry {
 
 impl Entry {
     /// Create a new instance of `Entry`.
-    pub fn new(name: String, dur: Option<Duration>, desc: Option<String>) -> Self {
-        Self { name, dur, desc }
+    ///
+    /// # Errors
+    ///
+    /// An error will be returned if the string values are invalid ASCII.
+    pub fn new(name: String, dur: Option<Duration>, desc: Option<String>) -> crate::Result<Self> {
+        crate::ensure!(name.is_ascii(), "Name should be valid ASCII");
+        if let Some(desc) = desc.as_ref() {
+            crate::ensure!(desc.is_ascii(), "Description should be valid ASCII");
+        };
+
+        Ok(Self { name, dur, desc })
     }
 
     /// The timing name.
@@ -30,28 +41,56 @@ impl Entry {
         &self.name
     }
 
-    /// Set the timing name.
-    pub fn set_name(&mut self, name: String) {
-        self.name = name;
-    }
-
     /// The timing duration.
     pub fn duration(&self) -> Option<Duration> {
         self.dur
-    }
-
-    /// Set the timing name.
-    pub fn set_duration(&mut self, dur: Option<Duration>) {
-        self.dur = dur;
     }
 
     /// The timing description.
     pub fn description(&self) -> Option<&String> {
         self.desc.as_ref()
     }
+}
 
-    /// Set the timing description.
-    pub fn set_description(&mut self, desc: Option<String>) {
-        self.desc = desc;
+impl From<Entry> for HeaderValue {
+    fn from(entry: Entry) -> HeaderValue {
+        let mut string = entry.name;
+
+        // Format a `Duration` into the format that the spec expects.
+        let f = |d: Duration| d.as_secs_f64() * 1000.0;
+
+        match (entry.dur, entry.desc) {
+            (Some(dur), Some(desc)) => {
+                string.push_str(&format!("; dur={}; desc=\"{}\"", f(dur), desc))
+            }
+            (Some(dur), None) => string.push_str(&format!("; dur={}", f(dur))),
+            (None, Some(desc)) => string.push_str(&format!("; desc=\"{}\"", desc)),
+            (None, None) => {}
+        };
+
+        // SAFETY: we validate that the values are valid ASCII on creation.
+        unsafe { HeaderValue::from_bytes_unchecked(string.into_bytes()) }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn create_header_value() -> crate::Result<()> {
+        let name = String::from("Server");
+        let dur = Duration::from_secs(1);
+        let desc = String::from("A server timing");
+
+        let val: HeaderValue = Entry::new(name.clone(), None, None)?.into();
+        assert_eq!(val, "Server");
+
+        let val: HeaderValue = Entry::new(name.clone(), Some(dur), None)?.into();
+        assert_eq!(val, "Server; dur=1000");
+
+        let val: HeaderValue = Entry::new(name.clone(), Some(dur), Some(desc.clone()))?.into();
+        assert_eq!(val, r#"Server; dur=1000; desc="A server timing""#);
+        Ok(())
     }
 }
