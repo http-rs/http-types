@@ -43,10 +43,10 @@ impl Method {
     ///
     /// See [the spec](https://tools.ietf.org/html/rfc7231#section-4.2.1) for more details.
     pub fn is_safe(&self) -> bool {
-        match self {
-            Method::Get | Method::Head | Method::Options | Method::Trace => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Method::Get | Method::Head | Method::Options | Method::Trace
+        )
     }
 }
 

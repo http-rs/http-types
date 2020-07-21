@@ -119,7 +119,7 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
 
 /// Validates [HTTP token code points](https://mimesniff.spec.whatwg.org/#http-token-code-point)
 fn is_http_token_code_point(c: char) -> bool {
-    match c {
+    matches!(c,
         '!'
         | '#'
         | '$'
@@ -137,25 +137,17 @@ fn is_http_token_code_point(c: char) -> bool {
         | '~'
         | 'a'..='z'
         | 'A'..='Z'
-        | '0'..='9' => true,
-        _ => false,
-    }
+        | '0'..='9')
 }
 
 /// Validates [HTTP quoted-string token code points](https://mimesniff.spec.whatwg.org/#http-quoted-string-token-code-point)
 fn is_http_quoted_string_token_code_point(c: char) -> bool {
-    match c {
-        '\t' | ' '..='~' | '\u{80}'..='\u{FF}' => true,
-        _ => false,
-    }
+    matches!(c, '\t' | ' '..='~' | '\u{80}'..='\u{FF}')
 }
 
 /// Is a [HTTP whitespace](https://fetch.spec.whatwg.org/#http-whitespace)
 fn is_http_whitespace_char(c: char) -> bool {
-    match c {
-        '\n' | '\r' | '\t' | ' ' => true,
-        _ => false,
-    }
+    matches!(c, '\n' | '\r' | '\t' | ' ')
 }
 
 /// [code point sequence collection](https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points)
