@@ -50,7 +50,12 @@ impl PinnedDrop for Request {
         let request = self.project();
         if let Some(sender) = request.ext_sender.take() {
             let ext = mem::replace(&mut *request.ext, Extensions::new());
+
+            #[cfg(not(target_arch = "wasm32"))]
             async_std::task::spawn(async move { sender.send(ext).await });
+
+            #[cfg(target_arch = "wasm32")]
+            async_std::task::block_on(async move { sender.send(ext).await });
         }
     }
 }
