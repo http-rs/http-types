@@ -1,11 +1,17 @@
 //! Metrics and descriptions for the given request-response cycle.
 
 mod entry;
+mod parse;
 
 pub use entry::Entry;
+use parse::parse_header;
 
+use std::convert::AsMut;
 use std::iter::Iterator;
 use std::slice;
+
+use crate::headers::HeaderValue;
+use crate::Headers;
 
 /// Metrics and descriptions for the given request-response cycle.
 ///
@@ -19,6 +25,33 @@ pub struct ServerTiming {
 }
 
 impl ServerTiming {
+    /// Create a new instance of `ServerTiming`.
+    pub fn new() -> Self {
+        Self { timings: vec![] }
+    }
+    /// Create a new instance from headers.
+    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Self> {
+        let mut timings = vec![];
+        let values = headers.as_ref().get("server-timing");
+        for value in values.iter().map(|h| h.iter()).flatten() {
+            parse_header(value.as_str(), &mut timings)?;
+        }
+        Ok(Self { timings })
+    }
+
+    /// Sets the `Server-Timing` header.
+    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
+        for timing in &self.timings {
+            let value: HeaderValue = timing.clone().into();
+            headers.as_mut().insert("server-timing", value);
+        }
+    }
+
+    /// Push an entry into the list of entries.
+    pub fn push(&mut self, entry: Entry) {
+        self.timings.push(entry);
+    }
+
     /// An iterator visiting all server timings.
     pub fn into_iter(self) -> IntoIter {
         IntoIter {
@@ -128,7 +161,22 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-// mod test {
-//     const CASE1: &str =
-//         "Server-Timing: metric1; dur=1.1; desc=document, metric1; dur=1.2; desc=document";
-// }
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::headers::Headers;
+
+    #[test]
+    fn smoke() -> crate::Result<()> {
+        let mut timings = ServerTiming::new();
+        timings.push(Entry::new("server".to_owned(), None, None)?);
+
+        let mut headers = Headers::new();
+        timings.apply(&mut headers);
+
+        let timings = ServerTiming::from_headers(headers)?;
+        let entry = timings.iter().next().unwrap();
+        assert_eq!(entry.name(), "server");
+        Ok(())
+    }
+}
