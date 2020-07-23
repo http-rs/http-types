@@ -100,13 +100,13 @@ impl ServerTiming {
     pub fn value(&self) -> HeaderValue {
         let mut output = String::new();
         for (n, timing) in self.timings.iter().enumerate() {
-            let timing: HeaderValue = timing.into();
+            let timing: HeaderValue = timing.clone().into();
             match n {
-                1 => write!(output, "{}", timing),
-                _ => write!(output, ", {}", timing),
+                1 => write!(output, "{}", timing).unwrap(),
+                _ => write!(output, ", {}", timing).unwrap(),
             };
         }
-        output.as_ref().into()
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 
     /// Push an entry into the list of entries.
@@ -251,9 +251,9 @@ mod test {
     }
 
     #[test]
-    fn to_header_values() {
+    fn to_header_values() -> crate::Result<()> {
         let mut timings = ServerTiming::new();
-        timings.push(Entry::new("server".to_owned(), None, None)?);
+        timings.push(Metric::new("server".to_owned(), None, None)?);
 
         let mut headers = Headers::new();
         timings.apply(&mut headers);
