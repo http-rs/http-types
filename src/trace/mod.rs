@@ -13,5 +13,5 @@ pub mod server_timing;
 mod trace_context;
 
 #[doc(inline)]
-pub use server_timing::ServerTiming;
+pub use server_timing::{Metric, ServerTiming};
 pub use trace_context::TraceContext;
