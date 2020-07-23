@@ -7,11 +7,12 @@ pub use entry::Entry;
 use parse::parse_header;
 
 use std::convert::AsMut;
+use std::fmt::Write;
 use std::iter::Iterator;
+use std::option;
 use std::slice;
 
-use crate::headers::HeaderValue;
-use crate::Headers;
+use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, SERVER_TIMING};
 
 /// Metrics and descriptions for the given request-response cycle.
 ///
@@ -29,10 +30,11 @@ impl ServerTiming {
     pub fn new() -> Self {
         Self { timings: vec![] }
     }
+
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Self> {
         let mut timings = vec![];
-        let values = headers.as_ref().get("server-timing");
+        let values = headers.as_ref().get(SERVER_TIMING);
         for value in values.iter().map(|h| h.iter()).flatten() {
             parse_header(value.as_str(), &mut timings)?;
         }
@@ -43,8 +45,26 @@ impl ServerTiming {
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
         for timing in &self.timings {
             let value: HeaderValue = timing.clone().into();
-            headers.as_mut().insert("server-timing", value);
+            headers.as_mut().insert(SERVER_TIMING, value);
         }
+    }
+
+    /// Get the `HeaderName`.
+    pub fn name(&self) -> HeaderName {
+        SERVER_TIMING
+    }
+
+    /// Get the `HeaderValue`.
+    pub fn value(&self) -> HeaderValue {
+        let mut output = String::new();
+        for (n, timing) in self.timings.iter().enumerate() {
+            let timing: HeaderValue = timing.into();
+            match n {
+                1 => write!(output, "{}", timing),
+                _ => write!(output, ", {}", timing),
+            };
+        }
+        output.as_ref().into()
     }
 
     /// Push an entry into the list of entries.
@@ -88,7 +108,7 @@ impl<'a> IntoIterator for &'a ServerTiming {
     type Item = &'a Entry;
     type IntoIter = Iter<'a>;
 
-    #[inline]
+    // #[inline]serv
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
@@ -161,6 +181,14 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
+impl ToHeaderValues for ServerTiming {
+    type Iter = option::IntoIter<HeaderValue>;
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
+        // A HeaderValue will always convert into itself.
+        Ok(self.value().to_header_values().unwrap())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -168,6 +196,20 @@ mod test {
 
     #[test]
     fn smoke() -> crate::Result<()> {
+        let mut timings = ServerTiming::new();
+        timings.push(Entry::new("server".to_owned(), None, None)?);
+
+        let mut headers = Headers::new();
+        timings.apply(&mut headers);
+
+        let timings = ServerTiming::from_headers(headers)?;
+        let entry = timings.iter().next().unwrap();
+        assert_eq!(entry.name(), "server");
+        Ok(())
+    }
+
+    #[test]
+    fn to_header_values() {
         let mut timings = ServerTiming::new();
         timings.push(Entry::new("server".to_owned(), None, None)?);
 
