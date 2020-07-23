@@ -244,8 +244,7 @@ mod test {
 
     #[test]
     fn no_header() -> crate::Result<()> {
-        let mut headers = crate::Headers::new();
-        let context = TraceContext::from_headers(&mut headers).unwrap();
+        let context = TraceContext::new();
         assert_eq!(context.version(), 0);
         assert_eq!(context.parent_id(), None);
         assert_eq!(context.flags, 1);
