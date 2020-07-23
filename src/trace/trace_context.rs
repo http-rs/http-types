@@ -13,7 +13,7 @@ use crate::headers::{HeaderName, HeaderValue, Headers, TRACEPARENT};
 /// let mut res = http_types::Response::new(200);
 ///
 /// res.insert_header(
-///     TRACEPARENT,
+///     "traceparent",
 ///     "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
 /// );
 ///
@@ -70,7 +70,7 @@ impl TraceContext {
     ///
     /// let mut res = http_types::Response::new(200);
     /// res.insert_header(
-    ///   TRACEPARENT,
+    ///   "traceparent",
     ///   "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
     /// );
     ///
@@ -112,7 +112,7 @@ impl TraceContext {
     ///
     /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.insert_header(
-    ///   TRACEPARENT,
+    ///   "traceparent",
     ///   "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
     /// );
     ///
@@ -193,7 +193,7 @@ impl TraceContext {
     /// use http_types::Response;
     ///
     /// let mut res = Response::new(200);
-    /// res.insert_header(TRACEPARENT, "00-00000000000000000000000000000001-0000000000000002-01");
+    /// res.insert_header("traceparent", "00-00000000000000000000000000000001-0000000000000002-01");
     /// let context = TraceContext::from_headers(&res).unwrap();
     /// assert_eq!(context.sampled(), true);
     /// ```
