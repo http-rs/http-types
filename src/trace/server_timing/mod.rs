@@ -14,7 +14,7 @@
 //! let mut res = Response::new(200);
 //! timings.apply(&mut res);
 //!
-//! let timings = ServerTiming::from_headers(res)?;
+//! let timings = ServerTiming::from_headers(res).unwrap();
 //! let entry = timings.iter().next().unwrap();
 //! assert_eq!(entry.name(), "server");
 //! #
@@ -56,7 +56,7 @@ use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, SERVER_TI
 /// let mut res = Response::new(200);
 /// timings.apply(&mut res);
 ///
-/// let timings = ServerTiming::from_headers(res)?;
+/// let timings = ServerTiming::from_headers(res).unwrap();
 /// let entry = timings.iter().next().unwrap();
 /// assert_eq!(entry.name(), "server");
 /// #
@@ -74,13 +74,12 @@ impl ServerTiming {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Self> {
+    pub fn from_headers(headers: impl AsRef<Headers>) -> Option<Self> {
         let mut timings = vec![];
-        let values = headers.as_ref().get(SERVER_TIMING);
-        for value in values.iter().map(|h| h.iter()).flatten() {
-            parse_header(value.as_str(), &mut timings)?;
+        for value in headers.as_ref().get(SERVER_TIMING)? {
+            parse_header(value.as_str(), &mut timings).ok()?;
         }
-        Ok(Self { timings })
+        Some(Self { timings })
     }
 
     /// Sets the `Server-Timing` header.
@@ -241,7 +240,7 @@ mod test {
         let mut headers = Headers::new();
         timings.apply(&mut headers);
 
-        let timings = ServerTiming::from_headers(headers)?;
+        let timings = ServerTiming::from_headers(headers).unwrap();
         let entry = timings.iter().next().unwrap();
         assert_eq!(entry.name(), "server");
         Ok(())
@@ -255,7 +254,7 @@ mod test {
         let mut headers = Headers::new();
         timings.apply(&mut headers);
 
-        let timings = ServerTiming::from_headers(headers)?;
+        let timings = ServerTiming::from_headers(headers).unwrap();
         let entry = timings.iter().next().unwrap();
         assert_eq!(entry.name(), "server");
         Ok(())
