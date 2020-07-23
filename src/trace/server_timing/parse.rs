@@ -1,13 +1,13 @@
 use std::time::Duration;
 
-use super::Entry;
+use super::Metric;
 use crate::Status;
 use crate::{ensure, format_err};
 
 /// Parse multiple entries from a single header.
 ///
 /// Each entry is comma-delimited.
-pub(super) fn parse_header(s: &str, entries: &mut Vec<Entry>) -> crate::Result<()> {
+pub(super) fn parse_header(s: &str, entries: &mut Vec<Metric>) -> crate::Result<()> {
     for part in s.trim().split(',') {
         let entry = parse_entry(part)?;
         entries.push(entry);
@@ -27,7 +27,7 @@ pub(super) fn parse_header(s: &str, entries: &mut Vec<Entry>) -> crate::Result<(
 /// ```
 //
 /// Source: https://w3c.github.io/server-timing/#the-server-timing-header-field
-fn parse_entry(s: &str) -> crate::Result<Entry> {
+fn parse_entry(s: &str) -> crate::Result<Metric> {
     let mut parts = s.trim().split(';');
 
     // Get the name. This is non-optional.
@@ -86,7 +86,7 @@ fn parse_entry(s: &str) -> crate::Result<Entry> {
         }
     }
 
-    Ok(Entry {
+    Ok(Metric {
         name: name.to_string(),
         dur,
         desc,

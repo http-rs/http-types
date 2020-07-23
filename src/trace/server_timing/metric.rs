@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::headers::HeaderValue;
 
-/// An individual `ServerTiming` entry.
+/// An individual entry into `ServerTiming`.
 //
 // # Implementation notes
 //
@@ -15,14 +15,14 @@ use crate::headers::HeaderValue;
 //
 // Multiple different entries per line are supported; separated with a `,`.
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Entry {
+pub struct Metric {
     pub(crate) name: String,
     pub(crate) dur: Option<Duration>,
     pub(crate) desc: Option<String>,
 }
 
-impl Entry {
-    /// Create a new instance of `Entry`.
+impl Metric {
+    /// Create a new instance of `Metric`.
     ///
     /// # Errors
     ///
@@ -52,8 +52,8 @@ impl Entry {
     }
 }
 
-impl From<Entry> for HeaderValue {
-    fn from(entry: Entry) -> HeaderValue {
+impl From<Metric> for HeaderValue {
+    fn from(entry: Metric) -> HeaderValue {
         let mut string = entry.name;
 
         // Format a `Duration` into the format that the spec expects.
@@ -85,16 +85,16 @@ mod test {
         let dur = Duration::from_secs(1);
         let desc = String::from("A server timing");
 
-        let val: HeaderValue = Entry::new(name.clone(), None, None)?.into();
+        let val: HeaderValue = Metric::new(name.clone(), None, None)?.into();
         assert_eq!(val, "Server");
 
-        let val: HeaderValue = Entry::new(name.clone(), Some(dur), None)?.into();
+        let val: HeaderValue = Metric::new(name.clone(), Some(dur), None)?.into();
         assert_eq!(val, "Server; dur=1000");
 
-        let val: HeaderValue = Entry::new(name.clone(), None, Some(desc.clone()))?.into();
+        let val: HeaderValue = Metric::new(name.clone(), None, Some(desc.clone()))?.into();
         assert_eq!(val, r#"Server; desc="A server timing""#);
 
-        let val: HeaderValue = Entry::new(name.clone(), Some(dur), Some(desc.clone()))?.into();
+        let val: HeaderValue = Metric::new(name.clone(), Some(dur), Some(desc.clone()))?.into();
         assert_eq!(val, r#"Server; dur=1000; desc="A server timing""#);
         Ok(())
     }

@@ -1,9 +1,30 @@
 //! Metrics and descriptions for the given request-response cycle.
+//!
+//! # Examples
+//!
+//! ```
+//! # fn main() -> http_types::Result<()> {
+//! #
+//! use http_types::Response;
+//! use http_types::trace::{ServerTiming, Metric};
+//!
+//! let mut timings = ServerTiming::new();
+//! timings.push(Metric::new("server".to_owned(), None, None)?);
+//!
+//! let mut res = Response::new(200);
+//! timings.apply(&mut res);
+//!
+//! let timings = ServerTiming::from_headers(res)?;
+//! let entry = timings.iter().next().unwrap();
+//! assert_eq!(entry.name(), "server");
+//! #
+//! # Ok(()) }
+//! ```
 
-mod entry;
+mod metric;
 mod parse;
 
-pub use entry::Entry;
+pub use metric::Metric;
 use parse::parse_header;
 
 use std::convert::AsMut;
@@ -19,9 +40,30 @@ use crate::Headers;
 /// Timing](https://w3c.github.io/server-timing/#the-server-timing-header-field)
 /// header spec. Read more on
 /// [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing).
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> http_types::Result<()> {
+/// #
+/// use http_types::Response;
+/// use http_types::trace::{ServerTiming, Metric};
+///
+/// let mut timings = ServerTiming::new();
+/// timings.push(Metric::new("server".to_owned(), None, None)?);
+///
+/// let mut res = Response::new(200);
+/// timings.apply(&mut res);
+///
+/// let timings = ServerTiming::from_headers(res)?;
+/// let entry = timings.iter().next().unwrap();
+/// assert_eq!(entry.name(), "server");
+/// #
+/// # Ok(()) }
+/// ```
 #[derive(Debug)]
 pub struct ServerTiming {
-    timings: Vec<Entry>,
+    timings: Vec<Metric>,
 }
 
 impl ServerTiming {
@@ -48,7 +90,7 @@ impl ServerTiming {
     }
 
     /// Push an entry into the list of entries.
-    pub fn push(&mut self, entry: Entry) {
+    pub fn push(&mut self, entry: Metric) {
         self.timings.push(entry);
     }
 
@@ -75,7 +117,7 @@ impl ServerTiming {
 }
 
 impl IntoIterator for ServerTiming {
-    type Item = Entry;
+    type Item = Metric;
     type IntoIter = IntoIter;
 
     #[inline]
@@ -85,7 +127,7 @@ impl IntoIterator for ServerTiming {
 }
 
 impl<'a> IntoIterator for &'a ServerTiming {
-    type Item = &'a Entry;
+    type Item = &'a Metric;
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -95,7 +137,7 @@ impl<'a> IntoIterator for &'a ServerTiming {
 }
 
 impl<'a> IntoIterator for &'a mut ServerTiming {
-    type Item = &'a mut Entry;
+    type Item = &'a mut Metric;
     type IntoIter = IterMut<'a>;
 
     #[inline]
@@ -107,11 +149,11 @@ impl<'a> IntoIterator for &'a mut ServerTiming {
 /// A borrowing iterator over entries in `ServerTiming`.
 #[derive(Debug)]
 pub struct IntoIter {
-    inner: std::vec::IntoIter<Entry>,
+    inner: std::vec::IntoIter<Metric>,
 }
 
 impl Iterator for IntoIter {
-    type Item = Entry;
+    type Item = Metric;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -126,11 +168,11 @@ impl Iterator for IntoIter {
 /// A lending iterator over entries in `ServerTiming`.
 #[derive(Debug)]
 pub struct Iter<'a> {
-    inner: slice::Iter<'a, Entry>,
+    inner: slice::Iter<'a, Metric>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = &'a Entry;
+    type Item = &'a Metric;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -145,11 +187,11 @@ impl<'a> Iterator for Iter<'a> {
 /// A mutable iterator over entries in `ServerTiming`.
 #[derive(Debug)]
 pub struct IterMut<'a> {
-    inner: slice::IterMut<'a, Entry>,
+    inner: slice::IterMut<'a, Metric>,
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut Entry;
+    type Item = &'a mut Metric;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -169,7 +211,7 @@ mod test {
     #[test]
     fn smoke() -> crate::Result<()> {
         let mut timings = ServerTiming::new();
-        timings.push(Entry::new("server".to_owned(), None, None)?);
+        timings.push(Metric::new("server".to_owned(), None, None)?);
 
         let mut headers = Headers::new();
         timings.apply(&mut headers);
