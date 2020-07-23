@@ -85,10 +85,7 @@ impl ServerTiming {
 
     /// Sets the `Server-Timing` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        for timing in &self.timings {
-            let value: HeaderValue = timing.clone().into();
-            headers.as_mut().insert(SERVER_TIMING, value);
-        }
+        headers.as_mut().insert(SERVER_TIMING, self.value());
     }
 
     /// Get the `HeaderName`.
@@ -102,7 +99,7 @@ impl ServerTiming {
         for (n, timing) in self.timings.iter().enumerate() {
             let timing: HeaderValue = timing.clone().into();
             match n {
-                1 => write!(output, "{}", timing).unwrap(),
+                0 => write!(output, "{}", timing).unwrap(),
                 _ => write!(output, ", {}", timing).unwrap(),
             };
         }
