@@ -137,6 +137,9 @@ pub const RETRY_AFTER: HeaderName = HeaderName::from_lowercase_str("retry-after"
 ///  The `Server` Header
 pub const SERVER: HeaderName = HeaderName::from_lowercase_str("server");
 
+///  The `Server` Header
+pub const SERVER_TIMING: HeaderName = HeaderName::from_lowercase_str("server-timing");
+
 ///  The `Te` Header
 pub const TE: HeaderName = HeaderName::from_lowercase_str("te");
 
