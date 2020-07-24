@@ -1,15 +1,17 @@
 use std::time::Duration;
 
 use super::Metric;
-use crate::Status;
-use crate::{ensure, format_err};
+use crate::{ensure, format_err, StatusCode};
 
 /// Parse multiple entries from a single header.
 ///
 /// Each entry is comma-delimited.
 pub(super) fn parse_header(s: &str, entries: &mut Vec<Metric>) -> crate::Result<()> {
     for part in s.trim().split(',') {
-        let entry = parse_entry(part)?;
+        let entry = parse_entry(part).map_err(|mut e| {
+            e.set_status(StatusCode::BadRequest);
+            e
+        })?;
         entries.push(entry);
     }
     Ok(())
@@ -60,7 +62,7 @@ fn parse_entry(s: &str) -> crate::Result<Metric> {
 
         match name {
             "dur" => {
-                let millis: f64 = value.parse().status(400).map_err(|_| {
+                let millis: f64 = value.parse().map_err(|_| {
                         format_err!("Server timing duration params must be a valid double-precision floating-point number.")
                     })?;
                 dur = Some(Duration::from_secs_f64(millis / 1000.0));

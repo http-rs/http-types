@@ -14,7 +14,7 @@
 //! let mut res = Response::new(200);
 //! timings.apply(&mut res);
 //!
-//! let timings = ServerTiming::from_headers(res).unwrap();
+//! let timings = ServerTiming::from_headers(res)?.unwrap();
 //! let entry = timings.iter().next().unwrap();
 //! assert_eq!(entry.name(), "server");
 //! #
@@ -56,7 +56,7 @@ use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, SERVER_TI
 /// let mut res = Response::new(200);
 /// timings.apply(&mut res);
 ///
-/// let timings = ServerTiming::from_headers(res).unwrap();
+/// let timings = ServerTiming::from_headers(res)?.unwrap();
 /// let entry = timings.iter().next().unwrap();
 /// assert_eq!(entry.name(), "server");
 /// #
@@ -74,12 +74,17 @@ impl ServerTiming {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> Option<Self> {
+    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut timings = vec![];
-        for value in headers.as_ref().get(SERVER_TIMING)? {
-            parse_header(value.as_str(), &mut timings).ok()?;
+        let headers = match headers.as_ref().get(SERVER_TIMING) {
+            Some(headers) => headers,
+            None => return Ok(None),
+        };
+
+        for value in headers {
+            parse_header(value.as_str(), &mut timings)?;
         }
-        Some(Self { timings })
+        Ok(Some(Self { timings }))
     }
 
     /// Sets the `Server-Timing` header.
@@ -102,6 +107,8 @@ impl ServerTiming {
                 _ => write!(output, ", {}", timing).unwrap(),
             };
         }
+
+        // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 
@@ -240,7 +247,7 @@ mod test {
         let mut headers = Headers::new();
         timings.apply(&mut headers);
 
-        let timings = ServerTiming::from_headers(headers).unwrap();
+        let timings = ServerTiming::from_headers(headers)?.unwrap();
         let entry = timings.iter().next().unwrap();
         assert_eq!(entry.name(), "server");
         Ok(())
@@ -254,9 +261,18 @@ mod test {
         let mut headers = Headers::new();
         timings.apply(&mut headers);
 
-        let timings = ServerTiming::from_headers(headers).unwrap();
+        let timings = ServerTiming::from_headers(headers)?.unwrap();
         let entry = timings.iter().next().unwrap();
         assert_eq!(entry.name(), "server");
+        Ok(())
+    }
+
+    #[test]
+    fn bad_request_on_parse_error() -> crate::Result<()> {
+        let mut headers = Headers::new();
+        headers.insert(SERVER_TIMING, "server; <nori ate your param omnom>");
+        let err = ServerTiming::from_headers(headers).unwrap_err();
+        assert_eq!(err.status(), 400);
         Ok(())
     }
 }
