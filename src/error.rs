@@ -23,13 +23,10 @@ impl Error {
     /// The error type must be threadsafe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new<E>(status: StatusCode, error: E) -> Self
-    where
-        E: StdError + Send + Sync + 'static,
-    {
+    pub fn new(status: StatusCode, error: impl Into<anyhow::Error>) -> Self {
         Self {
             status,
-            error: anyhow::Error::new(error),
+            error: error.into(),
         }
     }
 
@@ -119,15 +116,9 @@ impl Debug for Error {
     }
 }
 
-impl<E> From<E> for Error
-where
-    E: StdError + Send + Sync + 'static,
-{
+impl<E: Into<anyhow::Error>> From<E> for Error {
     fn from(error: E) -> Self {
-        Self {
-            error: anyhow::Error::new(error),
-            status: StatusCode::InternalServerError,
-        }
+        Self::new(StatusCode::InternalServerError, error)
     }
 }
 
