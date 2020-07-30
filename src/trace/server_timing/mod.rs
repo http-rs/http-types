@@ -118,13 +118,6 @@ impl ServerTiming {
     }
 
     /// An iterator visiting all server timings.
-    pub fn into_iter(self) -> IntoIter {
-        IntoIter {
-            inner: self.timings.into_iter(),
-        }
-    }
-
-    /// An iterator visiting all server timings.
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.timings.iter(),
@@ -145,7 +138,9 @@ impl IntoIterator for ServerTiming {
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        self.into_iter()
+        IntoIter {
+            inner: self.timings.into_iter(),
+        }
     }
 }
 

@@ -36,6 +36,27 @@ use std::option;
 use std::slice;
 
 /// Specify origins that are allowed to see values via the Resource Timing API.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> http_types::Result<()> {
+/// #
+/// use http_types::Response;
+/// use http_types::trace::{AllowOrigin, Origin};
+///
+/// let mut origins = AllowOrigin::new();
+/// origins.push(Origin::Wildcard);
+///
+/// let mut res = Response::new(200);
+/// origins.apply(&mut res);
+///
+/// let origins = AllowOrigin::from_headers(res)?.unwrap();
+/// let origin = origins.iter().next().unwrap();
+/// assert_eq!(origin, &Origin::Wildcard);
+/// #
+/// # Ok(()) }
+/// ```
 #[derive(Clone, Eq, PartialEq)]
 pub struct AllowOrigin {
     origins: Vec<Origin>,
@@ -60,7 +81,7 @@ impl AllowOrigin {
 
         let mut origins = vec![];
         for header in headers {
-            for origin in header.as_str().split(",") {
+            for origin in header.as_str().split(',') {
                 match origin.trim_start() {
                     "*" => origins.push(Origin::Wildcard),
                     r#""null""# => continue,
@@ -106,13 +127,6 @@ impl AllowOrigin {
     }
 
     /// An iterator visiting all server timings.
-    pub fn into_iter(self) -> IntoIter {
-        IntoIter {
-            inner: self.origins.into_iter(),
-        }
-    }
-
-    /// An iterator visiting all server timings.
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.origins.iter(),
@@ -133,7 +147,9 @@ impl IntoIterator for AllowOrigin {
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        self.into_iter()
+        IntoIter {
+            inner: self.origins.into_iter(),
+        }
     }
 }
 
