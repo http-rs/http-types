@@ -143,6 +143,9 @@ pub const SERVER_TIMING: HeaderName = HeaderName::from_lowercase_str("server-tim
 ///  The `Te` Header
 pub const TE: HeaderName = HeaderName::from_lowercase_str("te");
 
+///  The `Traceparent` Header
+pub const TRACEPARENT: HeaderName = HeaderName::from_lowercase_str("traceparent");
+
 ///  The `Trailer` Header
 pub const TRAILER: HeaderName = HeaderName::from_lowercase_str("trailer");
 
