@@ -117,6 +117,7 @@ pub mod url {
 #[macro_use]
 mod utils;
 
+pub mod cache;
 pub mod headers;
 pub mod mime;
 
