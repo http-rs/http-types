@@ -4,7 +4,7 @@ use crate::Status;
 use std::time::Duration;
 
 /// An HTTP `Cache-Control` directive.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CacheDirective {
     /// The response body will not change over time.
     Immutable,
@@ -87,6 +87,7 @@ impl CacheDirective {
 
         // This won't panic because each input string has at least one part.
         let res = match next {
+            "immutable" => Some(Immutable),
             "no-cache" => Some(NoCache),
             "no-store" => Some(NoStore),
             "no-transform" => Some(NoTransform),

@@ -29,7 +29,9 @@ impl CacheControl {
             for part in value.as_str().trim().split(',') {
                 // Try and parse a directive from a str. If the directive is
                 // unkown we skip it.
-                if let Some(entry) = CacheDirective::from_str(part.trim_start())? {
+                let s = part.trim_start();
+                s.to_lowercase();
+                if let Some(entry) = CacheDirective::from_str(s)? {
                     entries.push(entry);
                 }
             }
