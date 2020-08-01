@@ -4,7 +4,7 @@ use crate::Status;
 use std::time::Duration;
 
 /// An HTTP `Cache-Control` directive.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CacheDirective {
     /// The response body will not change over time.
     Immutable,
@@ -76,30 +76,31 @@ impl CacheDirective {
     // sense.
     pub(crate) fn from_str(s: &str) -> crate::Result<Option<Self>> {
         use CacheDirective::*;
-        let parts = s.split('=');
+        let mut parts = s.split('=');
+        let next = parts.next().unwrap().clone();
 
-        let get_dur = || -> crate::Result<Duration> {
+        let mut get_dur = || -> crate::Result<Duration> {
             let dur = parts.next().status(400)?;
             let dur: u64 = dur.parse().status(400)?;
             Ok(Duration::new(dur, 0))
         };
 
         // This won't panic because each input string has at least one part.
-        let res = match parts.next().unwrap() {
+        let res = match next {
             "no-cache" => Some(NoCache),
             "no-store" => Some(NoStore),
             "no-transform" => Some(NoTransform),
             "only-if-cached" => Some(OnlyIfCached),
             "must-revalidate" => Some(MustRevalidate),
-            "no-cache" => Some(NoCache),
-            "no-store" => Some(NoStore),
-            "no-transform" => Some(NoTransform),
             "public" => Some(Public),
             "private" => Some(Private),
             "proxy-revalidate" => Some(ProxyRevalidate),
             "max-age" => Some(MaxAge(get_dur()?)),
             "max-stale" => match parts.next() {
-                Some(secs) => Some(MaxStale(Some(get_dur()?))),
+                Some(secs) => {
+                    let dur: u64 = secs.parse().status(400)?;
+                    Some(MaxStale(Some(Duration::new(dur, 0))))
+                }
                 None => Some(MaxStale(None)),
             },
             "min-fresh=<seconds>" => Some(MinFresh(get_dur()?)),
@@ -128,13 +129,13 @@ impl From<CacheDirective> for HeaderValue {
             NoCache => h(format!("no-cache")),
             NoStore => h(format!("no-store")),
             NoTransform => h(format!("no-transform")),
-            OnlyIfCached => h(format!("immutable")),
-            Private => h(format!("immutable")),
-            ProxyRevalidate => h(format!("immutable")),
-            Public => h(format!("immutable")),
-            SMaxAge(dur) => h(format!("immutable")),
-            StaleIfError(dur) => h(format!("immutable")),
-            StaleWhileRevalidate(dur) => h(format!("immutable")),
+            OnlyIfCached => h(format!("only-if-cached")),
+            Private => h(format!("private")),
+            ProxyRevalidate => h(format!("proxy-revalidate")),
+            Public => h(format!("public")),
+            SMaxAge(dur) => h(format!("s-max-age={}", dur.as_secs())),
+            StaleIfError(dur) => h(format!("stale-if-error={}", dur.as_secs())),
+            StaleWhileRevalidate(dur) => h(format!("stale-while-revalidate={}", dur.as_secs())),
         }
     }
 }

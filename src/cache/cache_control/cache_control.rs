@@ -50,11 +50,11 @@ impl CacheControl {
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
         let mut output = String::new();
-        for (n, timing) in self.entries.iter().enumerate() {
-            let timing: HeaderValue = timing.clone().into();
+        for (n, directive) in self.entries.iter().enumerate() {
+            let directive: HeaderValue = directive.clone().into();
             match n {
-                0 => write!(output, "{}", timing).unwrap(),
-                _ => write!(output, ", {}", timing).unwrap(),
+                0 => write!(output, "{}", directive).unwrap(),
+                _ => write!(output, ", {}", directive).unwrap(),
             };
         }
 
