@@ -87,7 +87,7 @@ impl CacheDirective {
 
         s.to_lowercase();
         let mut parts = s.split('=');
-        let next = parts.next().unwrap().clone();
+        let next = parts.next().unwrap();
 
         let mut get_dur = || -> crate::Result<Duration> {
             let dur = parts.next().status(400)?;
@@ -130,21 +130,21 @@ impl From<CacheDirective> for HeaderValue {
         let h = |s: String| unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) };
 
         match directive {
-            Immutable => h(format!("immutable")),
+            Immutable => h("immutable".to_string()),
             MaxAge(dur) => h(format!("max-age={}", dur.as_secs())),
             MaxStale(dur) => match dur {
                 Some(dur) => h(format!("max-stale={}", dur.as_secs())),
-                None => h(format!("max-stale")),
+                None => h("max-stale".to_string()),
             },
             MinFresh(dur) => h(format!("min-fresh={}", dur.as_secs())),
-            MustRevalidate => h(format!("must-revalidate")),
-            NoCache => h(format!("no-cache")),
-            NoStore => h(format!("no-store")),
-            NoTransform => h(format!("no-transform")),
-            OnlyIfCached => h(format!("only-if-cached")),
-            Private => h(format!("private")),
-            ProxyRevalidate => h(format!("proxy-revalidate")),
-            Public => h(format!("public")),
+            MustRevalidate => h("must-revalidate".to_string()),
+            NoCache => h("no-cache".to_string()),
+            NoStore => h("no-store".to_string()),
+            NoTransform => h("no-transform".to_string()),
+            OnlyIfCached => h("only-if-cached".to_string()),
+            Private => h("private".to_string()),
+            ProxyRevalidate => h("proxy-revalidate".to_string()),
+            Public => h("public".to_string()),
             SMaxAge(dur) => h(format!("s-max-age={}", dur.as_secs())),
             StaleIfError(dur) => h(format!("stale-if-error={}", dur.as_secs())),
             StaleWhileRevalidate(dur) => h(format!("stale-while-revalidate={}", dur.as_secs())),

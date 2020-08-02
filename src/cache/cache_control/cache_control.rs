@@ -90,13 +90,6 @@ impl CacheControl {
     }
 
     /// An iterator visiting all server entries.
-    pub fn into_iter(self) -> IntoIter {
-        IntoIter {
-            inner: self.entries.into_iter(),
-        }
-    }
-
-    /// An iterator visiting all server entries.
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -117,7 +110,9 @@ impl IntoIterator for CacheControl {
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        self.into_iter()
+        IntoIter {
+            inner: self.entries.into_iter(),
+        }
     }
 }
 

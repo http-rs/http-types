@@ -6,6 +6,7 @@
 //! - [RFC 7234:  Hypertext Transfer Protocol (HTTP/1.1): Caching](https://tools.ietf.org/html/rfc7234)
 //! - [RFC 8246: HTTP Immutable Responses](https://tools.ietf.org/html/rfc8246)
 
+#[allow(clippy::module_inception)]
 mod cache_control;
 mod cache_directive;
 
