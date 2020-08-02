@@ -12,22 +12,41 @@ use std::option;
 /// # Specifications
 ///
 /// - [RFC 7232 HTTP/1.1: Conditional Requests](https://tools.ietf.org/html/rfc7232#section-2.3)
-#[derive(Debug)]
-pub enum Etag {
-    /// An Etag using strong validation.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> http_types::Result<()> {
+/// #
+/// use http_types::Response;
+/// use http_types::cache::ETag;
+///
+/// let etag = ETag::new("0xcafebeef".to_string());
+///
+/// let mut res = Response::new(200);
+/// etag.apply(&mut res);
+///
+/// let etag = ETag::from_headers(res)?.unwrap();
+/// assert_eq!(etag, ETag::Strong(String::from("0xcafebeef")));
+/// #
+/// # Ok(()) }
+/// ```
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum ETag {
+    /// An ETag using strong validation.
     Strong(String),
     /// An ETag using weak validation.
     Weak(String),
 }
 
-impl Etag {
-    /// Create a new Etag that uses strong validation.
+impl ETag {
+    /// Create a new ETag that uses strong validation.
     pub fn new(s: String) -> Self {
         debug_assert!(!s.contains('\\'), "ETags ought to avoid backslash chars");
         Self::Strong(s)
     }
 
-    /// Create a new Etag that uses weak validation.
+    /// Create a new ETag that uses weak validation.
     pub fn new_weak(s: String) -> Self {
         debug_assert!(!s.contains('\\'), "ETags ought to avoid backslash chars");
         Self::Weak(s)
@@ -44,13 +63,15 @@ impl Etag {
         };
 
         // If a header is returned we can assume at least one exists.
-        let mut s = headers.iter().last().unwrap().as_str();
+        let s = headers.iter().last().unwrap().as_str();
 
-        let weak = if s.starts_with("/W") {
-            s = &s[2..];
-            true
-        } else {
-            false
+        let mut weak = false;
+        let s = match s.strip_prefix("W/") {
+            Some(s) => {
+                weak = true;
+                s
+            }
+            None => s,
         };
 
         let s = match s.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
@@ -86,9 +107,19 @@ impl Etag {
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(s.into()) }
     }
+
+    /// Returns `true` if the ETag is a `Strong` value.
+    pub fn is_strong(&self) -> bool {
+        matches!(self, Self::Strong(_))
+    }
+
+    /// Returns `true` if the ETag is a `Weak` value.
+    pub fn is_weak(&self) -> bool {
+        matches!(self, Self::Weak(_))
+    }
 }
 
-impl ToHeaderValues for Etag {
+impl ToHeaderValues for ETag {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
@@ -99,38 +130,54 @@ impl ToHeaderValues for Etag {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::{Headers, CACHE_CONTROL};
+    use crate::headers::Headers;
 
     #[test]
     fn smoke() -> crate::Result<()> {
-        let mut etag = Etag::new("0xcafebeef");
+        let etag = ETag::new("0xcafebeef".to_string());
 
         let mut headers = Headers::new();
-        entries.apply(&mut headers);
+        etag.apply(&mut headers);
 
-        let entries = Etag::from_headers(headers)?.unwrap();
-        let mut entries = entries.iter();
-        assert_eq!(entries.next().unwrap(), &CacheDirective::Immutable);
-        assert_eq!(entries.next().unwrap(), &CacheDirective::NoStore);
+        let etag = ETag::from_headers(headers)?.unwrap();
+        assert_eq!(etag, ETag::Strong(String::from("0xcafebeef")));
         Ok(())
     }
 
     #[test]
-    fn ignore_unkonwn_directives() -> crate::Result<()> {
+    fn smoke_weak() -> crate::Result<()> {
+        let etag = ETag::new_weak("0xcafebeef".to_string());
+
         let mut headers = Headers::new();
-        headers.insert(CACHE_CONTROL, "barrel_roll");
-        let entries = Etag::from_headers(headers)?.unwrap();
-        let mut entries = entries.iter();
-        assert!(entries.next().is_none());
+        etag.apply(&mut headers);
+
+        let etag = ETag::from_headers(headers)?.unwrap();
+        assert_eq!(etag, ETag::Weak(String::from("0xcafebeef")));
         Ok(())
     }
 
     #[test]
     fn bad_request_on_parse_error() -> crate::Result<()> {
         let mut headers = Headers::new();
-        headers.insert(CACHE_CONTROL, "min-fresh=0.9"); // floats are not supported
-        let err = Etag::from_headers(headers).unwrap_err();
+        headers.insert(ETAG, "<nori ate the tag. yum.>");
+        let err = ETag::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
         Ok(())
+    }
+
+    #[test]
+    fn validate_quotes() -> crate::Result<()> {
+        assert_entry_err(r#""hello"#, "Invalid ETag header");
+        assert_entry_err(r#"hello""#, "Invalid ETag header");
+        assert_entry_err(r#"/O"valid content""#, "Invalid ETag header");
+        assert_entry_err(r#"/Wvalid content""#, "Invalid ETag header");
+        Ok(())
+    }
+
+    fn assert_entry_err(s: &str, msg: &str) {
+        let mut headers = Headers::new();
+        headers.insert(ETAG, s);
+        let err = ETag::from_headers(headers).unwrap_err();
+        assert_eq!(format!("{}", err), msg);
     }
 }

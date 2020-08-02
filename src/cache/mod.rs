@@ -14,4 +14,4 @@ mod etag;
 
 pub use cache_control::CacheControl;
 pub use cache_control::CacheDirective;
-pub use etag::Etag;
+pub use etag::ETag;
