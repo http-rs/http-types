@@ -7,6 +7,28 @@ use std::option;
 use std::slice;
 
 /// A Cache-Control header.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> http_types::Result<()> {
+/// #
+/// use http_types::Response;
+/// use http_types::cache::{CacheControl, CacheDirective};
+/// let mut entries = CacheControl::new();
+/// entries.push(CacheDirective::Immutable);
+/// entries.push(CacheDirective::NoStore);
+///
+/// let mut res = Response::new(200);
+/// entries.apply(&mut res);
+///
+/// let entries = CacheControl::from_headers(res)?.unwrap();
+/// let mut entries = entries.iter();
+/// assert_eq!(entries.next().unwrap(), &CacheDirective::Immutable);
+/// assert_eq!(entries.next().unwrap(), &CacheDirective::NoStore);
+/// #
+/// # Ok(()) }
+/// ```
 pub struct CacheControl {
     entries: Vec<CacheDirective>,
 }
@@ -29,13 +51,12 @@ impl CacheControl {
             for part in value.as_str().trim().split(',') {
                 // Try and parse a directive from a str. If the directive is
                 // unkown we skip it.
-                let s = part.trim_start();
-                s.to_lowercase();
-                if let Some(entry) = CacheDirective::from_str(s)? {
+                if let Some(entry) = CacheDirective::from_str(part)? {
                     entries.push(entry);
                 }
             }
         }
+
         Ok(Some(Self { entries }))
     }
 

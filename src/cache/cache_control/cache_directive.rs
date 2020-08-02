@@ -4,6 +4,7 @@ use crate::Status;
 use std::time::Duration;
 
 /// An HTTP `Cache-Control` directive.
+#[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CacheDirective {
     /// The response body will not change over time.
@@ -76,6 +77,15 @@ impl CacheDirective {
     // sense.
     pub(crate) fn from_str(s: &str) -> crate::Result<Option<Self>> {
         use CacheDirective::*;
+
+        let s = s.trim();
+
+        // We're dealing with an empty string.
+        if s.is_empty() {
+            return Ok(None);
+        }
+
+        s.to_lowercase();
         let mut parts = s.split('=');
         let next = parts.next().unwrap().clone();
 
@@ -104,9 +114,10 @@ impl CacheDirective {
                 }
                 None => Some(MaxStale(None)),
             },
-            "min-fresh=<seconds>" => Some(MinFresh(get_dur()?)),
-            "max-age=<seconds>" => Some(MaxAge(get_dur()?)),
-            "s-maxage=<seconds>" => Some(SMaxAge(get_dur()?)),
+            "min-fresh" => Some(MinFresh(get_dur()?)),
+            "s-maxage" => Some(SMaxAge(get_dur()?)),
+            "stale-if-error" => Some(StaleIfError(get_dur()?)),
+            "stale-while-revalidate" => Some(StaleWhileRevalidate(get_dur()?)),
             _ => None,
         };
         Ok(res)
