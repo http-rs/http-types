@@ -53,7 +53,7 @@ impl CacheDirective {
     }
 
     /// Check whether this directive is valid in an HTTP response.
-    pub fn is_res(&self) -> bool {
+    pub fn valid_in_res(&self) -> bool {
         use CacheDirective::*;
         matches!(self,
             MustRevalidate
