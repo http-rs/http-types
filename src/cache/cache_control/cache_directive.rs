@@ -45,7 +45,7 @@ pub enum CacheDirective {
 
 impl CacheDirective {
     /// Check whether this directive is valid in an HTTP request.
-    pub fn is_req(&self) -> bool {
+    pub fn valid_in_req(&self) -> bool {
         use CacheDirective::*;
         matches!(self,
             MaxAge(_) | MaxStale(_) | MinFresh(_) | NoCache | NoStore | NoTransform
