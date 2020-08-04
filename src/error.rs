@@ -86,7 +86,7 @@ impl Error {
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
     #[cfg(backtrace)]
     pub fn backtrace(&self) -> &std::backtrace::Backtrace {
-        self.error.downcast_ref::<E>()
+        self.error.backtrace()
     }
 
     /// Attempt to downcast the error object to a concrete type.
@@ -125,13 +125,13 @@ impl Error {
 
 impl Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.error)
+        Display::fmt(&self.error, formatter)
     }
 }
 
 impl Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.error)
+        Debug::fmt(&self.error, formatter)
     }
 }
 
