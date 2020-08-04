@@ -21,13 +21,13 @@ pub enum CacheDirective {
     NoCache,
     /// The response may not be cached.
     NoStore,
-    /// An intermediate cache or proxy cannot edit the response body,
+    /// An intermediate cache or proxy should not edit the response body,
     /// Content-Encoding, Content-Range, or Content-Type.
     NoTransform,
     /// Do not use the network for a response.
     OnlyIfCached,
     /// The response may be stored only by a browser's cache, even if the
-    /// response is normally non-cacheable
+    /// response is normally non-cacheable.
     Private,
     /// Like must-revalidate, but only for shared caches (e.g., proxies).
     ProxyRevalidate,

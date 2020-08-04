@@ -34,7 +34,7 @@ pub struct CacheControl {
 }
 
 impl CacheControl {
-    /// Create a new instance of `ServerTiming`.
+    /// Create a new instance of `CacheControl`.
     pub fn new() -> Self {
         Self { entries: vec![] }
     }
@@ -120,7 +120,7 @@ impl<'a> IntoIterator for &'a CacheControl {
     type Item = &'a CacheDirective;
     type IntoIter = Iter<'a>;
 
-    // #[inline]serv
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
