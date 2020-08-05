@@ -70,6 +70,12 @@ impl Error {
     /// capturing them all over the place all the time.
     ///
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
+    ///
+    /// Note: This function can be called whether or not backtraces
+    /// are enabled and available. It will return a `None` variant if
+    /// compiled on a toolchain that does not support backtraces, or
+    /// if executed without backtraces enabled with
+    /// `RUST_LIB_BACKTRACE=1`.
     #[cfg(backtrace)]
     pub fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
         let backtrace = self.error.backtrace();
