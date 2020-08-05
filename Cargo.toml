@@ -1,6 +1,6 @@
 [package]
 name = "http-types"
-version = "2.3.1-alpha.0"
+version = "2.4.0"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/http-rs/http-types"
 documentation = "https://docs.rs/http-types"
