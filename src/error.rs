@@ -71,8 +71,19 @@ impl Error {
     ///
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
     #[cfg(backtrace)]
-    pub fn backtrace(&self) -> &std::backtrace::Backtrace {
-        self.error.backtrace()
+    pub fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
+        let backtrace = self.error.backtrace();
+        if let std::backtrace::BacktraceStatus::Captured = backtrace.status() {
+            Some(backtrace)
+        } else {
+            None
+        }
+    }
+
+    #[cfg(not(backtrace))]
+    #[allow(missing_docs)]
+    pub fn backtrace(&self) -> Option<()> {
+        None
     }
 
     /// Attempt to downcast the error object to a concrete type.
