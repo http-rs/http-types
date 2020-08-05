@@ -16,6 +16,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub struct Error {
     error: anyhow::Error,
     status: crate::StatusCode,
+    type_name: Option<String>,
 }
 
 impl Error {
@@ -24,16 +25,18 @@ impl Error {
     /// The error type must be threadsafe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new<S>(status: S, error: impl Into<anyhow::Error>) -> Self
+    pub fn new<S, E>(status: S, error: E) -> Self
     where
         S: TryInto<StatusCode>,
         S::Error: Debug,
+        E: Into<anyhow::Error>,
     {
         Self {
             status: status
                 .try_into()
                 .expect("Could not convert into a valid `StatusCode`"),
             error: error.into(),
+            type_name: Some(std::any::type_name::<E>().to_string()),
         }
     }
 
@@ -49,6 +52,7 @@ impl Error {
                 .try_into()
                 .expect("Could not convert into a valid `StatusCode`"),
             error: anyhow::Error::msg(msg),
+            type_name: None,
         }
     }
     /// Create a new error from a message.
@@ -111,6 +115,11 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         self.error.downcast_mut::<E>()
+    }
+
+    /// Retrieves a reference to the type name of the error, if available.
+    pub fn type_name(&self) -> Option<&str> {
+        self.type_name.as_deref()
     }
 }
 
