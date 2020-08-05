@@ -48,7 +48,7 @@ impl Metric {
 
     /// The timing description.
     pub fn description(&self) -> Option<&str> {
-        self.desc.as_ref().map(|s| s.as_str())
+        self.desc.as_deref()
     }
 }
 

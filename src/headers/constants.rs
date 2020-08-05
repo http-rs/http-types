@@ -125,6 +125,7 @@ pub const PRAGMA: HeaderName = HeaderName::from_lowercase_str("pragma");
 
 ///  The `Proxy-Authenticate` Header
 pub const PROXY_AUTHENTICATE: HeaderName = HeaderName::from_lowercase_str("proxy-authenticate");
+
 ///  The `Proxy-Authorization` Header
 pub const PROXY_AUTHORIZATION: HeaderName = HeaderName::from_lowercase_str("proxy-authorization");
 
@@ -142,6 +143,9 @@ pub const SERVER_TIMING: HeaderName = HeaderName::from_lowercase_str("server-tim
 
 ///  The `Te` Header
 pub const TE: HeaderName = HeaderName::from_lowercase_str("te");
+
+///  The `Timing-Allow-Origin` Header
+pub const TIMING_ALLOW_ORIGIN: HeaderName = HeaderName::from_lowercase_str("timing-allow-origin");
 
 ///  The `Traceparent` Header
 pub const TRACEPARENT: HeaderName = HeaderName::from_lowercase_str("traceparent");
