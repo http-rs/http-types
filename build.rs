@@ -3,9 +3,18 @@ use std::fs;
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 
-// This code exercises the surface area that we expect of the std Backtrace
-// type. If the current toolchain is able to compile it, we go ahead and use
-// backtrace in anyhow.
+// This build script is copied from
+// [anyhow](https://github.com/dtolnay/anyhow/blob/master/build.rs),
+// and is a type of feature detection to determine if the current rust
+// toolchain has backtraces available.
+//
+// It exercises the surface area that we expect of the std Backtrace
+// type. If the current toolchain is able to compile it, we enable a
+// backtrace compiler configuration flag in http-types. We then
+// conditionally require the compiler feature in src/lib.rs with
+// `#![cfg_attr(backtrace, feature(backtrace))]`
+// and gate our backtrace code behind `#[cfg(backtrace)]`
+
 const PROBE: &str = r#"
     #![feature(backtrace)]
     #![allow(dead_code)]
