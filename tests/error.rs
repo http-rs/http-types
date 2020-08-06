@@ -72,15 +72,14 @@ fn option_ext() {
 }
 
 #[test]
-fn anyhow_error_into_http_types_error() {
-    let anyhow_error =
-        anyhow::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
-    let http_types_error: Error = anyhow_error.into();
+fn eyre_error_into_http_types_error() {
+    use stable_eyre::eyre;
+    let eyre_error = eyre::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
+    let http_types_error: Error = eyre_error.into();
     assert_eq!(http_types_error.status(), StatusCode::InternalServerError);
 
-    let anyhow_error =
-        anyhow::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
-    let http_types_error: Error = Error::new(StatusCode::ImATeapot, anyhow_error);
+    let eyre_error = eyre::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
+    let http_types_error: Error = Error::new(StatusCode::ImATeapot, eyre_error);
     assert_eq!(http_types_error.status(), StatusCode::ImATeapot);
 }
 

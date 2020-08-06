@@ -1,9 +1,12 @@
 //! HTTP error types
 
-use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
-
 use crate::StatusCode;
+use stable_eyre::{eyre, BacktraceExt};
+use std::error::Error as StdError;
+use std::{
+    fmt::{self, Debug, Display},
+    sync::Once,
+};
 
 /// A specialized `Result` type for HTTP operations.
 ///
@@ -13,9 +16,11 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// The error type for HTTP operations.
 pub struct Error {
-    error: anyhow::Error,
+    error: eyre::Report,
     status: crate::StatusCode,
 }
+
+static INSTALL_EYRE_HANDLER: Once = Once::new();
 
 impl Error {
     /// Create a new error object from any error type.
@@ -23,7 +28,8 @@ impl Error {
     /// The error type must be threadsafe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new(status: StatusCode, error: impl Into<anyhow::Error>) -> Self {
+    pub fn new(status: StatusCode, error: impl Into<eyre::Error>) -> Self {
+        INSTALL_EYRE_HANDLER.call_once(|| stable_eyre::install().unwrap());
         Self {
             status,
             error: error.into(),
@@ -35,10 +41,7 @@ impl Error {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Self {
-            status,
-            error: anyhow::Error::msg(msg),
-        }
+        Self::new(status, eyre::Error::msg(msg))
     }
 
     /// Create a new error from a message.
@@ -77,13 +80,8 @@ impl Error {
     /// if executed without backtraces enabled with
     /// `RUST_LIB_BACKTRACE=1`.
     #[cfg(backtrace)]
-    pub fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
-        let backtrace = self.error.backtrace();
-        if let std::backtrace::BacktraceStatus::Captured = backtrace.status() {
-            Some(backtrace)
-        } else {
-            None
-        }
+    pub fn backtrace(&self) -> Option<&backtrace::Backtrace> {
+        self.error.backtrace()
     }
 
     #[cfg(not(backtrace))]
@@ -133,7 +131,7 @@ impl Debug for Error {
     }
 }
 
-impl<E: Into<anyhow::Error>> From<E> for Error {
+impl<E: Into<eyre::Error>> From<E> for Error {
     fn from(error: E) -> Self {
         Self::new(StatusCode::InternalServerError, error)
     }

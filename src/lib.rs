@@ -153,6 +153,8 @@ pub use status::Status;
 pub use status_code::StatusCode;
 pub use version::Version;
 
+pub use backtrace;
+
 #[doc(inline)]
 pub use trailers::Trailers;
 
