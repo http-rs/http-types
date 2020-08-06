@@ -96,6 +96,7 @@
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, unreachable_pub)]
 #![allow(clippy::new_without_default)]
+#![cfg_attr(backtrace, feature(backtrace))]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(feature = "docs", feature(doc_cfg))]
 #![doc(html_favicon_url = "https://yoshuawuyts.com/assets/http-rs/favicon.ico")]
@@ -151,6 +152,8 @@ pub use response::Response;
 pub use status::Status;
 pub use status_code::StatusCode;
 pub use version::Version;
+
+pub use backtrace;
 
 #[doc(inline)]
 pub use trailers::Trailers;
