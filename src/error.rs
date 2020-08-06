@@ -29,7 +29,9 @@ impl Error {
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
     pub fn new(status: StatusCode, error: impl Into<eyre::Error>) -> Self {
-        INSTALL_EYRE_HANDLER.call_once(|| stable_eyre::install().unwrap());
+        INSTALL_EYRE_HANDLER.call_once(|| {
+            stable_eyre::install().ok();
+        });
         Self {
             status,
             error: error.into(),
