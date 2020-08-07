@@ -115,12 +115,12 @@ fn u16_into_status_code_in_http_types_error() {
 fn fail_test_u16_into_status_code_in_http_types_error_new() {
     let _http_types_error = Error::new(
         1000,
-        io::Error::new(io::ErrorKind::Other, "Un Existed Status Code"),
+        io::Error::new(io::ErrorKind::Other, "Incorrect status code"),
     );
 }
 
 #[test]
 #[should_panic]
 fn fail_test_u16_into_status_code_in_http_types_error_from_str() {
-    let _http_types_error = Error::from_str(1000, "Un Existed");
+    let _http_types_error = Error::from_str(1000, "Incorrect status code");
 }
