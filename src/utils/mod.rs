@@ -1,3 +1,7 @@
+mod date;
+
+pub(crate) use date::{fmt_http_date, parse_http_date};
+
 /// Declares unstable items.
 #[doc(hidden)]
 macro_rules! cfg_unstable {
