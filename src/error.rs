@@ -4,6 +4,7 @@ use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
 use crate::StatusCode;
+use std::convert::TryInto;
 
 /// A specialized `Result` type for HTTP operations.
 ///
@@ -23,24 +24,33 @@ impl Error {
     /// The error type must be threadsafe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new(status: StatusCode, error: impl Into<anyhow::Error>) -> Self {
+    pub fn new<S>(status: S, error: impl Into<anyhow::Error>) -> Self
+    where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+    {
         Self {
-            status,
+            status: status
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`"),
             error: error.into(),
         }
     }
 
     /// Create a new error object from static string.
-    pub fn from_str<M>(status: StatusCode, msg: M) -> Self
+    pub fn from_str<S, M>(status: S, msg: M) -> Self
     where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
         M: Display + Debug + Send + Sync + 'static,
     {
         Self {
-            status,
+            status: status
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`"),
             error: anyhow::Error::msg(msg),
         }
     }
-
     /// Create a new error from a message.
     pub(crate) fn new_adhoc<M>(message: M) -> Error
     where
