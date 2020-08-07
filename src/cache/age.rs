@@ -18,15 +18,14 @@ use std::time::Duration;
 /// #
 /// use http_types::Response;
 /// use http_types::cache::Age;
-/// use std::time::Duration;
 ///
-/// let age = Age::new(Duration::from_secs(12));
+/// let age = Age::from_secs(12);
 ///
 /// let mut res = Response::new(200);
 /// age.apply(&mut res);
 ///
 /// let age = Age::from_headers(res)?.unwrap();
-/// assert_eq!(age, Age::new(Duration::from_secs(12)));
+/// assert_eq!(age, Age::from_secs(12));
 /// #
 /// # Ok(()) }
 /// ```
@@ -39,6 +38,17 @@ impl Age {
     /// Create a new instance of `Age`.
     pub fn new(dur: Duration) -> Self {
         Self { dur }
+    }
+
+    /// Create a new instance of `Age` from secs.
+    pub fn from_secs(secs: u64) -> Self {
+        let dur = Duration::from_secs(secs);
+        Self { dur }
+    }
+
+    /// Get the duration from the header.
+    pub fn duration(&self) -> Duration {
+        self.dur
     }
 
     /// Create an instance of `Age` from a `Headers` instance.

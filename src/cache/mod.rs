@@ -9,9 +9,9 @@
 //! - [MDN: HTTP Caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)
 //! - [MDN: HTTP Conditional Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests)
 
-mod cache_control;
 mod age;
+mod cache_control;
 
+pub use age::Age;
 pub use cache_control::CacheControl;
 pub use cache_control::CacheDirective;
-pub use age::Age;
