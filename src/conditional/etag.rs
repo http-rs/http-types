@@ -19,7 +19,7 @@ use std::option;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::Response;
-/// use http_types::cache::ETag;
+/// use http_types::conditional::ETag;
 ///
 /// let etag = ETag::new("0xcafebeef".to_string());
 ///
