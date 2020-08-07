@@ -135,13 +135,6 @@ mod version;
 pub mod trace;
 cfg_unstable! {
     pub mod upgrade;
-
-    mod client;
-    mod server;
-
-    pub use client::Client;
-    pub use server::Server;
-
 }
 
 pub use body::Body;
