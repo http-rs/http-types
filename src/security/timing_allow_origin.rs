@@ -11,17 +11,17 @@
 //! # fn main() -> http_types::Result<()> {
 //! #
 //! use http_types::Response;
-//! use http_types::trace::{AllowOrigin, Origin};
+//! use http_types::security::{TimingAllowOrigin, TimingOrigin};
 //!
-//! let mut origins = AllowOrigin::new();
-//! origins.push(Origin::Wildcard);
+//! let mut origins = TimingAllowOrigin::new();
+//! origins.push(TimingOrigin::Wildcard);
 //!
 //! let mut res = Response::new(200);
 //! origins.apply(&mut res);
 //!
-//! let origins = AllowOrigin::from_headers(res)?.unwrap();
+//! let origins = TimingAllowOrigin::from_headers(res)?.unwrap();
 //! let origin = origins.iter().next().unwrap();
-//! assert_eq!(origin, &Origin::Wildcard);
+//! assert_eq!(origin, &TimingOrigin::Wildcard);
 //! #
 //! # Ok(()) }
 //! ```
@@ -43,26 +43,26 @@ use std::slice;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::Response;
-/// use http_types::trace::{AllowOrigin, Origin};
+/// use http_types::security::{TimingAllowOrigin, TimingOrigin};
 ///
-/// let mut origins = AllowOrigin::new();
-/// origins.push(Origin::Wildcard);
+/// let mut origins = TimingAllowOrigin::new();
+/// origins.push(TimingOrigin::Wildcard);
 ///
 /// let mut res = Response::new(200);
 /// origins.apply(&mut res);
 ///
-/// let origins = AllowOrigin::from_headers(res)?.unwrap();
+/// let origins = TimingAllowOrigin::from_headers(res)?.unwrap();
 /// let origin = origins.iter().next().unwrap();
-/// assert_eq!(origin, &Origin::Wildcard);
+/// assert_eq!(origin, &TimingOrigin::Wildcard);
 /// #
 /// # Ok(()) }
 /// ```
 #[derive(Clone, Eq, PartialEq)]
-pub struct AllowOrigin {
-    origins: Vec<Origin>,
+pub struct TimingAllowOrigin {
+    origins: Vec<TimingOrigin>,
 }
 
-impl AllowOrigin {
+impl TimingAllowOrigin {
     /// Create a new instance of `AllowOrigin`.
     pub fn new() -> Self {
         Self { origins: vec![] }
@@ -83,11 +83,11 @@ impl AllowOrigin {
         for header in headers {
             for origin in header.as_str().split(',') {
                 match origin.trim_start() {
-                    "*" => origins.push(Origin::Wildcard),
+                    "*" => origins.push(TimingOrigin::Wildcard),
                     r#""null""# => continue,
                     origin => {
                         let url = Url::parse(origin).status(400)?;
-                        origins.push(Origin::Url(url));
+                        origins.push(TimingOrigin::Url(url));
                     }
                 }
             }
@@ -97,7 +97,7 @@ impl AllowOrigin {
     }
 
     /// Append an origin to the list of origins.
-    pub fn push(&mut self, origin: impl Into<Origin>) {
+    pub fn push(&mut self, origin: impl Into<TimingOrigin>) {
         self.origins.push(origin.into());
     }
 
@@ -141,8 +141,8 @@ impl AllowOrigin {
     }
 }
 
-impl IntoIterator for AllowOrigin {
-    type Item = Origin;
+impl IntoIterator for TimingAllowOrigin {
+    type Item = TimingOrigin;
     type IntoIter = IntoIter;
 
     #[inline]
@@ -153,8 +153,8 @@ impl IntoIterator for AllowOrigin {
     }
 }
 
-impl<'a> IntoIterator for &'a AllowOrigin {
-    type Item = &'a Origin;
+impl<'a> IntoIterator for &'a TimingAllowOrigin {
+    type Item = &'a TimingOrigin;
     type IntoIter = Iter<'a>;
 
     // #[inline]serv
@@ -163,8 +163,8 @@ impl<'a> IntoIterator for &'a AllowOrigin {
     }
 }
 
-impl<'a> IntoIterator for &'a mut AllowOrigin {
-    type Item = &'a mut Origin;
+impl<'a> IntoIterator for &'a mut TimingAllowOrigin {
+    type Item = &'a mut TimingOrigin;
     type IntoIter = IterMut<'a>;
 
     #[inline]
@@ -176,11 +176,11 @@ impl<'a> IntoIterator for &'a mut AllowOrigin {
 /// A borrowing iterator over entries in `AllowOrigin`.
 #[derive(Debug)]
 pub struct IntoIter {
-    inner: std::vec::IntoIter<Origin>,
+    inner: std::vec::IntoIter<TimingOrigin>,
 }
 
 impl Iterator for IntoIter {
-    type Item = Origin;
+    type Item = TimingOrigin;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -195,11 +195,11 @@ impl Iterator for IntoIter {
 /// A lending iterator over entries in `AllowOrigin`.
 #[derive(Debug)]
 pub struct Iter<'a> {
-    inner: slice::Iter<'a, Origin>,
+    inner: slice::Iter<'a, TimingOrigin>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = &'a Origin;
+    type Item = &'a TimingOrigin;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -214,11 +214,11 @@ impl<'a> Iterator for Iter<'a> {
 /// A mutable iterator over entries in `AllowOrigin`.
 #[derive(Debug)]
 pub struct IterMut<'a> {
-    inner: slice::IterMut<'a, Origin>,
+    inner: slice::IterMut<'a, TimingOrigin>,
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut Origin;
+    type Item = &'a mut TimingOrigin;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -231,14 +231,14 @@ impl<'a> Iterator for IterMut<'a> {
 }
 
 // Conversion from `AllowOrigin` -> `HeaderValue`.
-impl ToHeaderValues for AllowOrigin {
+impl ToHeaderValues for TimingAllowOrigin {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         Ok(self.value().to_header_values().unwrap())
     }
 }
 
-impl Debug for AllowOrigin {
+impl Debug for TimingAllowOrigin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
         for origin in &self.origins {
@@ -255,27 +255,27 @@ impl Debug for AllowOrigin {
 // NOTE: this origin is different than the origin in the fetch spec. It needs to
 // be its own type.
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum Origin {
+pub enum TimingOrigin {
     /// An origin URL.
     Url(Url),
     /// Allow all origins.
     Wildcard,
 }
 
-impl From<Url> for Origin {
+impl From<Url> for TimingOrigin {
     fn from(url: Url) -> Self {
-        Origin::Url(url)
+        TimingOrigin::Url(url)
     }
 }
 
-impl From<Origin> for HeaderValue {
-    fn from(entry: Origin) -> HeaderValue {
+impl From<TimingOrigin> for HeaderValue {
+    fn from(entry: TimingOrigin) -> HeaderValue {
         unsafe {
             match entry {
-                Origin::Url(url) => {
+                TimingOrigin::Url(url) => {
                     HeaderValue::from_bytes_unchecked(format!("{}", url).into_bytes())
                 }
-                Origin::Wildcard => {
+                TimingOrigin::Wildcard => {
                     HeaderValue::from_bytes_unchecked(String::from("*").into_bytes())
                 }
             }
@@ -290,35 +290,35 @@ mod test {
 
     #[test]
     fn smoke() -> crate::Result<()> {
-        let mut origins = AllowOrigin::new();
-        origins.push(Origin::Wildcard);
+        let mut origins = TimingAllowOrigin::new();
+        origins.push(TimingOrigin::Wildcard);
 
         let mut headers = Headers::new();
         origins.apply(&mut headers);
 
-        let origins = AllowOrigin::from_headers(headers)?.unwrap();
+        let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         let origin = origins.iter().next().unwrap();
-        assert_eq!(origin, &Origin::Wildcard);
+        assert_eq!(origin, &TimingOrigin::Wildcard);
         Ok(())
     }
 
     #[test]
     fn multi() -> crate::Result<()> {
-        let mut origins = AllowOrigin::new();
-        origins.push(Origin::Wildcard);
-        origins.push(Origin::Url(Url::parse("https://mozilla.org/")?));
+        let mut origins = TimingAllowOrigin::new();
+        origins.push(TimingOrigin::Wildcard);
+        origins.push(TimingOrigin::Url(Url::parse("https://mozilla.org/")?));
 
         let mut headers = Headers::new();
         origins.apply(&mut headers);
 
-        let origins = AllowOrigin::from_headers(headers)?.unwrap();
+        let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         let mut origins = origins.iter();
         let origin = origins.next().unwrap();
-        assert!(matches!(origin, Origin::Wildcard));
+        assert!(matches!(origin, TimingOrigin::Wildcard));
 
         let origin = origins.next().unwrap();
         let rhs = Url::parse("https://mozilla.org/")?;
-        assert_eq!(origin, &Origin::Url(rhs));
+        assert_eq!(origin, &TimingOrigin::Url(rhs));
         Ok(())
     }
 
@@ -326,7 +326,7 @@ mod test {
     fn bad_request_on_parse_error() -> crate::Result<()> {
         let mut headers = Headers::new();
         headers.insert(TIMING_ALLOW_ORIGIN, "server; <nori ate your param omnom>");
-        let err = AllowOrigin::from_headers(headers).unwrap_err();
+        let err = TimingAllowOrigin::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
         Ok(())
     }

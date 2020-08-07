@@ -1,6 +1,10 @@
 //! HTTP Security Headers.
 //!
-//! ## Example
+//! # Specifications
+//!
+//! - [W3C Timing-Allow-Origin header](https://w3c.github.io/resource-timing/#sec-timing-allow-origin)
+//!
+//! # Example
 //!
 //! ```
 //! use http_types::{StatusCode, Response};
@@ -12,9 +16,13 @@
 //! ```
 
 use crate::headers::{HeaderName, HeaderValue, Headers};
-pub use csp::{ContentSecurityPolicy, ReportTo, ReportToEndpoint, Source};
 
 mod csp;
+mod timing_allow_origin;
+
+pub use csp::{ContentSecurityPolicy, ReportTo, ReportToEndpoint, Source};
+#[doc(inline)]
+pub use timing_allow_origin::{TimingAllowOrigin, TimingOrigin};
 
 /// Apply a set of default protections.
 ///
