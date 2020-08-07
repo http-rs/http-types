@@ -16,7 +16,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub struct Error {
     error: anyhow::Error,
     status: crate::StatusCode,
-    type_name: Option<String>,
+    type_name: Option<&'static str>,
 }
 
 impl Error {
@@ -36,7 +36,7 @@ impl Error {
                 .try_into()
                 .expect("Could not convert into a valid `StatusCode`"),
             error: error.into(),
-            type_name: Some(std::any::type_name::<E>().to_string()),
+            type_name: Some(std::any::type_name::<E>()),
         }
     }
 
