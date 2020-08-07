@@ -2,6 +2,7 @@ use std::fmt::{self, Display, Formatter};
 use std::str::{from_utf8, FromStr};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use crate::StatusCode;
 use crate::{bail, ensure, format_err};
 
 const IMF_FIXDATE_LENGTH: usize = 29;
@@ -39,7 +40,10 @@ pub(crate) struct HttpDate {
 /// ascdate formats. Two digit years are mapped to dates between
 /// 1970 and 2069.
 pub(crate) fn parse_http_date(s: &str) -> crate::Result<SystemTime> {
-    s.parse::<HttpDate>().map(|d| d.into())
+    s.parse::<HttpDate>().map(|d| d.into()).map_err(|mut e| {
+        e.set_status(StatusCode::BadRequest);
+        e
+    })
 }
 
 /// Format a date to be used in a HTTP header field.
