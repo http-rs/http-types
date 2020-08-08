@@ -8,14 +8,10 @@
 //!
 //! - [W3C Trace-Context header](https://w3c.github.io/trace-context/)
 //! - [W3C Server-Timing header](https://w3c.github.io/server-timing/#the-server-timing-header-field)
-//! - [W3C Timing-Allow-Origin header](https://w3c.github.io/resource-timing/#sec-timing-allow-origin)
 
-pub mod allow_origin;
 pub mod server_timing;
 mod trace_context;
 
-#[doc(inline)]
-pub use allow_origin::{AllowOrigin, Origin};
 #[doc(inline)]
 pub use server_timing::{Metric, ServerTiming};
 pub use trace_context::TraceContext;
