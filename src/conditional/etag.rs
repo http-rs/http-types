@@ -64,38 +64,7 @@ impl ETag {
 
         // If a header is returned we can assume at least one exists.
         let s = headers.iter().last().unwrap().as_str();
-
-        let mut weak = false;
-        let s = match s.strip_prefix("W/") {
-            Some(s) => {
-                weak = true;
-                s
-            }
-            None => s,
-        };
-
-        let s = match s.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
-            Some(s) => s.to_owned(),
-            None => {
-                return Err(Error::from_str(
-                    StatusCode::BadRequest,
-                    "Invalid ETag header",
-                ))
-            }
-        };
-
-        if !s
-            .bytes()
-            .all(|c| c == 0x21 || (c >= 0x23 && c <= 0x7E) || c >= 0x80)
-        {
-            return Err(Error::from_str(
-                StatusCode::BadRequest,
-                "Invalid ETag header",
-            ));
-        }
-
-        let etag = if weak { Self::Weak(s) } else { Self::Strong(s) };
-        Ok(Some(etag))
+        Self::from_str(s).map(|etag| Some(etag))
     }
 
     /// Sets the `ETag` header.
@@ -126,6 +95,41 @@ impl ETag {
     /// Returns `true` if the ETag is a `Weak` value.
     pub fn is_weak(&self) -> bool {
         matches!(self, Self::Weak(_))
+    }
+
+    /// Create an Etag from a string.
+    pub(crate) fn from_str(s: &str) -> crate::Result<Self> {
+        let mut weak = false;
+        let s = match s.strip_prefix("W/") {
+            Some(s) => {
+                weak = true;
+                s
+            }
+            None => s,
+        };
+
+        let s = match s.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
+            Some(s) => s.to_owned(),
+            None => {
+                return Err(Error::from_str(
+                    StatusCode::BadRequest,
+                    "Invalid ETag header",
+                ))
+            }
+        };
+
+        if !s
+            .bytes()
+            .all(|c| c == 0x21 || (c >= 0x23 && c <= 0x7E) || c >= 0x80)
+        {
+            return Err(Error::from_str(
+                StatusCode::BadRequest,
+                "Invalid ETag header",
+            ));
+        }
+
+        let etag = if weak { Self::Weak(s) } else { Self::Strong(s) };
+        Ok(etag)
     }
 }
 
