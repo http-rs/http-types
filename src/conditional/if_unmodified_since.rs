@@ -45,7 +45,7 @@ impl IfUnmodifiedSince {
         Self { instant }
     }
 
-    /// Get the expiration time.
+    /// Returns the last modification time listed.
     pub fn modified(&self) -> SystemTime {
         self.instant
     }

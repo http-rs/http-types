@@ -1,15 +1,15 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MODIFIED_SINCE};
+use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, LAST_MODIFIED};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
 use std::option;
 use std::time::SystemTime;
 
-/// HTTP `IfModifiedSince` header
+/// HTTP `LastModified` header
 ///
 /// # Specifications
 ///
-/// - [RFC 7232, section 3.3: If-Modified-Since](https://tools.ietf.org/html/rfc7232#section-3.3)
+/// - [RFC 7232, section 2.2: Last-Modified](https://tools.ietf.org/html/rfc7232#section-2.2)
 ///
 /// # Examples
 ///
@@ -17,30 +17,30 @@ use std::time::SystemTime;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::Response;
-/// use http_types::conditional::IfModifiedSince;
+/// use http_types::conditional::LastModified;
 /// use std::time::{SystemTime, Duration};
 ///
 /// let time = SystemTime::now() + Duration::from_secs(5 * 60);
-/// let expires = IfModifiedSince::new(time);
+/// let last_modified = LastModified::new(time);
 ///
 /// let mut res = Response::new(200);
-/// expires.apply(&mut res);
+/// last_modified.apply(&mut res);
 ///
-/// let expires = IfModifiedSince::from_headers(res)?.unwrap();
+/// let last_modified = LastModified::from_headers(res)?.unwrap();
 ///
 /// // HTTP dates only have second-precision.
-/// let elapsed = time.duration_since(expires.modified())?;
+/// let elapsed = time.duration_since(last_modified.modified())?;
 /// assert_eq!(elapsed.as_secs(), 0);
 /// #
 /// # Ok(()) }
 /// ```
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
-pub struct IfModifiedSince {
+pub struct LastModified {
     instant: SystemTime,
 }
 
-impl IfModifiedSince {
-    /// Create a new instance of `IfModifiedSince`.
+impl LastModified {
+    /// Create a new instance of `LastModified`.
     pub fn new(instant: SystemTime) -> Self {
         Self { instant }
     }
@@ -50,9 +50,9 @@ impl IfModifiedSince {
         self.instant
     }
 
-    /// Create an instance of `IfModifiedSince` from a `Headers` instance.
+    /// Create an instance of `LastModified` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(IF_MODIFIED_SINCE) {
+        let headers = match headers.as_ref().get(LAST_MODIFIED) {
             Some(headers) => headers,
             None => return Ok(None),
         };
@@ -67,12 +67,12 @@ impl IfModifiedSince {
 
     /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(IF_MODIFIED_SINCE, self.value());
+        headers.as_mut().insert(LAST_MODIFIED, self.value());
     }
 
     /// Get the `HeaderName`.
     pub fn name(&self) -> HeaderName {
-        IF_MODIFIED_SINCE
+        LAST_MODIFIED
     }
 
     /// Get the `HeaderValue`.
@@ -84,7 +84,7 @@ impl IfModifiedSince {
     }
 }
 
-impl ToHeaderValues for IfModifiedSince {
+impl ToHeaderValues for LastModified {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
@@ -101,15 +101,15 @@ mod test {
     #[test]
     fn smoke() -> crate::Result<()> {
         let time = SystemTime::now() + Duration::from_secs(5 * 60);
-        let expires = IfModifiedSince::new(time);
+        let last_modified = LastModified::new(time);
 
         let mut headers = Headers::new();
-        expires.apply(&mut headers);
+        last_modified.apply(&mut headers);
 
-        let expires = IfModifiedSince::from_headers(headers)?.unwrap();
+        let last_modified = LastModified::from_headers(headers)?.unwrap();
 
         // HTTP dates only have second-precision
-        let elapsed = time.duration_since(expires.modified())?;
+        let elapsed = time.duration_since(last_modified.modified())?;
         assert_eq!(elapsed.as_secs(), 0);
         Ok(())
     }
@@ -117,8 +117,8 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() -> crate::Result<()> {
         let mut headers = Headers::new();
-        headers.insert(IF_MODIFIED_SINCE, "<nori ate the tag. yum.>");
-        let err = IfModifiedSince::from_headers(headers).unwrap_err();
+        headers.insert(LAST_MODIFIED, "<nori ate the tag. yum.>");
+        let err = LastModified::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
         Ok(())
     }
