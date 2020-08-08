@@ -64,7 +64,7 @@ impl ETag {
 
         // If a header is returned we can assume at least one exists.
         let s = headers.iter().last().unwrap().as_str();
-        Self::from_str(s).map(|etag| Some(etag))
+        Self::from_str(s).map(Some)
     }
 
     /// Sets the `ETag` header.
