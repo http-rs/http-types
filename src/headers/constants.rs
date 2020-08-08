@@ -93,6 +93,9 @@ pub const EXPECT: HeaderName = HeaderName::from_lowercase_str("expect");
 ///  The `Expires` Header
 pub const EXPIRES: HeaderName = HeaderName::from_lowercase_str("expires");
 
+/// The `Forwarded` Header
+pub const FORWARDED: HeaderName = HeaderName::from_lowercase_str("forwarded");
+
 ///  The `From` Header
 pub const FROM: HeaderName = HeaderName::from_lowercase_str("from");
 

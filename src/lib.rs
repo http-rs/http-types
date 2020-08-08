@@ -121,12 +121,14 @@ pub mod cache;
 pub mod conditional;
 pub mod headers;
 pub mod mime;
+pub mod proxies;
 
 mod body;
 mod error;
 mod extensions;
 mod macros;
 mod method;
+mod parse_utils;
 mod request;
 mod response;
 mod status;
