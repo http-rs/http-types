@@ -118,6 +118,7 @@ pub mod url {
 mod utils;
 
 pub mod cache;
+pub mod conditional;
 pub mod headers;
 pub mod mime;
 
