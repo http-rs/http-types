@@ -23,6 +23,15 @@ impl HeaderName {
         Ok(HeaderName(Cow::Owned(string)))
     }
 
+    /// Create a new `HeaderName` from an ASCII string.
+    ///
+    /// # Error
+    ///
+    /// This function will error if the string is not valid ASCII.
+    pub fn from_string(s: String) -> Result<Self, Error> {
+        Self::from_bytes(s.into_bytes())
+    }
+
     /// Returns the header name as a `&str`.
     pub fn as_str(&self) -> &'_ str {
         &self.0
