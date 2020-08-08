@@ -1,16 +1,16 @@
 use crate::conditional::MatchDirective;
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MATCH};
+use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_NONE_MATCH};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
 use std::option;
 use std::slice;
 
-/// HTTP `If-Match` header.
+/// HTTP `If-None-Match` header.
 ///
 /// # Specifications
 ///
-/// - [RFC 7232, section 3.1: If-Match](https://tools.ietf.org/html/rfc7232#section-3.1)
+/// - [RFC 7232, section 3.2: If-None-Match](https://tools.ietf.org/html/rfc7232#section-3.2)
 ///
 /// # Examples
 ///
@@ -18,28 +18,28 @@ use std::slice;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::Response;
-/// use http_types::conditional::{IfMatch, ETag};
+/// use http_types::conditional::{IfNoneMatch, ETag};
 ///
-/// let mut entries = IfMatch::new();
+/// let mut entries = IfNoneMatch::new();
 /// entries.push(ETag::new("0xcafebeef".to_string()));
 /// entries.push(ETag::new("0xbeefcafe".to_string()));
 ///
 /// let mut res = Response::new(200);
 /// entries.apply(&mut res);
 ///
-/// let entries = IfMatch::from_headers(res)?.unwrap();
+/// let entries = IfNoneMatch::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
 /// assert_eq!(entries.next().unwrap(), ETag::new("0xcafebeef".to_string()));
 /// assert_eq!(entries.next().unwrap(), ETag::new("0xbeefcafe".to_string()));
 /// #
 /// # Ok(()) }
 /// ```
-pub struct IfMatch {
+pub struct IfNoneMatch {
     entries: Vec<MatchDirective>,
 }
 
-impl IfMatch {
-    /// Create a new instance of `IfMatch`.
+impl IfNoneMatch {
+    /// Create a new instance of `IfNoneMatch`.
     pub fn new() -> Self {
         Self { entries: vec![] }
     }
@@ -47,7 +47,7 @@ impl IfMatch {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(IF_MATCH) {
+        let headers = match headers.as_ref().get(IF_NONE_MATCH) {
             Some(headers) => headers,
             None => return Ok(None),
         };
@@ -65,14 +65,14 @@ impl IfMatch {
         Ok(Some(Self { entries }))
     }
 
-    /// Sets the `If-Match` header.
+    /// Sets the `If-None-Match` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(IF_MATCH, self.value());
+        headers.as_mut().insert(IF_NONE_MATCH, self.value());
     }
 
     /// Get the `HeaderName`.
     pub fn name(&self) -> HeaderName {
-        IF_MATCH
+        IF_NONE_MATCH
     }
 
     /// Get the `HeaderValue`.
@@ -110,7 +110,7 @@ impl IfMatch {
     }
 }
 
-impl IntoIterator for IfMatch {
+impl IntoIterator for IfNoneMatch {
     type Item = MatchDirective;
     type IntoIter = IntoIter;
 
@@ -122,7 +122,7 @@ impl IntoIterator for IfMatch {
     }
 }
 
-impl<'a> IntoIterator for &'a IfMatch {
+impl<'a> IntoIterator for &'a IfNoneMatch {
     type Item = &'a MatchDirective;
     type IntoIter = Iter<'a>;
 
@@ -132,7 +132,7 @@ impl<'a> IntoIterator for &'a IfMatch {
     }
 }
 
-impl<'a> IntoIterator for &'a mut IfMatch {
+impl<'a> IntoIterator for &'a mut IfNoneMatch {
     type Item = &'a mut MatchDirective;
     type IntoIter = IterMut<'a>;
 
@@ -142,7 +142,7 @@ impl<'a> IntoIterator for &'a mut IfMatch {
     }
 }
 
-/// A borrowing iterator over entries in `IfMatch`.
+/// A borrowing iterator over entries in `IfNoneMatch`.
 #[derive(Debug)]
 pub struct IntoIter {
     inner: std::vec::IntoIter<MatchDirective>,
@@ -161,7 +161,7 @@ impl Iterator for IntoIter {
     }
 }
 
-/// A lending iterator over entries in `IfMatch`.
+/// A lending iterator over entries in `IfNoneMatch`.
 #[derive(Debug)]
 pub struct Iter<'a> {
     inner: slice::Iter<'a, MatchDirective>,
@@ -180,7 +180,7 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
-/// A mutable iterator over entries in `IfMatch`.
+/// A mutable iterator over entries in `IfNoneMatch`.
 #[derive(Debug)]
 pub struct IterMut<'a> {
     inner: slice::IterMut<'a, MatchDirective>,
@@ -199,7 +199,7 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl ToHeaderValues for IfMatch {
+impl ToHeaderValues for IfNoneMatch {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
@@ -207,7 +207,7 @@ impl ToHeaderValues for IfMatch {
     }
 }
 
-impl Debug for IfMatch {
+impl Debug for IfNoneMatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
         for directive in &self.entries {
@@ -219,19 +219,19 @@ impl Debug for IfMatch {
 
 #[cfg(test)]
 mod test {
-    use crate::conditional::{ETag, IfMatch};
+    use crate::conditional::{ETag, IfNoneMatch};
     use crate::Response;
 
     #[test]
     fn smoke() -> crate::Result<()> {
-        let mut entries = IfMatch::new();
+        let mut entries = IfNoneMatch::new();
         entries.push(ETag::new("0xcafebeef".to_string()));
         entries.push(ETag::new("0xbeefcafe".to_string()));
 
         let mut res = Response::new(200);
         entries.apply(&mut res);
 
-        let entries = IfMatch::from_headers(res)?.unwrap();
+        let entries = IfNoneMatch::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
         assert_eq!(entries.next().unwrap(), ETag::new("0xcafebeef".to_string()));
         assert_eq!(entries.next().unwrap(), ETag::new("0xbeefcafe".to_string()));

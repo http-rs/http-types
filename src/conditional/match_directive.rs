@@ -1,7 +1,7 @@
 use crate::conditional::ETag;
 use crate::headers::HeaderValue;
 
-/// An HTTP `If-{None-,}Match` directive.
+/// An Entity Tag based match directive.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MatchDirective {
     /// An ETag.
