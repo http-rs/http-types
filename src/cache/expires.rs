@@ -9,7 +9,7 @@ use std::time::{Duration, SystemTime};
 ///
 /// # Specifications
 ///
-/// - [RFC 7234  Hypertext Transfer Protocol (HTTP/1.1): Caching](https://tools.ietf.org/html/rfc7234#section-5.3)
+/// - [RFC 7234, section 5.3: Expires](https://tools.ietf.org/html/rfc7234#section-5.3)
 ///
 /// # Examples
 ///
@@ -29,7 +29,7 @@ use std::time::{Duration, SystemTime};
 /// let expires = Expires::from_headers(res)?.unwrap();
 ///
 /// // HTTP dates only have second-precision.
-/// let elapsed = time.duration_since(expires.at())?;
+/// let elapsed = time.duration_since(expires.expiration())?;
 /// assert_eq!(elapsed.as_secs(), 0);
 /// #
 /// # Ok(()) }
@@ -52,7 +52,7 @@ impl Expires {
     }
 
     /// Get the expiration time.
-    pub fn at(&self) -> SystemTime {
+    pub fn expiration(&self) -> SystemTime {
         self.instant
     }
 
@@ -114,7 +114,7 @@ mod test {
         let expires = Expires::from_headers(headers)?.unwrap();
 
         // HTTP dates only have second-precision
-        let elapsed = time.duration_since(expires.at())?;
+        let elapsed = time.duration_since(expires.expiration())?;
         assert_eq!(elapsed.as_secs(), 0);
         Ok(())
     }
