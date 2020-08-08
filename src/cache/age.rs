@@ -9,7 +9,7 @@ use std::time::Duration;
 ///
 /// # Specifications
 ///
-/// - [RFC 7234  Hypertext Transfer Protocol (HTTP/1.1): Caching](https://tools.ietf.org/html/rfc7234#section-5.1)
+/// - [RFC 7234, section 5.1: Age](https://tools.ietf.org/html/rfc7234#section-5.1)
 ///
 /// # Examples
 ///
@@ -52,10 +52,6 @@ impl Age {
     }
 
     /// Create an instance of `Age` from a `Headers` instance.
-    ///
-    /// # Implementation note
-    ///
-    /// A header value of `"null"` is treated the same as if no header was sent.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(AGE) {
             Some(headers) => headers,

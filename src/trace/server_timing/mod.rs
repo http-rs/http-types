@@ -37,10 +37,9 @@ use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, SERVER_TI
 
 /// Metrics and descriptions for the given request-response cycle.
 ///
-/// This is an implementation of the W3C [Server
-/// Timing](https://w3c.github.io/server-timing/#the-server-timing-header-field)
-/// header spec. Read more on
-/// [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing).
+/// # Specifications
+///
+/// - [Server Timing (Working Draft)](https://w3c.github.io/server-timing/#the-server-timing-header-field)
 ///
 /// # Examples
 ///
