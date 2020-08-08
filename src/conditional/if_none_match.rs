@@ -1,3 +1,8 @@
+//! Apply the HTTP method if the ETags do not match.
+//!
+//! This is used to update caches or to prevent uploading a new resource when
+//! one already exists.
+
 use crate::conditional::MatchDirective;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_NONE_MATCH};
 
@@ -6,7 +11,10 @@ use std::iter::Iterator;
 use std::option;
 use std::slice;
 
-/// HTTP `If-None-Match` header.
+/// Apply the HTTP method if the ETags do not match.
+///
+/// This is used to update caches or to prevent uploading a new resource when
+/// one already exists.
 ///
 /// # Specifications
 ///

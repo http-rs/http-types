@@ -9,17 +9,24 @@
 //! - [MDN: HTTP Conditional Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests)
 
 mod etag;
-mod if_match;
 mod if_modified_since;
-mod if_none_match;
 mod if_unmodified_since;
 mod last_modified;
 mod match_directive;
 
+pub mod if_match;
+pub mod if_none_match;
+
 pub use etag::ETag;
-pub use if_match::IfMatch;
-pub use if_modified_since::IfModifiedSince;
-pub use if_none_match::IfNoneMatch;
-pub use if_unmodified_since::IfUnmodifiedSince;
-pub use last_modified::LastModified;
 pub use match_directive::MatchDirective;
+
+#[doc(inline)]
+pub use if_match::IfMatch;
+#[doc(inline)]
+pub use if_modified_since::IfModifiedSince;
+#[doc(inline)]
+pub use if_none_match::IfNoneMatch;
+#[doc(inline)]
+pub use if_unmodified_since::IfUnmodifiedSince;
+#[doc(inline)]
+pub use last_modified::LastModified;

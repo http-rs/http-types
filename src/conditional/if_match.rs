@@ -1,3 +1,5 @@
+//! Apply the HTTP method if the ETag matches.
+
 use crate::conditional::MatchDirective;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MATCH};
 
@@ -6,7 +8,7 @@ use std::iter::Iterator;
 use std::option;
 use std::slice;
 
-/// HTTP `If-Match` header.
+/// Apply the HTTP method if the ETag matches.
 ///
 /// # Specifications
 ///

@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use std::option;
 use std::time::SystemTime;
 
-/// HTTP `LastModified` header
+/// The last modification date of a resource.
 ///
 /// # Specifications
 ///
