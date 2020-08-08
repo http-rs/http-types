@@ -8,7 +8,9 @@
 //!
 //! - [MDN: HTTP Caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)
 
+mod age;
 mod cache_control;
 
+pub use age::Age;
 pub use cache_control::CacheControl;
 pub use cache_control::CacheDirective;
