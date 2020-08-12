@@ -257,7 +257,7 @@ impl<'a> Forwarded<'a> {
         Ok(rest)
     }
 
-    /// Transform a borrowed Forwarded into an owned ('static)
+    /// Transform a borrowed Forwarded into an owned
     /// Forwarded. This is a noop if the Forwarded is already owned.
     pub fn into_owned(self) -> Forwarded<'static> {
         Forwarded {
