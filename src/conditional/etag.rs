@@ -11,7 +11,7 @@ use std::option;
 ///
 /// # Specifications
 ///
-/// - [RFC 7232 HTTP/1.1: Conditional Requests](https://tools.ietf.org/html/rfc7232#section-2.3)
+/// - [RFC 7232, section 2.3: ETag](https://tools.ietf.org/html/rfc7232#section-2.3)
 ///
 /// # Examples
 ///

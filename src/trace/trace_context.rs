@@ -6,6 +6,10 @@ use crate::Status;
 
 /// Extract and apply [Trace-Context](https://w3c.github.io/trace-context/) headers.
 ///
+/// # Specifications
+///
+/// - [Trace-Context (Working Draft)](https://w3c.github.io/trace-context/)
+///
 /// # Examples
 ///
 /// ```

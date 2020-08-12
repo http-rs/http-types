@@ -2,9 +2,9 @@
 //!
 //! # Specifications
 //!
-//! - [RFC 5861: HTTP Cache-Control Extensions for Stale Content](https://tools.ietf.org/html/rfc5861)
-//! - [RFC 7234:  Hypertext Transfer Protocol (HTTP/1.1): Caching](https://tools.ietf.org/html/rfc7234)
 //! - [RFC 8246: HTTP Immutable Responses](https://tools.ietf.org/html/rfc8246)
+//! - [RFC 7234: Hypertext Transfer Protocol (HTTP/1.1): Caching](https://tools.ietf.org/html/rfc7234)
+//! - [RFC 5861: HTTP Cache-Control Extensions for Stale Content](https://tools.ietf.org/html/rfc5861)
 
 #[allow(clippy::module_inception)]
 mod cache_control;
