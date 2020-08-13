@@ -21,8 +21,8 @@ pub struct Forwarded<'a> {
 
 impl<'a> Forwarded<'a> {
     /// Attempts to parse a Forwarded from headers (or a request or
-    /// response). Builds a reference by default. To
-    /// build a Forwarded with a 'static lifetime, use
+    /// response). Builds a borrowed Forwarded by default. To build an
+    /// owned Forwarded, use
     /// `Forwarded::from_headers(...).into_owned()`
     ///
     /// # X-Forwarded-For, -By, and -Proto compatability
@@ -42,25 +42,29 @@ impl<'a> Forwarded<'a> {
     ///
     /// # Examples
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
-    /// let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
+    /// # fn main() -> Result<()> {
+    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header(
     ///     "Forwarded",
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
     /// );
-    /// let forwarded = Forwarded::from_headers(&request).unwrap().unwrap();
+    /// let forwarded = Forwarded::from_headers(&request)?.unwrap();
     /// assert_eq!(forwarded.proto(), Some("https"));
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
+    /// # Ok(()) }
     /// ```
     ///
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
-    /// let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
+    /// # fn main() -> Result<()> {
+    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17");
     /// request.insert_header("X-Forwarded-Proto", "https");
-    /// let forwarded = Forwarded::from_headers(&request).unwrap().unwrap();
+    /// let forwarded = Forwarded::from_headers(&request)?.unwrap();
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]"]);
     /// assert_eq!(forwarded.proto(), Some("https"));
+    /// # Ok(()) }
     /// ```
 
     pub fn from_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>, ParseError> {
@@ -75,21 +79,25 @@ impl<'a> Forwarded<'a> {
     ///
     /// # Examples
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
-    /// let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
+    /// # fn main() -> Result<()> {
+    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header(
     ///     "Forwarded",
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
     /// );
-    /// let forwarded = Forwarded::from_forwarded_header(&request).unwrap().unwrap();
+    /// let forwarded = Forwarded::from_forwarded_header(&request)?.unwrap();
     /// assert_eq!(forwarded.proto(), Some("https"));
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
+    /// # Ok(()) }
     /// ```
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
-    /// let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
+    /// # fn main() -> Result<()> {
+    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17");
-    /// assert!(Forwarded::from_forwarded_header(&request).unwrap().is_none())
+    /// assert!(Forwarded::from_forwarded_header(&request)?.is_none());
+    /// # Ok(()) }
     /// ```
     pub fn from_forwarded_header(
         headers: &'a impl AsRef<Headers>,
@@ -107,20 +115,24 @@ impl<'a> Forwarded<'a> {
     ///
     /// # Examples
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
-    /// let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
+    /// # fn main() -> Result<()> {
+    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17");
-    /// let forwarded = Forwarded::from_headers(&request).unwrap().unwrap();
+    /// let forwarded = Forwarded::from_headers(&request)?.unwrap();
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]"]);
+    /// # Ok(()) }
     /// ```
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
-    /// let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
+    /// # fn main() -> Result<()> {
+    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header(
     ///     "Forwarded",
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
     /// );
-    /// assert!(Forwarded::from_x_headers(&request).unwrap().is_none());
+    /// assert!(Forwarded::from_x_headers(&request)?.is_none());
+    /// # Ok(()) }
     /// ```
     pub fn from_x_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>, ParseError> {
         let headers = headers.as_ref();
@@ -456,52 +468,41 @@ impl<'a> TryFrom<&'a str> for Forwarded<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Method::Get, Request, Response};
+    use crate::{Method::Get, Request, Response, Result};
     use url::Url;
 
     #[test]
-    fn parsing_for() -> crate::Result<()> {
+    fn parsing_for() -> Result<()> {
         assert_eq!(
-            Forwarded::parse(r#"for="_gazonk""#)
-                .unwrap()
-                .forwarded_for(),
+            Forwarded::parse(r#"for="_gazonk""#)?.forwarded_for(),
             vec!["_gazonk"]
         );
         assert_eq!(
-            Forwarded::parse(r#"For="[2001:db8:cafe::17]:4711""#)
-                .unwrap()
-                .forwarded_for(),
+            Forwarded::parse(r#"For="[2001:db8:cafe::17]:4711""#)?.forwarded_for(),
             vec!["[2001:db8:cafe::17]:4711"]
         );
 
         assert_eq!(
-            Forwarded::parse("for=192.0.2.60;proto=http;by=203.0.113.43")
-                .unwrap()
-                .forwarded_for(),
+            Forwarded::parse("for=192.0.2.60;proto=http;by=203.0.113.43")?.forwarded_for(),
             vec!["192.0.2.60"]
         );
 
         assert_eq!(
-            Forwarded::parse("for=192.0.2.43,   for=198.51.100.17")
-                .unwrap()
-                .forwarded_for(),
+            Forwarded::parse("for=192.0.2.43,   for=198.51.100.17")?.forwarded_for(),
             vec!["192.0.2.43", "198.51.100.17"]
         );
 
         assert_eq!(
-            Forwarded::parse(r#"for=192.0.2.43,for="[2001:db8:cafe::17]",for=unknown"#)
-                .unwrap()
+            Forwarded::parse(r#"for=192.0.2.43,for="[2001:db8:cafe::17]",for=unknown"#)?
                 .forwarded_for(),
-            Forwarded::parse(r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown"#)
-                .unwrap()
+            Forwarded::parse(r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown"#)?
                 .forwarded_for()
         );
 
         assert_eq!(
             Forwarded::parse(
                 r#"for=192.0.2.43,for="this is a valid quoted-string, \" \\",for=unknown"#
-            )
-            .unwrap()
+            )?
             .forwarded_for(),
             vec![
                 "192.0.2.43",
@@ -514,25 +515,19 @@ mod tests {
     }
 
     #[test]
-    fn formatting_for() -> crate::Result<()> {
-        assert_eq!("", Forwarded::new().to_string());
-        Ok(())
-    }
-
-    #[test]
-    fn basic_parse() {
-        let forwarded =
-            Forwarded::parse("for=client.com;by=proxy.com;host=host.com;proto=https").unwrap();
+    fn basic_parse() -> Result<()> {
+        let forwarded = Forwarded::parse("for=client.com;by=proxy.com;host=host.com;proto=https")?;
 
         assert_eq!(forwarded.by(), Some("proxy.com"));
         assert_eq!(forwarded.forwarded_for(), vec!["client.com"]);
         assert_eq!(forwarded.host(), Some("host.com"));
         assert_eq!(forwarded.proto(), Some("https"));
         assert!(matches!(forwarded, Forwarded{..}));
+        Ok(())
     }
 
     #[test]
-    fn bad_parse() {
+    fn bad_parse() -> Result<()> {
         let err = Forwarded::parse("by=proxy.com;for=client;host=example.com;host").unwrap_err();
         assert_eq!(
             err.to_string(),
@@ -562,10 +557,11 @@ mod tests {
             err.to_string(),
             "unable to parse forwarded header: for= without valid value"
         );
+        Ok(())
     }
 
     #[test]
-    fn bad_parse_from_headers() {
+    fn bad_parse_from_headers() -> Result<()> {
         let mut response = Response::new(200);
         response.append_header("forwarded", "uh oh");
         assert_eq!(
@@ -574,23 +570,25 @@ mod tests {
         );
 
         let response = Response::new(200);
-        assert!(Forwarded::from_headers(&response).unwrap().is_none());
+        assert!(Forwarded::from_headers(&response)?.is_none());
+        Ok(())
     }
 
     #[test]
-    fn from_x_headers() {
-        let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+    fn from_x_headers() -> Result<()> {
+        let mut request = Request::new(Get, Url::parse("http://_/")?);
         request.append_header(X_FORWARDED_FOR, "192.0.2.43, 2001:db8:cafe::17");
         request.append_header(X_FORWARDED_PROTO, "gopher");
-        let forwarded = Forwarded::from_headers(&request).unwrap().unwrap();
+        let forwarded = Forwarded::from_headers(&request)?.unwrap();
         assert_eq!(
             forwarded.to_string(),
             r#"for=192.0.2.43, for="[2001:db8:cafe::17]";proto=gopher"#
         );
+        Ok(())
     }
 
     #[test]
-    fn formatting_edge_cases() {
+    fn formatting_edge_cases() -> Result<()> {
         let forwarded = Forwarded::new()
             .with_for(r#"quote: " backslash: \"#.into())
             .with_for(";proto=https".into());
@@ -598,48 +596,50 @@ mod tests {
             forwarded.to_string(),
             r#"for="quote: \" backslash: \\", for=";proto=https""#
         );
+        Ok(())
     }
 
     #[test]
-    fn parse_edge_cases() {
+    fn parse_edge_cases() -> Result<()> {
         let forwarded =
-            Forwarded::parse(r#"for=";", for=",", for="\"", for=unquoted;by=";proto=https""#)
-                .unwrap();
+            Forwarded::parse(r#"for=";", for=",", for="\"", for=unquoted;by=";proto=https""#)?;
         assert_eq!(forwarded.forwarded_for(), vec![";", ",", "\"", "unquoted"]);
         assert_eq!(forwarded.by(), Some(";proto=https"));
         assert!(forwarded.proto().is_none());
 
-        let forwarded = Forwarded::parse("proto=https").unwrap();
+        let forwarded = Forwarded::parse("proto=https")?;
         assert_eq!(forwarded.proto(), Some("https"));
+        Ok(())
     }
 
     #[test]
-    fn owned_parse() {
-        let forwarded = Forwarded::parse("for=client;by=proxy.com;host=example.com;proto=https")
-            .unwrap()
-            .into_owned();
+    fn owned_parse() -> Result<()> {
+        let forwarded =
+            Forwarded::parse("for=client;by=proxy.com;host=example.com;proto=https")?.into_owned();
 
         assert_eq!(forwarded.by(), Some("proxy.com"));
         assert_eq!(forwarded.forwarded_for(), vec!["client"]);
         assert_eq!(forwarded.host(), Some("example.com"));
         assert_eq!(forwarded.proto(), Some("https"));
         assert!(matches!(forwarded, Forwarded{..}));
-    }
-
-    #[test]
-    fn from_request() -> crate::Result<()> {
-        let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
-        request.append_header("Forwarded", "for=for");
-
-        let forwarded = Forwarded::from_headers(&request)?.unwrap();
-        assert_eq!(forwarded.forwarded_for(), vec!["for"]);
         Ok(())
     }
 
     #[test]
-    fn owned_can_outlive_request() -> crate::Result<()> {
+    fn from_request() -> Result<()> {
+        let mut request = Request::new(Get, Url::parse("http://_/")?);
+        request.append_header("Forwarded", "for=for");
+
+        let forwarded = Forwarded::from_headers(&request)?.unwrap();
+        assert_eq!(forwarded.forwarded_for(), vec!["for"]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn owned_can_outlive_request() -> Result<()> {
         let forwarded = {
-            let mut request = Request::new(Get, Url::parse("http://_/").unwrap());
+            let mut request = Request::new(Get, Url::parse("http://_/")?);
             request.append_header("Forwarded", "for=for;by=by;host=host;proto=proto");
             Forwarded::from_headers(&request)?.unwrap().into_owned()
         };
