@@ -59,11 +59,12 @@ impl<'a> Forwarded<'a> {
     /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
     /// # fn main() -> Result<()> {
     /// let mut request = Request::new(Get, Url::parse("http://_/")?);
-    /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17");
+    /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17, unknown");
     /// request.insert_header("X-Forwarded-Proto", "https");
     /// let forwarded = Forwarded::from_headers(&request)?.unwrap();
-    /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]"]);
+    /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
     /// assert_eq!(forwarded.proto(), Some("https"));
+    /// assert_eq!(forwarded.value()?, r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#);
     /// # Ok(()) }
     /// ```
 
@@ -174,6 +175,18 @@ impl<'a> Forwarded<'a> {
     }
 
     /// parse a &str into a borrowed Forwarded
+    ///
+    /// # Examples
+    /// ```rust
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
+    /// # fn main() -> Result<()> {
+    /// let forwarded = Forwarded::parse(
+    ///     r#"for=192.0.2.43,         for="[2001:db8:cafe::17]", FOR=unknown;proto=https"#
+    /// )?;
+    /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
+    /// assert_eq!(forwarded.value()?, r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#);
+    /// # Ok(()) }
+    /// ```
     pub fn parse(input: &'a str) -> Result<Self, ParseError> {
         let mut input = input;
         let mut forwarded = Forwarded::new();
