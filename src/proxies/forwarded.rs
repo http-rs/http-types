@@ -244,20 +244,16 @@ impl<'a> Forwarded<'a> {
                     rest = rest[1..].trim_start();
                 }
 
-                Some(';') => {
-                    rest = &rest[1..];
-                    break;
-                }
+                // we have reached the end of the for= section
+                Some(';') => return Ok(&rest[1..]),
 
-                // reached the end of the for section or the input
-                None => break,
+                // reached the end of the input
+                None => return Ok(rest),
 
                 // bail
                 _ => return Err(ParseError::new("unexpected character after for= section")),
             }
         }
-
-        Ok(rest)
     }
 
     /// Transform a borrowed Forwarded into an owned
