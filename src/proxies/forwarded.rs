@@ -64,7 +64,10 @@ impl<'a> Forwarded<'a> {
     /// let forwarded = Forwarded::from_headers(&request)?.unwrap();
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
     /// assert_eq!(forwarded.proto(), Some("https"));
-    /// assert_eq!(forwarded.value()?, r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#);
+    /// assert_eq!(
+    ///     forwarded.value()?,
+    ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
+    /// );
     /// # Ok(()) }
     /// ```
 
@@ -184,7 +187,10 @@ impl<'a> Forwarded<'a> {
     ///     r#"for=192.0.2.43,         for="[2001:db8:cafe::17]", FOR=unknown;proto=https"#
     /// )?;
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
-    /// assert_eq!(forwarded.value()?, r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#);
+    /// assert_eq!(
+    ///     forwarded.value()?,
+    ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
+    /// );
     /// # Ok(()) }
     /// ```
     pub fn parse(input: &'a str) -> Result<Self, ParseError> {
