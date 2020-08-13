@@ -170,17 +170,11 @@ impl<'a> Forwarded<'a> {
             input = forwarded.parse_for(input)?;
         }
 
-        loop {
-            match input.chars().next() {
-                Some(';') => {
-                    input = &input[1..];
-                }
-                None => return Ok(forwarded),
-                _ => return Err(ParseError::new("unexpected character after forwarded-pair")),
-            }
-
+        while !input.is_empty() {
             input = forwarded.parse_forwarded_pair(input)?;
         }
+
+        Ok(forwarded)
     }
 
     fn parse_forwarded_pair(&mut self, input: &'a str) -> Result<&'a str, ParseError> {
@@ -218,7 +212,11 @@ impl<'a> Forwarded<'a> {
             _ => { /* extensions are allowed in the spec */ }
         }
 
-        Ok(rest)
+        if rest.starts_with(';') {
+            Ok(&rest[1..])
+        } else {
+            Ok(rest)
+        }
     }
 
     fn parse_for(&mut self, input: &'a str) -> Result<&'a str, ParseError> {
@@ -246,8 +244,13 @@ impl<'a> Forwarded<'a> {
                     rest = rest[1..].trim_start();
                 }
 
+                Some(';') => {
+                    rest = &rest[1..];
+                    break;
+                }
+
                 // reached the end of the for section or the input
-                None | Some(';') => break,
+                None => break,
 
                 // bail
                 _ => return Err(ParseError::new("unexpected character after for= section")),
@@ -537,13 +540,13 @@ mod tests {
         let err = Forwarded::parse("by=proxy.com;for=client;host=example.com;host").unwrap_err();
         assert_eq!(
             err.to_string(),
-            "unable to parse forwarded header: unexpected character after forwarded-pair"
+            "unable to parse forwarded header: parse error in forwarded-pair"
         );
 
         let err = Forwarded::parse("by;for;host;proto").unwrap_err();
         assert_eq!(
             err.to_string(),
-            "unable to parse forwarded header: unexpected character after forwarded-pair"
+            "unable to parse forwarded header: parse error in forwarded-pair"
         );
 
         let err = Forwarded::parse("for=for, key=value").unwrap_err();
@@ -571,7 +574,7 @@ mod tests {
         response.append_header("forwarded", "uh oh");
         assert_eq!(
             Forwarded::from_headers(&response).unwrap_err().to_string(),
-            "unable to parse forwarded header: unexpected character after forwarded-pair"
+            "unable to parse forwarded header: parse error in forwarded-pair"
         );
 
         let response = Response::new(200);
@@ -609,6 +612,9 @@ mod tests {
         assert_eq!(forwarded.forwarded_for(), vec![";", ",", "\"", "unquoted"]);
         assert_eq!(forwarded.by(), Some(";proto=https"));
         assert!(forwarded.proto().is_none());
+
+        let forwarded = Forwarded::parse("proto=https").unwrap();
+        assert_eq!(forwarded.proto(), Some("https"));
     }
 
     #[test]
