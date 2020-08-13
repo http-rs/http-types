@@ -284,11 +284,35 @@ impl<'a> Forwarded<'a> {
     }
 
     /// Insert a header that represents this Forwarded.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let mut response = http_types::Response::new(200);
+    /// http_types::proxies::Forwarded::new()
+    ///   .with_for(String::from("192.0.2.43"))
+    ///   .with_for(String::from("[2001:db8:cafe::17]"))
+    ///   .with_proto(String::from("https"))
+    ///   .apply(&mut response);
+    /// assert_eq!(response["Forwarded"], r#"for=192.0.2.43, for="[2001:db8:cafe::17]";proto=https"#);
+    /// ```
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
         headers.as_mut().insert(FORWARDED, self);
     }
 
     /// Builds a Forwarded header as a String.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> http_types::Result<()> {
+    /// let forwarded = http_types::proxies::Forwarded::new()
+    ///   .with_for(String::from("_haproxy"))
+    ///   .with_for(String::from("[2001:db8:cafe::17]"))
+    ///   .with_proto(String::from("https"));
+    /// assert_eq!(forwarded.value()?, r#"for=_haproxy, for="[2001:db8:cafe::17]";proto=https"#);
+    /// # Ok(()) }
+    /// ```
     pub fn value(&self) -> Result<String, std::fmt::Error> {
         let mut buf = String::new();
         if let Some(by) = self.by() {
