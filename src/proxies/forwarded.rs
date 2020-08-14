@@ -308,11 +308,11 @@ impl<'a> Forwarded<'a> {
     ///
     /// ```rust
     /// let mut response = http_types::Response::new(200);
-    /// http_types::proxies::Forwarded::new()
-    ///   .with_for(String::from("192.0.2.43"))
-    ///   .with_for(String::from("[2001:db8:cafe::17]"))
-    ///   .with_proto(String::from("https"))
-    ///   .apply(&mut response);
+    /// let mut forwarded = http_types::proxies::Forwarded::new();
+    /// forwarded.add_for("192.0.2.43");
+    /// forwarded.add_for("[2001:db8:cafe::17]");
+    /// forwarded.set_proto("https");
+    /// forwarded.apply(&mut response);
     /// assert_eq!(response["Forwarded"], r#"for=192.0.2.43, for="[2001:db8:cafe::17]";proto=https"#);
     /// ```
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
@@ -325,10 +325,10 @@ impl<'a> Forwarded<'a> {
     ///
     /// ```rust
     /// # fn main() -> http_types::Result<()> {
-    /// let forwarded = http_types::proxies::Forwarded::new()
-    ///   .with_for(String::from("_haproxy"))
-    ///   .with_for(String::from("[2001:db8:cafe::17]"))
-    ///   .with_proto(String::from("https"));
+    /// let mut forwarded = http_types::proxies::Forwarded::new();
+    /// forwarded.add_for("_haproxy");
+    /// forwarded.add_for("[2001:db8:cafe::17]");
+    /// forwarded.set_proto("https");
     /// assert_eq!(forwarded.value()?, r#"for=_haproxy, for="[2001:db8:cafe::17]";proto=https"#);
     /// # Ok(()) }
     /// ```
@@ -368,9 +368,9 @@ impl<'a> Forwarded<'a> {
         Self::default()
     }
 
-    /// Returns the `by` field of this header
-    pub fn by(&self) -> Option<&str> {
-        self.by.as_deref()
+    /// Adds a `for` section to this header
+    pub fn add_for(&mut self, forwarded_for: impl Into<Cow<'a, str>>) {
+        self.forwarded_for.push(forwarded_for.into());
     }
 
     /// Returns the `for` field of this header
@@ -378,9 +378,19 @@ impl<'a> Forwarded<'a> {
         self.forwarded_for.iter().map(|x| x.as_ref()).collect()
     }
 
+    /// Sets the `host` field of this header
+    pub fn set_host(&mut self, host: impl Into<Cow<'a, str>>) {
+        self.host = Some(host.into());
+    }
+
     /// Returns the `host` field of this header
     pub fn host(&self) -> Option<&str> {
         self.host.as_deref()
+    }
+
+    /// Sets the `proto` field of this header
+    pub fn set_proto(&mut self, proto: impl Into<Cow<'a, str>>) {
+        self.proto = Some(proto.into())
     }
 
     /// Returns the `proto` field of this header
@@ -388,43 +398,14 @@ impl<'a> Forwarded<'a> {
         self.proto.as_deref()
     }
 
-    /// sets the `host` field of this header
-    pub fn set_host(&mut self, host: String) {
-        self.host = Some(Cow::Owned(host));
+    /// Sets the `by` field of this header
+    pub fn set_by(&mut self, by: impl Into<Cow<'a, str>>) {
+        self.by = Some(by.into());
     }
 
-    /// chainable builder for the `proto` field
-    pub fn with_proto(mut self, proto: String) -> Self {
-        self.proto = Some(Cow::Owned(proto));
-        self
-    }
-
-    /// adds a `for` section to this header
-    pub fn add_for(&mut self, forwarded_for: String) {
-        self.forwarded_for.push(Cow::Owned(forwarded_for));
-    }
-
-    /// chainable builder to add a `for` section to this header
-    pub fn with_for(mut self, forwarded_for: String) -> Self {
-        self.add_for(forwarded_for);
-        self
-    }
-
-    /// chainable builder set the `host` field of this header
-    pub fn with_host(mut self, host: String) -> Self {
-        self.set_host(host);
-        self
-    }
-
-    /// sets the `by` field of this header
-    pub fn set_by(&mut self, by: String) {
-        self.by = Some(Cow::Owned(by));
-    }
-
-    /// chainable builder for the `by` field of this header
-    pub fn with_by(mut self, by: String) -> Self {
-        self.set_by(by);
-        self
+    /// Returns the `by` field of this header
+    pub fn by(&self) -> Option<&str> {
+        self.by.as_deref()
     }
 }
 
@@ -632,9 +613,9 @@ mod tests {
 
     #[test]
     fn formatting_edge_cases() -> Result<()> {
-        let forwarded = Forwarded::new()
-            .with_for(r#"quote: " backslash: \"#.into())
-            .with_for(";proto=https".into());
+        let mut forwarded = Forwarded::new();
+        forwarded.add_for(r#"quote: " backslash: \"#);
+        forwarded.add_for(";proto=https");
         assert_eq!(
             forwarded.to_string(),
             r#"for="quote: \" backslash: \\", for=";proto=https""#
