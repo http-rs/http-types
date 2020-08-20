@@ -120,6 +120,7 @@ mod utils;
 
 pub mod cache;
 pub mod conditional;
+pub mod content;
 pub mod headers;
 pub mod mime;
 pub mod proxies;
