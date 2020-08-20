@@ -144,6 +144,9 @@ cfg_unstable! {
 }
 
 pub use body::Body;
+pub use body::IoHandler;
+pub use body::ReadWrite;
+
 pub use error::{Error, Result};
 pub use method::Method;
 pub use request::Request;

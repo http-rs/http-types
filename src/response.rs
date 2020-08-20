@@ -311,6 +311,32 @@ impl Response {
         self.replace_body(Body::empty())
     }
 
+    /// Take the response body's io handler.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use async_std::io::prelude::*;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async_std::task::block_on(async {
+    /// #
+    /// use http_types::{Body, Method, Response, StatusCode, Url};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_body(Body::io(|_io| async move {}));
+    ///
+    /// let io_handler = res.take_io();
+    /// assert!(io_handler.is_some());
+    ///
+    /// # let io_handler = res.take_io();
+    /// # assert!(io_handler.is_none());
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    pub fn take_io(&mut self) -> Option<crate::body::IoHandler> {
+        self.body.io_handler.take()
+    }
+
     /// Read the body as a string.
     ///
     /// This consumes the response. If you want to read the body without

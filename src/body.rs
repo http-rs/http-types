@@ -5,9 +5,60 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use std::future::Future;
 
 use crate::{mime, Mime};
 use crate::{Status, StatusCode};
+
+/// An IO object for use with Body io callbacks
+pub trait ReadWrite: Read + Write + Unpin + Send + Sync + 'static {}
+impl<T: Read + Write + Unpin + Send + Sync + 'static> ReadWrite for T {}
+
+trait IoCallback:
+    FnOnce(Box<dyn ReadWrite>) ->
+        Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync + 'static
+{}
+impl<T> IoCallback for T
+    where T: FnOnce(Box<dyn ReadWrite>) ->
+        Pin<Box<dyn Future<Output = ()> + Send>> + Send + Sync + 'static
+{}
+
+/// A handler for Body io.
+pub struct IoHandler {
+    callback: Box<dyn IoCallback>,
+}
+
+impl IoHandler {
+    /// Call the inner callback, consuming the handler.
+    pub async fn call(self, io: Box<dyn ReadWrite>) {
+        (self.callback)(io).await
+    }
+}
+
+impl<T, Fut> From<T> for IoHandler
+    where
+        T: FnOnce(Box<dyn ReadWrite>) ->
+            Fut + Send + Sync + 'static,
+        Fut: Future<Output = ()> + Send + 'static,
+{
+    fn from(callback: T) -> Self {
+        let callback = move |io| {
+            let callback: Pin<Box<dyn Future<Output = ()> + Send>> = Box::pin(callback(io));
+            
+            callback
+        };
+        Self {
+            callback: Box::new(callback),
+        }
+    }
+}
+
+impl fmt::Debug for IoHandler {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Upgrade")
+            .finish()
+    }
+}
 
 pin_project_lite::pin_project! {
     /// A streaming HTTP body.
@@ -55,6 +106,7 @@ pin_project_lite::pin_project! {
     pub struct Body {
         #[pin]
         reader: Box<dyn BufRead + Unpin + Send + Sync + 'static>,
+        pub(crate) io_handler: Option<IoHandler>,
         mime: Mime,
         length: Option<usize>,
     }
@@ -77,6 +129,7 @@ impl Body {
     pub fn empty() -> Self {
         Self {
             reader: Box::new(io::empty()),
+            io_handler: None,
             mime: mime::BYTE_STREAM,
             length: Some(0),
         }
@@ -107,6 +160,7 @@ impl Body {
     ) -> Self {
         Self {
             reader: Box::new(reader),
+            io_handler: None,
             mime: mime::BYTE_STREAM,
             length: len,
         }
@@ -150,6 +204,7 @@ impl Body {
     pub fn from_bytes(bytes: Vec<u8>) -> Self {
         Self {
             mime: mime::BYTE_STREAM,
+            io_handler: None,
             length: Some(bytes.len()),
             reader: Box::new(io::Cursor::new(bytes)),
         }
@@ -199,6 +254,7 @@ impl Body {
     pub fn from_string(s: String) -> Self {
         Self {
             mime: mime::PLAIN,
+            io_handler: None,
             length: Some(s.len()),
             reader: Box::new(io::Cursor::new(s.into_bytes())),
         }
@@ -246,6 +302,7 @@ impl Body {
         let bytes = serde_json::to_vec(&json)?;
         let body = Self {
             length: Some(bytes.len()),
+            io_handler: None,
             reader: Box::new(Cursor::new(bytes)),
             mime: mime::JSON,
         };
@@ -310,6 +367,7 @@ impl Body {
 
         let body = Self {
             length: Some(bytes.len()),
+            io_handler: None,
             reader: Box::new(Cursor::new(bytes)),
             mime: mime::FORM,
         };
@@ -378,9 +436,35 @@ impl Body {
 
         Ok(Self {
             mime,
+            io_handler: None,
             length: Some(len as usize),
             reader: Box::new(io::BufReader::new(file)),
         })
+    }
+
+    /// Create a `Body` from a callback that performs io such as creating a websocket connection.
+    ///
+    /// The caller is responsible for handling content length and/or chunked encoding headers/logic
+    /// if desired.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// use http_types::{Body, Response, StatusCode};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// res.set_body(Body::io(|_io| async move {}));
+    /// # Ok(()) }) }
+    /// ```
+    pub fn io<T: Into<IoHandler>>(handler: T) -> Self {
+        Self {
+            reader: Box::new(io::empty()),
+            io_handler: Some(handler.into()),
+            mime: mime::BYTE_STREAM,
+            // length: Some(0),
+            length: None,
+        }
     }
 
     /// Get the length of the body in bytes.
