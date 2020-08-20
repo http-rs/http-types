@@ -93,6 +93,9 @@ pub const EXPECT: HeaderName = HeaderName::from_lowercase_str("expect");
 ///  The `Expires` Header
 pub const EXPIRES: HeaderName = HeaderName::from_lowercase_str("expires");
 
+/// The `Forwarded` Header
+pub const FORWARDED: HeaderName = HeaderName::from_lowercase_str("forwarded");
+
 ///  The `From` Header
 pub const FROM: HeaderName = HeaderName::from_lowercase_str("from");
 
@@ -125,6 +128,7 @@ pub const PRAGMA: HeaderName = HeaderName::from_lowercase_str("pragma");
 
 ///  The `Proxy-Authenticate` Header
 pub const PROXY_AUTHENTICATE: HeaderName = HeaderName::from_lowercase_str("proxy-authenticate");
+
 ///  The `Proxy-Authorization` Header
 pub const PROXY_AUTHORIZATION: HeaderName = HeaderName::from_lowercase_str("proxy-authorization");
 
@@ -137,8 +141,17 @@ pub const RETRY_AFTER: HeaderName = HeaderName::from_lowercase_str("retry-after"
 ///  The `Server` Header
 pub const SERVER: HeaderName = HeaderName::from_lowercase_str("server");
 
+///  The `Server` Header
+pub const SERVER_TIMING: HeaderName = HeaderName::from_lowercase_str("server-timing");
+
 ///  The `Te` Header
 pub const TE: HeaderName = HeaderName::from_lowercase_str("te");
+
+///  The `Timing-Allow-Origin` Header
+pub const TIMING_ALLOW_ORIGIN: HeaderName = HeaderName::from_lowercase_str("timing-allow-origin");
+
+///  The `Traceparent` Header
+pub const TRACEPARENT: HeaderName = HeaderName::from_lowercase_str("traceparent");
 
 ///  The `Trailer` Header
 pub const TRAILER: HeaderName = HeaderName::from_lowercase_str("trailer");

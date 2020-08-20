@@ -96,6 +96,7 @@
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, unreachable_pub)]
 #![allow(clippy::new_without_default)]
+#![cfg_attr(backtrace, feature(backtrace))]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(feature = "docs", feature(doc_cfg))]
 #![doc(html_favicon_url = "https://yoshuawuyts.com/assets/http-rs/favicon.ico")]
@@ -117,30 +118,27 @@ pub mod url {
 #[macro_use]
 mod utils;
 
+pub mod cache;
+pub mod conditional;
 pub mod headers;
 pub mod mime;
+pub mod proxies;
 
 mod body;
 mod error;
 mod extensions;
 mod macros;
 mod method;
+mod parse_utils;
 mod request;
 mod response;
 mod status;
 mod status_code;
 mod version;
 
+pub mod trace;
 cfg_unstable! {
     pub mod upgrade;
-    pub mod trace;
-
-    mod client;
-    mod server;
-
-    pub use client::Client;
-    pub use server::Server;
-
 }
 
 pub use body::Body;

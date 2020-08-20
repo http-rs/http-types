@@ -4,6 +4,7 @@ use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
 use crate::StatusCode;
+use std::convert::TryInto;
 
 /// A specialized `Result` type for HTTP operations.
 ///
@@ -15,6 +16,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub struct Error {
     error: anyhow::Error,
     status: crate::StatusCode,
+    type_name: Option<&'static str>,
 }
 
 impl Error {
@@ -23,27 +25,36 @@ impl Error {
     /// The error type must be threadsafe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new<E>(status: StatusCode, error: E) -> Self
+    pub fn new<S, E>(status: S, error: E) -> Self
     where
-        E: StdError + Send + Sync + 'static,
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+        E: Into<anyhow::Error>,
     {
         Self {
-            status,
-            error: anyhow::Error::new(error),
+            status: status
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`"),
+            error: error.into(),
+            type_name: Some(std::any::type_name::<E>()),
         }
     }
 
     /// Create a new error object from static string.
-    pub fn from_str<M>(status: StatusCode, msg: M) -> Self
+    pub fn from_str<S, M>(status: S, msg: M) -> Self
     where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
         M: Display + Debug + Send + Sync + 'static,
     {
         Self {
-            status,
+            status: status
+                .try_into()
+                .expect("Could not convert into a valid `StatusCode`"),
             error: anyhow::Error::msg(msg),
+            type_name: None,
         }
     }
-
     /// Create a new error from a message.
     pub(crate) fn new_adhoc<M>(message: M) -> Error
     where
@@ -73,9 +84,26 @@ impl Error {
     /// capturing them all over the place all the time.
     ///
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
+    ///
+    /// Note: This function can be called whether or not backtraces
+    /// are enabled and available. It will return a `None` variant if
+    /// compiled on a toolchain that does not support backtraces, or
+    /// if executed without backtraces enabled with
+    /// `RUST_LIB_BACKTRACE=1`.
     #[cfg(backtrace)]
-    pub fn backtrace(&self) -> &std::backtrace::Backtrace {
-        self.error.downcast_ref::<E>()
+    pub fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
+        let backtrace = self.error.backtrace();
+        if let std::backtrace::BacktraceStatus::Captured = backtrace.status() {
+            Some(backtrace)
+        } else {
+            None
+        }
+    }
+
+    #[cfg(not(backtrace))]
+    #[allow(missing_docs)]
+    pub fn backtrace(&self) -> Option<()> {
+        None
     }
 
     /// Attempt to downcast the error object to a concrete type.
@@ -105,29 +133,28 @@ impl Error {
     {
         self.error.downcast_mut::<E>()
     }
+
+    /// Retrieves a reference to the type name of the error, if available.
+    pub fn type_name(&self) -> Option<&str> {
+        self.type_name.as_deref()
+    }
 }
 
 impl Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.error)
+        Display::fmt(&self.error, formatter)
     }
 }
 
 impl Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.error)
+        Debug::fmt(&self.error, formatter)
     }
 }
 
-impl<E> From<E> for Error
-where
-    E: StdError + Send + Sync + 'static,
-{
+impl<E: Into<anyhow::Error>> From<E> for Error {
     fn from(error: E) -> Self {
-        Self {
-            error: anyhow::Error::new(error),
-            status: StatusCode::InternalServerError,
-        }
+        Self::new(StatusCode::InternalServerError, error)
     }
 }
 

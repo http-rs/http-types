@@ -1,6 +1,6 @@
 [package]
 name = "http-types"
-version = "2.3.0"
+version = "2.4.0"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/http-rs/http-types"
 documentation = "https://docs.rs/http-types"
@@ -35,7 +35,7 @@ anyhow = "1.0.26"
 cookie = { version = "0.14.0", features = ["percent-encode"] }
 infer = "0.1.2"
 pin-project-lite = "0.1.0"
-url = "2.1.1"
+url = { version = "2.1.1", features = ["serde"] }
 serde_json = "1.0.51"
 serde = { version = "1.0.106", features = ["derive"] }
 serde_urlencoded = "0.6.1"
