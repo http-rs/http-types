@@ -4,7 +4,7 @@ use crate::headers::HeaderValue;
 
 use std::cmp::{Ordering, PartialEq};
 
-/// A proposed encoding.
+/// A proposed `Encoding` in `AcceptEncoding`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct EncodingProposal {
     /// The proposed encoding.
