@@ -1,4 +1,5 @@
 use crate::headers::HeaderValue;
+use std::fmt::{self, Display};
 
 /// Available compression algorithms.
 #[non_exhaustive]
@@ -37,16 +38,21 @@ impl Encoding {
     }
 }
 
+impl Display for Encoding {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Encoding::Gzip => write!(f, "gzip"),
+            Encoding::Deflate => write!(f, "deflate"),
+            Encoding::Brotli => write!(f, "br"),
+            Encoding::Zstd => write!(f, "zstd"),
+            Encoding::Identity => write!(f, "identity"),
+        }
+    }
+}
+
 impl From<Encoding> for HeaderValue {
     fn from(directive: Encoding) -> Self {
-        let h = |s: &str| unsafe { HeaderValue::from_bytes_unchecked(s.to_string().into_bytes()) };
-
-        match directive {
-            Encoding::Gzip => h("gzip"),
-            Encoding::Deflate => h("deflate"),
-            Encoding::Brotli => h("br"),
-            Encoding::Zstd => h("zstd"),
-            Encoding::Identity => h("identity"),
-        }
+        let s = directive.to_string();
+        unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) }
     }
 }
