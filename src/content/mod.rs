@@ -2,8 +2,9 @@
 
 pub mod content_encoding;
 
-mod encoding_directive;
+mod encoding;
 
 #[doc(inline)]
 pub use content_encoding::ContentEncoding;
-pub use encoding_directive::EncodingDirective;
+pub use encoding::Encoding;
+// EncodingProposal

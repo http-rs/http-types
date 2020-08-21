@@ -1,6 +1,6 @@
 //! Specify the compression algorithm.
 
-use crate::content::EncodingDirective;
+use crate::content::Encoding;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CONTENT_ENCODING};
 
 use std::fmt::{self, Debug, Write};
@@ -20,23 +20,23 @@ use std::slice;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::Response;
-/// use http_types::content::{ContentEncoding, EncodingDirective};
+/// use http_types::content::{ContentEncoding, Encoding};
 /// let mut entries = ContentEncoding::new();
-/// entries.push(EncodingDirective::Gzip);
-/// entries.push(EncodingDirective::Identity);
+/// entries.push(Encoding::Gzip);
+/// entries.push(Encoding::Identity);
 ///
 /// let mut res = Response::new(200);
 /// entries.apply(&mut res);
 ///
 /// let entries = ContentEncoding::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
-/// assert_eq!(entries.next().unwrap(), &EncodingDirective::Gzip);
-/// assert_eq!(entries.next().unwrap(), &EncodingDirective::Identity);
+/// assert_eq!(entries.next().unwrap(), &Encoding::Gzip);
+/// assert_eq!(entries.next().unwrap(), &Encoding::Identity);
 /// #
 /// # Ok(()) }
 /// ```
 pub struct ContentEncoding {
-    entries: Vec<EncodingDirective>,
+    entries: Vec<Encoding>,
 }
 
 impl ContentEncoding {
@@ -57,7 +57,7 @@ impl ContentEncoding {
             for part in value.as_str().trim().split(',') {
                 // Try and parse a directive from a str. If the directive is
                 // unkown we skip it.
-                if let Some(entry) = EncodingDirective::from_str(part) {
+                if let Some(entry) = Encoding::from_str(part) {
                     entries.push(entry);
                 }
             }
@@ -91,7 +91,7 @@ impl ContentEncoding {
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
     /// Push a directive into the list of entries.
-    pub fn push(&mut self, directive: EncodingDirective) {
+    pub fn push(&mut self, directive: Encoding) {
         self.entries.push(directive);
     }
 
@@ -111,7 +111,7 @@ impl ContentEncoding {
 }
 
 impl IntoIterator for ContentEncoding {
-    type Item = EncodingDirective;
+    type Item = Encoding;
     type IntoIter = IntoIter;
 
     #[inline]
@@ -123,7 +123,7 @@ impl IntoIterator for ContentEncoding {
 }
 
 impl<'a> IntoIterator for &'a ContentEncoding {
-    type Item = &'a EncodingDirective;
+    type Item = &'a Encoding;
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -133,7 +133,7 @@ impl<'a> IntoIterator for &'a ContentEncoding {
 }
 
 impl<'a> IntoIterator for &'a mut ContentEncoding {
-    type Item = &'a mut EncodingDirective;
+    type Item = &'a mut Encoding;
     type IntoIter = IterMut<'a>;
 
     #[inline]
@@ -145,11 +145,11 @@ impl<'a> IntoIterator for &'a mut ContentEncoding {
 /// A borrowing iterator over entries in `CacheControl`.
 #[derive(Debug)]
 pub struct IntoIter {
-    inner: std::vec::IntoIter<EncodingDirective>,
+    inner: std::vec::IntoIter<Encoding>,
 }
 
 impl Iterator for IntoIter {
-    type Item = EncodingDirective;
+    type Item = Encoding;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -164,11 +164,11 @@ impl Iterator for IntoIter {
 /// A lending iterator over entries in `CacheControl`.
 #[derive(Debug)]
 pub struct Iter<'a> {
-    inner: slice::Iter<'a, EncodingDirective>,
+    inner: slice::Iter<'a, Encoding>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = &'a EncodingDirective;
+    type Item = &'a Encoding;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -183,11 +183,11 @@ impl<'a> Iterator for Iter<'a> {
 /// A mutable iterator over entries in `CacheControl`.
 #[derive(Debug)]
 pub struct IterMut<'a> {
-    inner: slice::IterMut<'a, EncodingDirective>,
+    inner: slice::IterMut<'a, Encoding>,
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut EncodingDirective;
+    type Item = &'a mut Encoding;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
