@@ -44,13 +44,6 @@ impl EncodingProposal {
     }
 
     pub(crate) fn from_str(s: &str) -> crate::Result<Option<Self>> {
-        let s = s.trim();
-
-        // We're dealing with an empty string.
-        if s.is_empty() {
-            return Ok(None);
-        }
-
         let mut parts = s.split(';');
         let encoding = match Encoding::from_str(parts.next().unwrap()) {
             Some(encoding) => encoding,
@@ -72,6 +65,12 @@ impl From<Encoding> for EncodingProposal {
 }
 
 impl PartialEq<Encoding> for EncodingProposal {
+    fn eq(&self, other: &Encoding) -> bool {
+        self.encoding == *other
+    }
+}
+
+impl PartialEq<Encoding> for &EncodingProposal {
     fn eq(&self, other: &Encoding) -> bool {
         self.encoding == *other
     }

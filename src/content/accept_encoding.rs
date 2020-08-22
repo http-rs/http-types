@@ -1,19 +1,25 @@
+//! Client header advertising available compression algorithms.
+
 use crate::content::EncodingProposal;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT_ENCODING};
 
-use std::fmt::{self, Debug};
+use std::fmt::{self, Debug, Write};
 use std::option;
 use std::slice;
 
-/// An Accept-Encoding header.
+/// Client header advertising available compression algorithms.
 pub struct AcceptEncoding {
+    wildcard: bool,
     entries: Vec<EncodingProposal>,
 }
 
 impl AcceptEncoding {
     /// Create a new instance of `AcceptEncoding`.
     pub fn new() -> Self {
-        Self { entries: vec![] }
+        Self {
+            entries: vec![],
+            wildcard: false,
+        }
     }
 
     /// Create an instance of `AcceptEncoding` from a `Headers` instance.
@@ -24,8 +30,20 @@ impl AcceptEncoding {
             None => return Ok(None),
         };
 
+        let mut wildcard = false;
+
         for value in headers {
             for part in value.as_str().trim().split(',') {
+                let part = part.trim();
+
+                // Handle empty strings, and wildcard directives.
+                if part.is_empty() {
+                    continue;
+                } else if part == "*" {
+                    wildcard = true;
+                    continue;
+                }
+
                 // Try and parse a directive from a str. If the directive is
                 // unkown we skip it.
                 if let Some(entry) = EncodingProposal::from_str(part)? {
@@ -34,12 +52,22 @@ impl AcceptEncoding {
             }
         }
 
-        Ok(Some(Self { entries }))
+        Ok(Some(Self { entries, wildcard }))
     }
 
     /// Push a directive into the list of entries.
-    pub fn push(&mut self, prop: EncodingProposal) {
-        self.entries.push(prop);
+    pub fn push(&mut self, prop: impl Into<EncodingProposal>) {
+        self.entries.push(prop.into());
+    }
+
+    /// Returns `true` if a wildcard directive was passed.
+    pub fn wildcard(&self) -> bool {
+        self.wildcard
+    }
+
+    /// Set the wildcard directive.
+    pub fn set_wildcard(&mut self, wildcard: bool) {
+        self.wildcard = wildcard
     }
 
     /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
@@ -54,7 +82,17 @@ impl AcceptEncoding {
 
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
-        todo!();
+        let mut output = String::new();
+        for (n, directive) in self.entries.iter().enumerate() {
+            let directive: HeaderValue = directive.clone().into();
+            match n {
+                0 => write!(output, "{}", directive).unwrap(),
+                _ => write!(output, ", {}", directive).unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 
     /// An iterator visiting all entries.
@@ -176,5 +214,26 @@ impl Debug for AcceptEncoding {
             list.entry(directive);
         }
         list.finish()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::content::Encoding;
+    use crate::Response;
+
+    #[test]
+    fn smoke() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.push(Encoding::Gzip);
+
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
+
+        let accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), Encoding::Gzip);
+        Ok(())
     }
 }
