@@ -91,6 +91,13 @@ impl AcceptEncoding {
             };
         }
 
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            }
+        }
+
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
@@ -232,8 +239,35 @@ mod test {
         accept.apply(&mut headers);
 
         let accept = AcceptEncoding::from_headers(headers)?.unwrap();
-        let mut accept = accept.iter();
-        assert_eq!(accept.next().unwrap(), Encoding::Gzip);
+        assert_eq!(accept.iter().next().unwrap(), Encoding::Gzip);
+        Ok(())
+    }
+
+    #[test]
+    fn wildcard() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.set_wildcard(true);
+
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
+
+        let accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        assert!(accept.wildcard());
+        Ok(())
+    }
+
+    #[test]
+    fn wildcard_and_header() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.push(Encoding::Gzip);
+        accept.set_wildcard(true);
+
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
+
+        let accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        assert!(accept.wildcard());
+        assert_eq!(accept.iter().next().unwrap(), Encoding::Gzip);
         Ok(())
     }
 }
