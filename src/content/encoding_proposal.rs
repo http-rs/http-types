@@ -22,7 +22,7 @@ impl EncodingProposal {
     pub fn new(encoding: impl Into<Encoding>, weight: Option<f32>) -> crate::Result<Self> {
         if let Some(weight) = weight {
             ensure!(
-                weight < 0.0 || weight > 1.0,
+                weight.is_sign_positive() && weight <= 1.0,
                 "EncodingProposal should have a weight between 0.0 and 1.0"
             )
         }
@@ -101,5 +101,31 @@ impl From<EncodingProposal> for HeaderValue {
             None => entry.encoding.to_string(),
         };
         unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn smoke() -> crate::Result<()> {
+        let _ = EncodingProposal::new(Encoding::Gzip, Some(0.0)).unwrap();
+        let _ = EncodingProposal::new(Encoding::Gzip, Some(0.5)).unwrap();
+        let _ = EncodingProposal::new(Encoding::Gzip, Some(1.0)).unwrap();
+        Ok(())
+    }
+
+    #[test]
+    fn error_code_500() -> crate::Result<()> {
+        let err = EncodingProposal::new(Encoding::Gzip, Some(1.1)).unwrap_err();
+        assert_eq!(err.status(), 500);
+
+        let err = EncodingProposal::new(Encoding::Gzip, Some(-0.1)).unwrap_err();
+        assert_eq!(err.status(), 500);
+
+        let err = EncodingProposal::new(Encoding::Gzip, Some(-0.0)).unwrap_err();
+        assert_eq!(err.status(), 500);
+        Ok(())
     }
 }
