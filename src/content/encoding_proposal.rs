@@ -1,6 +1,7 @@
 use crate::content::Encoding;
 use crate::ensure;
 use crate::headers::HeaderValue;
+use crate::utils::parse_weight;
 
 use std::cmp::{Ordering, PartialEq};
 
@@ -40,6 +41,24 @@ impl EncodingProposal {
     /// Get the weight of the proposal.
     pub fn weight(&self) -> Option<f32> {
         self.weight
+    }
+
+    pub(crate) fn from_str(s: &str) -> crate::Result<Option<Self>> {
+        let s = s.trim();
+
+        // We're dealing with an empty string.
+        if s.is_empty() {
+            return Ok(None);
+        }
+
+        let mut parts = s.split(';');
+        let encoding = match Encoding::from_str(parts.next().unwrap()) {
+            Some(encoding) => encoding,
+            None => return Ok(None),
+        };
+        let weight = parts.next().map(parse_weight).transpose()?;
+
+        Ok(Some(Self::new(encoding, weight)?))
     }
 }
 
