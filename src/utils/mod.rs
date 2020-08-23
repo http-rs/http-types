@@ -4,6 +4,8 @@ pub(crate) use date::fmt_http_date;
 pub(crate) use date::parse_http_date;
 
 use crate::{Error, Status, StatusCode};
+
+use std::cmp::Ordering;
 use std::str::FromStr;
 
 /// Declares unstable items.
@@ -37,4 +39,15 @@ pub(crate) fn parse_weight(s: &str) -> crate::Result<f32> {
             Err(err)
         }
     }
+}
+
+/// Order proposals by weight. Try ordering by q value first. If equal or undefined,
+/// order by index, favoring the latest provided value.
+pub(crate) fn sort_by_weight<T: PartialOrd + Copy>(props: &mut Vec<T>) {
+    let mut arr: Vec<(usize, T)> = props.iter().map(|t| *t).enumerate().collect();
+    arr.sort_unstable_by(|a, b| match b.1.partial_cmp(&a.1) {
+        None | Some(Ordering::Equal) => b.0.cmp(&a.0),
+        Some(ord @ _) => ord,
+    });
+    *props = arr.into_iter().map(|(_, t)| t).collect::<Vec<T>>();
 }

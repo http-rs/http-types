@@ -2,6 +2,7 @@
 
 use crate::content::EncodingProposal;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT_ENCODING};
+use crate::utils::sort_by_weight;
 
 use std::fmt::{self, Debug, Write};
 use std::option;
@@ -68,6 +69,11 @@ impl AcceptEncoding {
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
         self.wildcard = wildcard
+    }
+
+    /// Sort the entries in-place.
+    pub fn sort(&mut self) {
+        sort_by_weight(&mut self.entries);
     }
 
     /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
@@ -291,21 +297,18 @@ mod test {
     fn reorder_iter_based_on_weight() -> crate::Result<()> {
         let mut accept = AcceptEncoding::new();
         accept.push(EncodingProposal::new(Encoding::Gzip, Some(0.4))?);
+        accept.push(EncodingProposal::new(Encoding::Identity, None)?);
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
         let mut headers = Response::new(200);
         accept.apply(&mut headers);
 
-        let accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        let mut accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        accept.sort();
         let mut accept = accept.iter();
         assert_eq!(accept.next().unwrap(), Encoding::Brotli);
         assert_eq!(accept.next().unwrap(), Encoding::Gzip);
+        assert_eq!(accept.next().unwrap(), Encoding::Identity);
         Ok(())
     }
-}
-
-/// Order header proposals. In the case of two proposals of equal weight we pick
-/// the one that was declared last.
-fn sort_proposals<T: PartialOrd>(props: &mut Vec<T>) {
-    props.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Less))
 }

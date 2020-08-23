@@ -6,7 +6,7 @@ use crate::utils::parse_weight;
 use std::cmp::{Ordering, PartialEq};
 
 /// A proposed `Encoding` in `AcceptEncoding`.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EncodingProposal {
     /// The proposed encoding.
     encoding: Encoding,
