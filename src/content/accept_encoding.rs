@@ -86,20 +86,20 @@ impl AcceptEncoding {
     /// # Errors
     ///
     /// If no suitable encoding is found, an error with the status of `406` will be returned.
-    pub fn negotiate(&mut self, encodings: &[Encoding]) -> crate::Result<ContentEncoding> {
+    pub fn negotiate(&mut self, available: &[Encoding]) -> crate::Result<ContentEncoding> {
         // Start by ordering the encodings.
         self.sort();
 
         // Try and find the first encoding that matches.
         for encoding in &self.entries {
-            if encodings.contains(&encoding) {
+            if available.contains(&encoding) {
                 return Ok(encoding.into());
             }
         }
 
         // If no encoding matches and wildcard is set, send whichever encoding we got.
         if self.wildcard {
-            if let Some(encoding) = encodings.iter().next() {
+            if let Some(encoding) = available.iter().next() {
                 return Ok(encoding.into());
             }
         }
@@ -352,15 +352,52 @@ mod test {
         accept.push(EncodingProposal::new(Encoding::Gzip, None)?);
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
-        let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        let mut res = Response::new(200);
+        accept.apply(&mut res);
 
-        let mut accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        let mut accept = AcceptEncoding::from_headers(res)?.unwrap();
         accept.sort();
         let mut accept = accept.iter();
         assert_eq!(accept.next().unwrap(), Encoding::Brotli);
         assert_eq!(accept.next().unwrap(), Encoding::Gzip);
         assert_eq!(accept.next().unwrap(), Encoding::Identity);
+        Ok(())
+    }
+
+    #[test]
+    fn negotiate() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
+        accept.push(EncodingProposal::new(Encoding::Gzip, Some(0.4))?);
+        accept.push(EncodingProposal::new(Encoding::Identity, None)?);
+
+        assert_eq!(
+            accept.negotiate(&[Encoding::Brotli, Encoding::Gzip])?,
+            Encoding::Brotli,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn negotiate_not_acceptable() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        let err = accept.negotiate(&[Encoding::Gzip]).unwrap_err();
+        assert_eq!(err.status(), 406);
+
+        let mut accept = AcceptEncoding::new();
+        accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
+        let err = accept.negotiate(&[Encoding::Gzip]).unwrap_err();
+        assert_eq!(err.status(), 406);
+        Ok(())
+    }
+
+    #[test]
+    fn negotiate_wildcard() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
+        accept.set_wildcard(true);
+
+        assert_eq!(accept.negotiate(&[Encoding::Gzip])?, Encoding::Gzip);
         Ok(())
     }
 }
