@@ -1,8 +1,9 @@
 //! Client header advertising available compression algorithms.
 
-use crate::content::EncodingProposal;
+use crate::content::{ContentEncoding, Encoding, EncodingProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT_ENCODING};
 use crate::utils::sort_by_weight;
+use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
 use std::option;
@@ -71,9 +72,41 @@ impl AcceptEncoding {
         self.wildcard = wildcard
     }
 
-    /// Sort the entries in-place.
+    /// Sort the header directives by weight.
+    ///
+    /// Headers with a higher `q=` value will be returned first. If two
+    /// directives have the same weight, the directive that was declared later
+    /// will be returned first.
     pub fn sort(&mut self) {
         sort_by_weight(&mut self.entries);
+    }
+
+    /// Determine the most suitable `Content-Type` encoding.
+    ///
+    /// # Errors
+    ///
+    /// If no suitable encoding is found, an error with the status of `406` will be returned.
+    pub fn negotiate(&mut self, encodings: &[Encoding]) -> crate::Result<ContentEncoding> {
+        // Start by ordering the encodings.
+        self.sort();
+
+        // Try and find the first encoding that matches.
+        for encoding in &self.entries {
+            if encodings.contains(&encoding) {
+                return Ok(encoding.into());
+            }
+        }
+
+        // If no encoding matches and wildcard is set, send whichever encoding we got.
+        if self.wildcard {
+            if let Some(encoding) = encodings.iter().next() {
+                return Ok(encoding.into());
+            }
+        }
+
+        let mut err = Error::new_adhoc("No suitable ContentEncoding found");
+        err.set_status(StatusCode::NotAcceptable);
+        Err(err)
     }
 
     /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
@@ -294,10 +327,29 @@ mod test {
     }
 
     #[test]
-    fn reorder_iter_based_on_weight() -> crate::Result<()> {
+    fn reorder_based_on_weight() -> crate::Result<()> {
         let mut accept = AcceptEncoding::new();
         accept.push(EncodingProposal::new(Encoding::Gzip, Some(0.4))?);
         accept.push(EncodingProposal::new(Encoding::Identity, None)?);
+        accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
+
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
+
+        let mut accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        accept.sort();
+        let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), Encoding::Brotli);
+        assert_eq!(accept.next().unwrap(), Encoding::Gzip);
+        assert_eq!(accept.next().unwrap(), Encoding::Identity);
+        Ok(())
+    }
+
+    #[test]
+    fn reorder_based_on_weight_and_location() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.push(EncodingProposal::new(Encoding::Identity, None)?);
+        accept.push(EncodingProposal::new(Encoding::Gzip, None)?);
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
         let mut headers = Response::new(200);

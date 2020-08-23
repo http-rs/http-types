@@ -4,12 +4,13 @@ use crate::headers::HeaderValue;
 use crate::utils::parse_weight;
 
 use std::cmp::{Ordering, PartialEq};
+use std::ops::{Deref, DerefMut};
 
 /// A proposed `Encoding` in `AcceptEncoding`.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EncodingProposal {
     /// The proposed encoding.
-    encoding: Encoding,
+    pub(crate) encoding: Encoding,
 
     /// The weight of the proposal.
     ///
@@ -73,6 +74,19 @@ impl PartialEq<Encoding> for EncodingProposal {
 impl PartialEq<Encoding> for &EncodingProposal {
     fn eq(&self, other: &Encoding) -> bool {
         self.encoding == *other
+    }
+}
+
+impl Deref for EncodingProposal {
+    type Target = Encoding;
+    fn deref(&self) -> &Self::Target {
+        &self.encoding
+    }
+}
+
+impl DerefMut for EncodingProposal {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.encoding
     }
 }
 

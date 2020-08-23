@@ -1,6 +1,6 @@
 //! Specify the compression algorithm.
 
-use crate::content::Encoding;
+use crate::content::{Encoding, EncodingProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CONTENT_ENCODING};
 
 use std::fmt::{self, Debug, Write};
@@ -204,6 +204,38 @@ impl ToHeaderValues for ContentEncoding {
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
         Ok(self.value().to_header_values().unwrap())
+    }
+}
+
+impl From<Encoding> for ContentEncoding {
+    fn from(encoding: Encoding) -> Self {
+        Self {
+            entries: vec![encoding],
+        }
+    }
+}
+
+impl From<&Encoding> for ContentEncoding {
+    fn from(encoding: &Encoding) -> Self {
+        Self {
+            entries: vec![*encoding],
+        }
+    }
+}
+
+impl From<EncodingProposal> for ContentEncoding {
+    fn from(encoding: EncodingProposal) -> Self {
+        Self {
+            entries: vec![encoding.encoding],
+        }
+    }
+}
+
+impl From<&EncodingProposal> for ContentEncoding {
+    fn from(encoding: &EncodingProposal) -> Self {
+        Self {
+            entries: vec![encoding.encoding],
+        }
     }
 }
 
