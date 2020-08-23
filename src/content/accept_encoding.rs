@@ -10,6 +10,32 @@ use std::option;
 use std::slice;
 
 /// Client header advertising available compression algorithms.
+///
+/// # Specifications
+///
+/// - [RFC 7231, section 5.3.4: Accept-Encoding](https://tools.ietf.org/html/rfc7231#section-5.3.4)
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> http_types::Result<()> {
+/// #
+/// use http_types::content::{AcceptEncoding, ContentEncoding, Encoding, EncodingProposal};
+/// use http_types::Response;
+///
+/// let mut accept = AcceptEncoding::new();
+/// accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
+/// accept.push(EncodingProposal::new(Encoding::Gzip, Some(0.4))?);
+/// accept.push(EncodingProposal::new(Encoding::Identity, None)?);
+///
+/// let mut res = Response::new(200);
+/// let encoding = accept.negotiate(&[Encoding::Gzip, Encoding::Brotli])?;
+/// encoding.apply(&mut res);
+///
+/// assert_eq!(res["Content-Encoding"], "br");
+/// #
+/// # Ok(()) }
+/// ```
 pub struct AcceptEncoding {
     wildcard: bool,
     entries: Vec<EncodingProposal>,
