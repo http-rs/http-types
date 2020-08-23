@@ -286,6 +286,22 @@ mod test {
         assert_eq!(accept.next().unwrap(), Encoding::Brotli);
         Ok(())
     }
+
+    #[test]
+    fn reorder_iter_based_on_weight() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.push(EncodingProposal::new(Encoding::Gzip, Some(0.4))?);
+        accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
+
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
+
+        let accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), Encoding::Brotli);
+        assert_eq!(accept.next().unwrap(), Encoding::Gzip);
+        Ok(())
+    }
 }
 
 /// Order header proposals. In the case of two proposals of equal weight we pick
