@@ -270,4 +270,26 @@ mod test {
         assert_eq!(accept.iter().next().unwrap(), Encoding::Gzip);
         Ok(())
     }
+
+    #[test]
+    fn iter() -> crate::Result<()> {
+        let mut accept = AcceptEncoding::new();
+        accept.push(Encoding::Gzip);
+        accept.push(Encoding::Brotli);
+
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
+
+        let accept = AcceptEncoding::from_headers(headers)?.unwrap();
+        let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), Encoding::Gzip);
+        assert_eq!(accept.next().unwrap(), Encoding::Brotli);
+        Ok(())
+    }
+}
+
+/// Order header proposals. In the case of two proposals of equal weight we pick
+/// the one that was declared last.
+fn sort_proposals<T: PartialOrd>(props: &mut Vec<T>) {
+    props.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Less))
 }
