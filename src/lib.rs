@@ -83,7 +83,7 @@
 //! # The Body Type
 //!
 //! In HTTP, [`Body`](struct.Body.html) types are optional. The content of a `Body` is a stream of
-//! bytes with a specific encoding, also known as its [`Mime` type](struct.Mime.html). The `Mime` can
+//! bytes with a specific encoding; this encoding is its [`Mime` type](struct.Mime.html). The `Mime` can
 //! be set using the [`set_content_type`](struct.Request.html#method.set_content_type) method, and
 //! there are many different possible `Mime` types.
 //!
