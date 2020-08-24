@@ -80,6 +80,7 @@ mod test {
     use std::time::Duration;
 
     #[test]
+    #[allow(clippy::redundant_clone)]
     fn encode() -> crate::Result<()> {
         let name = String::from("Server");
         let dur = Duration::from_secs(1);

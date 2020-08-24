@@ -175,7 +175,7 @@ mod test {
     fn assert_entry(s: &str, n: &str, du: Option<u64>, de: Option<&str>) -> crate::Result<()> {
         let e = parse_entry(s)?;
         assert_eq!(e.name(), n);
-        assert_eq!(e.duration(), du.map(|du| Duration::from_millis(du)));
+        assert_eq!(e.duration(), du.map(Duration::from_millis));
         assert_eq!(e.description(), de);
         Ok(())
     }

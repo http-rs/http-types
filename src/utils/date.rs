@@ -16,7 +16,7 @@ const SECONDS_IN_HOUR: u64 = 3600;
 /// Format using the `Display` trait.
 /// Convert timestamp into/from `SytemTime` to use.
 /// Supports comparison and sorting.
-#[derive(Copy, Clone, Debug, Eq, Ord)]
+#[derive(Copy, Clone, Debug, Eq)]
 pub(crate) struct HttpDate {
     /// 0...59
     second: u8,
