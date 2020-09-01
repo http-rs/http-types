@@ -80,7 +80,7 @@ impl FromStr for Method {
             "OPTIONS" => Ok(Self::Options),
             "TRACE" => Ok(Self::Trace),
             "PATCH" => Ok(Self::Patch),
-            _ => crate::bail!("Invalid HTTP status code"),
+            _ => crate::bail!("Invalid HTTP method"),
         }
     }
 }
