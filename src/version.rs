@@ -24,8 +24,8 @@ impl std::fmt::Display for Version {
             Version::Http0_9 => "HTTP/0.9",
             Version::Http1_0 => "HTTP/1.0",
             Version::Http1_1 => "HTTP/1.1",
-            Version::Http2_0 => "HTTP/2.0",
-            Version::Http3_0 => "HTTP/3.0",
+            Version::Http2_0 => "HTTP/2",
+            Version::Http3_0 => "HTTP/3",
         })
     }
 }
@@ -43,7 +43,7 @@ mod test {
             Version::Http2_0,
             Version::Http3_0
         );
-        assert_eq!("HTTP/0.9 HTTP/1.0 HTTP/1.1 HTTP/2.0 HTTP/3.0", output);
+        assert_eq!("HTTP/0.9 HTTP/1.0 HTTP/1.1 HTTP/2 HTTP/3", output);
     }
 
     #[test]
