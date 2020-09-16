@@ -84,6 +84,16 @@ impl ETag {
             }
         };
 
+        if !s
+            .bytes()
+            .all(|c| c == 0x21 || (c >= 0x23 && c <= 0x7E) || c >= 0x80)
+        {
+            return Err(Error::from_str(
+                StatusCode::BadRequest,
+                "Invalid ETag header",
+            ));
+        }
+
         let etag = if weak { Self::Weak(s) } else { Self::Strong(s) };
         Ok(Some(etag))
     }
@@ -179,5 +189,12 @@ mod test {
         headers.insert(ETAG, s);
         let err = ETag::from_headers(headers).unwrap_err();
         assert_eq!(format!("{}", err), msg);
+    }
+
+    #[test]
+    fn validate_characters() -> crate::Result<()> {
+        assert_entry_err(r#"""hello""#, "Invalid ETag header");
+        assert_entry_err("\"hello\x7F\"", "Invalid ETag header");
+        Ok(())
     }
 }
