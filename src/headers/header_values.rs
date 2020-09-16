@@ -29,6 +29,12 @@ impl HeaderValues {
         self.inner.get_mut(index)
     }
 
+    /// Returns `true` if there is a value corresponding to the specified `HeaderValue` in the list,
+    /// `false` otherwise.
+    pub fn contains(&self, value: &HeaderValue) -> bool {
+        self.inner.contains(value)
+    }
+
     /// Returns the last `HeaderValue`.
     pub fn last(&self) -> &HeaderValue {
         self.inner
