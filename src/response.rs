@@ -1,4 +1,3 @@
-use async_std::sync;
 use futures_lite::*;
 
 use std::convert::{Into, TryInto};
@@ -43,8 +42,8 @@ pin_project_lite::pin_project! {
         headers: Headers,
         version: Option<Version>,
         has_trailers: bool,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
         #[pin]
         body: Body,
         ext: Extensions,
@@ -74,11 +73,11 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
         has_trailers: bool,
-        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
-        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
+        upgrade_sender: Option<async_channel::Sender<upgrade::Connection>>,
+        upgrade_receiver: Option<async_channel::Receiver<upgrade::Connection>>,
         has_upgrade: bool,
         #[pin]
         body: Body,
@@ -99,7 +98,7 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
         Self {
             status,
             headers: Headers::new(),
@@ -124,8 +123,8 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
-        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
+        let (upgrade_sender, upgrade_receiver) = async_channel::bounded(1);
         Self {
             status,
             headers: Headers::new(),
