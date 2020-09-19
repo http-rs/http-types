@@ -357,7 +357,7 @@ impl Body {
     /// res.set_body(Body::from_file("/path/to/file").await?);
     /// # Ok(()) }) }
     /// ```
-    #[cfg(all(feature = "async_std", not(target_os = "unknown")))]
+    #[cfg(all(feature = "fs", not(target_os = "unknown")))]
     pub async fn from_file<P>(path: P) -> io::Result<Self>
     where
         P: AsRef<std::path::Path>,
@@ -477,7 +477,7 @@ impl AsyncBufRead for Body {
 
 /// Look at first few bytes of a file to determine the mime type.
 /// This is used for various binary formats such as images and videos.
-#[cfg(all(feature = "async_std", not(target_os = "unknown")))]
+#[cfg(all(feature = "fs", not(target_os = "unknown")))]
 async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
     // We need to read the first 300 bytes to correctly infer formats such as tar.
     let mut buf = [0_u8; 300];
@@ -491,7 +491,7 @@ async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
 
 /// Look at the extension of a file to determine the mime type.
 /// This is useful for plain-text formats such as HTML and CSS.
-#[cfg(all(feature = "async_std", not(target_os = "unknown")))]
+#[cfg(all(feature = "fs", not(target_os = "unknown")))]
 fn guess_ext(path: &std::path::Path) -> Option<Mime> {
     let ext = path.extension().map(|p| p.to_str()).flatten();
     ext.and_then(Mime::from_extension)
