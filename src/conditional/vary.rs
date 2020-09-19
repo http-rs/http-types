@@ -1,9 +1,7 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::conditional::VaryDirective;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, VARY};
 
-use std::convert::TryInto;
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
 use std::option;
@@ -39,13 +37,14 @@ use std::str::FromStr;
 /// # Ok(()) }
 /// ```
 pub struct Vary {
-    entries: Vec<VaryDirective>,
+    entries: Vec<HeaderName>,
+    wildcard: bool,
 }
 
 impl Vary {
     /// Create a new instance of `Vary`.
     pub fn new() -> Self {
-        Self { entries: vec![] }
+        Self { entries: vec![], wildcard: false }
     }
 
     /// Create a new instance from headers.
@@ -56,14 +55,20 @@ impl Vary {
             None => return Ok(None),
         };
 
+        let mut wildcard = false;
         for value in headers {
             for part in value.as_str().trim().split(',') {
-                let entry = VaryDirective::from_str(part)?;
+                let part = part.trim();
+                if part == "*" {
+                    wildcard = true;
+                    continue;
+                }
+                let entry = HeaderName::from_str(part.trim())?;
                 entries.push(entry);
             }
         }
 
-        Ok(Some(Self { entries }))
+        Ok(Some(Self { entries, wildcard }))
     }
 
     /// Sets the `If-Match` header.
@@ -76,11 +81,21 @@ impl Vary {
         VARY
     }
 
+    /// Returns `true` if a wildcard directive was set.
+    pub fn wildcard(&self) -> bool {
+        self.wildcard
+    }
+
+    /// Set the wildcard directive.
+    pub fn set_wildcard(&mut self, wildcard: bool) {
+        self.wildcard = wildcard
+    }
+
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
         let mut output = String::new();
-        for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
+        for (n, name) in self.entries.iter().enumerate() {
+            let directive: HeaderValue = name.as_str().parse().expect("Could not convert a HeaderName into a HeaderValue");
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),
@@ -94,9 +109,9 @@ impl Vary {
     /// Push a directive into the list of entries.
     pub fn push(
         &mut self,
-        directive: impl TryInto<VaryDirective, Error = crate::Error>,
+        directive: impl Into<HeaderName>,
     ) -> crate::Result<()> {
-        self.entries.push(directive.try_into()?);
+        self.entries.push(directive.into());
         Ok(())
     }
 
@@ -116,7 +131,7 @@ impl Vary {
 }
 
 impl IntoIterator for Vary {
-    type Item = VaryDirective;
+    type Item = HeaderName;
     type IntoIter = IntoIter;
 
     #[inline]
@@ -128,7 +143,7 @@ impl IntoIterator for Vary {
 }
 
 impl<'a> IntoIterator for &'a Vary {
-    type Item = &'a VaryDirective;
+    type Item = &'a HeaderName;
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -138,7 +153,7 @@ impl<'a> IntoIterator for &'a Vary {
 }
 
 impl<'a> IntoIterator for &'a mut Vary {
-    type Item = &'a mut VaryDirective;
+    type Item = &'a mut HeaderName;
     type IntoIter = IterMut<'a>;
 
     #[inline]
@@ -150,11 +165,11 @@ impl<'a> IntoIterator for &'a mut Vary {
 /// A borrowing iterator over entries in `Vary`.
 #[derive(Debug)]
 pub struct IntoIter {
-    inner: std::vec::IntoIter<VaryDirective>,
+    inner: std::vec::IntoIter<HeaderName>,
 }
 
 impl Iterator for IntoIter {
-    type Item = VaryDirective;
+    type Item = HeaderName;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -169,11 +184,11 @@ impl Iterator for IntoIter {
 /// A lending iterator over entries in `Vary`.
 #[derive(Debug)]
 pub struct Iter<'a> {
-    inner: slice::Iter<'a, VaryDirective>,
+    inner: slice::Iter<'a, HeaderName>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = &'a VaryDirective;
+    type Item = &'a HeaderName;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -188,11 +203,11 @@ impl<'a> Iterator for Iter<'a> {
 /// A mutable iterator over entries in `Vary`.
 #[derive(Debug)]
 pub struct IterMut<'a> {
-    inner: slice::IterMut<'a, VaryDirective>,
+    inner: slice::IterMut<'a, HeaderName>,
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut VaryDirective;
+    type Item = &'a mut HeaderName;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -240,6 +255,22 @@ mod test {
         let mut entries = entries.iter();
         assert_eq!(entries.next().unwrap(), "User-Agent");
         assert_eq!(entries.next().unwrap(), "Accept-Encoding");
+        Ok(())
+    }
+
+    #[test]
+    fn wildcard() -> crate::Result<()> {
+        let mut entries = Vary::new();
+        entries.push("User-Agent")?;
+        entries.push("*")?;
+
+        let mut res = Response::new(200);
+        entries.apply(&mut res);
+
+        let entries = Vary::from_headers(res)?.unwrap();
+        assert_eq!(entries.wildcard(), true);
+        let mut entries = entries.iter();
+        assert_eq!(entries.next().unwrap(), "User-Agent");
         Ok(())
     }
 }
