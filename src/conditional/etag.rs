@@ -1,7 +1,7 @@
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ETAG};
 use crate::{Error, StatusCode};
 
-use std::fmt::Debug;
+use std::fmt::{self, Debug, Display};
 use std::option;
 
 /// HTTP Entity Tags.
@@ -94,14 +94,6 @@ impl ETag {
         matches!(self, Self::Weak(_))
     }
 
-    /// Convert an ETag to a String.
-    pub fn to_string(&self) -> String {
-        match self {
-            Self::Strong(s) => format!(r#""{}""#, s),
-            Self::Weak(s) => format!(r#"W/"{}""#, s),
-        }
-    }
-
     /// Create an Etag from a string.
     pub(crate) fn from_str(s: &str) -> crate::Result<Self> {
         let mut weak = false;
@@ -135,6 +127,15 @@ impl ETag {
 
         let etag = if weak { Self::Weak(s) } else { Self::Strong(s) };
         Ok(etag)
+    }
+}
+
+impl Display for ETag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Strong(s) => write!(f, r#""{}""#, s),
+            Self::Weak(s) => write!(f, r#"W/"{}""#, s),
+        }
     }
 }
 
