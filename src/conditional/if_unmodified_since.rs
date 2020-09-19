@@ -5,7 +5,8 @@ use std::fmt::Debug;
 use std::option;
 use std::time::SystemTime;
 
-/// HTTP `IfUnmodifiedSince` header
+/// Apply the HTTP method if the entity has not been modified after the
+/// given date.
 ///
 /// # Specifications
 ///

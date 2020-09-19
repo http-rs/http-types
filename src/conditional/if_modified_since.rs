@@ -5,7 +5,8 @@ use std::fmt::Debug;
 use std::option;
 use std::time::SystemTime;
 
-/// HTTP `IfModifiedSince` header
+/// Apply the HTTP method if the entity has been modified after the given
+/// date.
 ///
 /// # Specifications
 ///
