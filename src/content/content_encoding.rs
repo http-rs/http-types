@@ -50,12 +50,8 @@ impl ContentEncoding {
         let mut inner = None;
 
         for value in headers {
-            for part in value.as_str().trim().split(',') {
-                // Try and parse a directive from a str. If the directive is
-                // unkown we skip it.
-                if let Some(entry) = Encoding::from_str(part) {
-                    inner = Some(entry);
-                }
+            if let Some(entry) = Encoding::from_str(value.as_str()) {
+                inner = Some(entry);
             }
         }
 
@@ -63,7 +59,7 @@ impl ContentEncoding {
         Ok(Some(Self { inner }))
     }
 
-    /// Sets the `Server-Timing` header.
+    /// Sets the `Content-Encoding` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
         headers.as_mut().insert(CONTENT_ENCODING, self.value());
     }
@@ -76,6 +72,11 @@ impl ContentEncoding {
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
         self.inner.into()
+    }
+
+    /// Access the encoding kind.
+    pub fn encoding(&self) -> Encoding {
+        self.inner
     }
 }
 

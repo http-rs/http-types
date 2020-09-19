@@ -29,7 +29,7 @@ use std::slice;
 /// accept.push(EncodingProposal::new(Encoding::Identity, None)?);
 ///
 /// let mut res = Response::new(200);
-/// let encoding = accept.negotiate(&[Encoding::Gzip, Encoding::Brotli])?;
+/// let encoding = accept.negotiate(&[Encoding::Brotli, Encoding::Gzip])?;
 /// encoding.apply(&mut res);
 ///
 /// assert_eq!(res["Content-Encoding"], "br");
@@ -135,7 +135,7 @@ impl AcceptEncoding {
         Err(err)
     }
 
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
+    /// Sets the `Accept-Encoding` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
         headers.as_mut().insert(ACCEPT_ENCODING, self.value());
     }
