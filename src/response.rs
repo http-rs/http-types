@@ -1,5 +1,5 @@
-use async_std::io::{self, BufRead, Read};
 use async_std::sync;
+use futures_lite::*;
 
 use std::convert::{Into, TryInto};
 use std::fmt::Debug;
@@ -231,8 +231,7 @@ impl Response {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -260,8 +259,7 @@ impl Response {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -288,8 +286,7 @@ impl Response {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -322,8 +319,7 @@ impl Response {
     ///
     /// ```
     /// # use std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use async_std::io::Cursor;
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -349,7 +345,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// let bytes = vec![1, 2, 3];
@@ -375,7 +371,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -409,7 +405,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -665,7 +661,7 @@ impl Clone for Response {
     }
 }
 
-impl Read for Response {
+impl AsyncRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
@@ -676,7 +672,7 @@ impl Read for Response {
     }
 }
 
-impl BufRead for Response {
+impl AsyncBufRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();

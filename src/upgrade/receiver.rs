@@ -1,5 +1,5 @@
-use async_std::prelude::*;
 use async_std::sync;
+use futures_lite::*;
 
 use std::future::Future;
 use std::pin::Pin;

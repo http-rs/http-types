@@ -50,8 +50,8 @@
 use crate::headers::{
     HeaderName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
-use async_std::prelude::*;
 use async_std::sync;
+use futures_lite::*;
 
 use std::convert::Into;
 use std::future::Future;
