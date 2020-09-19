@@ -3,8 +3,8 @@
 //! This is used to update caches or to prevent uploading a new resource when
 //! one already exists.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_NONE_MATCH};
 use crate::conditional::ETag;
+use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_NONE_MATCH};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -50,7 +50,10 @@ pub struct IfNoneMatch {
 impl IfNoneMatch {
     /// Create a new instance of `IfNoneMatch`.
     pub fn new() -> Self {
-        Self { entries: vec![], wildcard: false }
+        Self {
+            entries: vec![],
+            wildcard: false,
+        }
     }
 
     /// Create a new instance from headers.
@@ -260,8 +263,14 @@ mod test {
 
         let entries = IfNoneMatch::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
-        assert_eq!(entries.next().unwrap(), &ETag::new("0xcafebeef".to_string()));
-        assert_eq!(entries.next().unwrap(), &ETag::new("0xbeefcafe".to_string()));
+        assert_eq!(
+            entries.next().unwrap(),
+            &ETag::new("0xcafebeef".to_string())
+        );
+        assert_eq!(
+            entries.next().unwrap(),
+            &ETag::new("0xbeefcafe".to_string())
+        );
         Ok(())
     }
 
@@ -277,7 +286,10 @@ mod test {
         let entries = IfNoneMatch::from_headers(res)?.unwrap();
         assert_eq!(entries.wildcard(), true);
         let mut entries = entries.iter();
-        assert_eq!(entries.next().unwrap(), &ETag::new("0xcafebeef".to_string()));
+        assert_eq!(
+            entries.next().unwrap(),
+            &ETag::new("0xcafebeef".to_string())
+        );
         Ok(())
     }
 }

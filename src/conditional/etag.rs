@@ -96,7 +96,7 @@ impl ETag {
 
     /// Convert an ETag to a String.
     pub fn to_string(&self) -> String {
-       match self {
+        match self {
             Self::Strong(s) => format!(r#""{}""#, s),
             Self::Weak(s) => format!(r#"W/"{}""#, s),
         }

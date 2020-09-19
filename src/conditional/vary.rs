@@ -44,7 +44,10 @@ pub struct Vary {
 impl Vary {
     /// Create a new instance of `Vary`.
     pub fn new() -> Self {
-        Self { entries: vec![], wildcard: false }
+        Self {
+            entries: vec![],
+            wildcard: false,
+        }
     }
 
     /// Create a new instance from headers.
@@ -95,7 +98,10 @@ impl Vary {
     pub fn value(&self) -> HeaderValue {
         let mut output = String::new();
         for (n, name) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = name.as_str().parse().expect("Could not convert a HeaderName into a HeaderValue");
+            let directive: HeaderValue = name
+                .as_str()
+                .parse()
+                .expect("Could not convert a HeaderName into a HeaderValue");
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),
@@ -114,10 +120,7 @@ impl Vary {
     }
 
     /// Push a directive into the list of entries.
-    pub fn push(
-        &mut self,
-        directive: impl Into<HeaderName>,
-    ) -> crate::Result<()> {
+    pub fn push(&mut self, directive: impl Into<HeaderName>) -> crate::Result<()> {
         self.entries.push(directive.into());
         Ok(())
     }

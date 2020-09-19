@@ -44,7 +44,10 @@ pub struct IfMatch {
 impl IfMatch {
     /// Create a new instance of `IfMatch`.
     pub fn new() -> Self {
-        Self { entries: vec![], wildcard: false }
+        Self {
+            entries: vec![],
+            wildcard: false,
+        }
     }
 
     /// Create a new instance from headers.
@@ -68,7 +71,6 @@ impl IfMatch {
         }
 
         Ok(Some(Self { entries, wildcard }))
-
     }
 
     /// Sets the `If-Match` header.
@@ -255,8 +257,14 @@ mod test {
 
         let entries = IfMatch::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
-        assert_eq!(entries.next().unwrap(), &ETag::new("0xcafebeef".to_string()));
-        assert_eq!(entries.next().unwrap(), &ETag::new("0xbeefcafe".to_string()));
+        assert_eq!(
+            entries.next().unwrap(),
+            &ETag::new("0xcafebeef".to_string())
+        );
+        assert_eq!(
+            entries.next().unwrap(),
+            &ETag::new("0xbeefcafe".to_string())
+        );
         Ok(())
     }
 
@@ -272,7 +280,10 @@ mod test {
         let entries = IfMatch::from_headers(res)?.unwrap();
         assert_eq!(entries.wildcard(), true);
         let mut entries = entries.iter();
-        assert_eq!(entries.next().unwrap(), &ETag::new("0xcafebeef".to_string()));
+        assert_eq!(
+            entries.next().unwrap(),
+            &ETag::new("0xcafebeef".to_string())
+        );
         Ok(())
     }
 }

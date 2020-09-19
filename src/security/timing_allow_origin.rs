@@ -66,7 +66,10 @@ pub struct TimingAllowOrigin {
 impl TimingAllowOrigin {
     /// Create a new instance of `AllowOrigin`.
     pub fn new() -> Self {
-        Self { origins: vec![], wildcard: false, }
+        Self {
+            origins: vec![],
+            wildcard: false,
+        }
     }
 
     /// Create an instance of `AllowOrigin` from a `Headers` instance.
@@ -328,6 +331,4 @@ mod test {
         assert_eq!(origin, &Url::parse("https://example.com")?);
         Ok(())
     }
-
-
 }
