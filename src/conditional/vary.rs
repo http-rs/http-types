@@ -102,6 +102,13 @@ impl Vary {
             };
         }
 
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            };
+        }
+
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
@@ -262,7 +269,7 @@ mod test {
     fn wildcard() -> crate::Result<()> {
         let mut entries = Vary::new();
         entries.push("User-Agent")?;
-        entries.push("*")?;
+        entries.set_wildcard(true);
 
         let mut res = Response::new(200);
         entries.apply(&mut res);
