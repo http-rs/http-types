@@ -26,7 +26,6 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: ${{ matrix.rust }}
-        components: clippy
         override: true
 
     - name: check
@@ -41,12 +40,6 @@ jobs:
         command:  check
         args: --all --benches --bins --examples --tests --features "hyperium_http,unstable"
 
-    - name: clippy
-      uses: actions-rs/cargo@v1
-      with:
-        command: clippy
-        args: --tests --examples -- -D warnings
-
     - name: tests
       uses: actions-rs/cargo@v1
       with:
@@ -54,7 +47,7 @@ jobs:
         args: --all --features "hyperium_http,unstable"
 
   check_fmt_and_docs:
-    name: Checking fmt and docs
+    name: Checking fmt, clippy, and docs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -63,6 +56,9 @@ jobs:
         toolchain: nightly
         components: rustfmt, clippy
         override: true
+
+    - name: clippy
+      run: cargo clippy --tests --examples -- -D warnings
 
     - name: fmt
       run: cargo fmt --all -- --check
