@@ -45,7 +45,7 @@ pub struct TraceContext {
 }
 
 impl TraceContext {
-    /// Generate a new TraceContect object without a parent.
+    /// Generate a new TraceContext object without a parent.
     ///
     /// By default root TraceContext objects are sampled.
     /// To mark it unsampled, call `context.set_sampled(false)`.
