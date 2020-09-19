@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MODIFIED_SINCE};
+use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_UNMODIFIED_SINCE};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
@@ -52,7 +52,7 @@ impl IfUnmodifiedSince {
 
     /// Create an instance of `IfUnmodifiedSince` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(IF_MODIFIED_SINCE) {
+        let headers = match headers.as_ref().get(IF_UNMODIFIED_SINCE) {
             Some(headers) => headers,
             None => return Ok(None),
         };
@@ -67,12 +67,12 @@ impl IfUnmodifiedSince {
 
     /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(IF_MODIFIED_SINCE, self.value());
+        headers.as_mut().insert(IF_UNMODIFIED_SINCE, self.value());
     }
 
     /// Get the `HeaderName`.
     pub fn name(&self) -> HeaderName {
-        IF_MODIFIED_SINCE
+        IF_UNMODIFIED_SINCE
     }
 
     /// Get the `HeaderValue`.
@@ -117,7 +117,7 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() -> crate::Result<()> {
         let mut headers = Headers::new();
-        headers.insert(IF_MODIFIED_SINCE, "<nori ate the tag. yum.>");
+        headers.insert(IF_UNMODIFIED_SINCE, "<nori ate the tag. yum.>");
         let err = IfUnmodifiedSince::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
         Ok(())
