@@ -1,4 +1,4 @@
-use async_std::io::{self, prelude::*};
+use futures_lite::*;
 
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -13,10 +13,10 @@ pub struct RawConnection<Inner> {
 pub type Connection = RawConnection<Box<dyn InnerConnection + 'static>>;
 
 /// Trait to signal the requirements for an underlying connection type.
-pub trait InnerConnection: Read + Write + Send + Sync + Unpin {}
-impl<T: Read + Write + Send + Sync + Unpin> InnerConnection for T {}
+pub trait InnerConnection: AsyncRead + AsyncWrite + Send + Sync + Unpin {}
+impl<T: AsyncRead + AsyncWrite + Send + Sync + Unpin> InnerConnection for T {}
 
-impl<Inner: Read + Unpin> Read for RawConnection<Inner> {
+impl<Inner: AsyncRead + Unpin> AsyncRead for RawConnection<Inner> {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -26,7 +26,7 @@ impl<Inner: Read + Unpin> Read for RawConnection<Inner> {
     }
 }
 
-impl<Inner: Write + Unpin> Write for RawConnection<Inner> {
+impl<Inner: AsyncWrite + Unpin> AsyncWrite for RawConnection<Inner> {
     fn poll_write(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,

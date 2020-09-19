@@ -27,6 +27,7 @@ cookie-secure = ["cookie/secure"]
 # Note(yoshuawuyts): used for async_std's `channel` only; use "core" once possible.
 # features: async_std
 async-std = { version = "1.6.0", features = ["unstable"] }
+futures-lite = "1.7.0"
 
 # features: hyperium/http
 http = { version = "0.2.0", optional = true }
