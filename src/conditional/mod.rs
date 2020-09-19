@@ -12,14 +12,12 @@ mod etag;
 mod if_modified_since;
 mod if_unmodified_since;
 mod last_modified;
-mod match_directive;
 mod vary;
 
 pub mod if_match;
 pub mod if_none_match;
 
 pub use etag::ETag;
-pub use match_directive::MatchDirective;
 pub use vary::Vary;
 
 #[doc(inline)]

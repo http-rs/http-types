@@ -79,10 +79,7 @@ impl ETag {
 
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
-        let s = match self {
-            Self::Strong(s) => format!(r#""{}""#, s),
-            Self::Weak(s) => format!(r#"W/"{}""#, s),
-        };
+        let s = self.to_string();
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(s.into()) }
     }
@@ -95,6 +92,14 @@ impl ETag {
     /// Returns `true` if the ETag is a `Weak` value.
     pub fn is_weak(&self) -> bool {
         matches!(self, Self::Weak(_))
+    }
+
+    /// Convert an ETag to a String.
+    pub fn to_string(&self) -> String {
+       match self {
+            Self::Strong(s) => format!(r#""{}""#, s),
+            Self::Weak(s) => format!(r#"W/"{}""#, s),
+        }
     }
 
     /// Create an Etag from a string.

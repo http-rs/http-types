@@ -1,6 +1,6 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::conditional::MatchDirective;
+use crate::conditional::ETag;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MATCH};
 
 use std::fmt::{self, Debug, Write};
@@ -31,19 +31,20 @@ use std::slice;
 ///
 /// let entries = IfMatch::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
-/// assert_eq!(entries.next().unwrap(), ETag::new("0xcafebeef".to_string()));
-/// assert_eq!(entries.next().unwrap(), ETag::new("0xbeefcafe".to_string()));
+/// assert_eq!(entries.next().unwrap(), &ETag::new("0xcafebeef".to_string()));
+/// assert_eq!(entries.next().unwrap(), &ETag::new("0xbeefcafe".to_string()));
 /// #
 /// # Ok(()) }
 /// ```
 pub struct IfMatch {
-    entries: Vec<MatchDirective>,
+    entries: Vec<ETag>,
+    wildcard: bool,
 }
 
 impl IfMatch {
     /// Create a new instance of `IfMatch`.
     pub fn new() -> Self {
-        Self { entries: vec![] }
+        Self { entries: vec![], wildcard: false }
     }
 
     /// Create a new instance from headers.
@@ -54,17 +55,20 @@ impl IfMatch {
             None => return Ok(None),
         };
 
+        let mut wildcard = false;
         for value in headers {
             for part in value.as_str().trim().split(',') {
-                // Try and parse a directive from a str. If the directive is
-                // unkown we skip it.
-                if let Some(entry) = MatchDirective::from_str(part)? {
-                    entries.push(entry);
+                let part = part.trim();
+                if part == "*" {
+                    wildcard = true;
+                    continue;
                 }
+                entries.push(ETag::from_str(part)?);
             }
         }
 
-        Ok(Some(Self { entries }))
+        Ok(Some(Self { entries, wildcard }))
+
     }
 
     /// Sets the `If-Match` header.
@@ -80,11 +84,17 @@ impl IfMatch {
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
         let mut output = String::new();
-        for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
+        for (n, etag) in self.entries.iter().enumerate() {
             match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
+                0 => write!(output, "{}", etag.to_string()).unwrap(),
+                _ => write!(output, ", {}", etag.to_string()).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
             };
         }
 
@@ -93,8 +103,18 @@ impl IfMatch {
     }
 
     /// Push a directive into the list of entries.
-    pub fn push(&mut self, directive: impl Into<MatchDirective>) {
+    pub fn push(&mut self, directive: impl Into<ETag>) {
         self.entries.push(directive.into());
+    }
+
+    /// Returns `true` if a wildcard directive was set.
+    pub fn wildcard(&self) -> bool {
+        self.wildcard
+    }
+
+    /// Set the wildcard directive.
+    pub fn set_wildcard(&mut self, wildcard: bool) {
+        self.wildcard = wildcard
     }
 
     /// An iterator visiting all server entries.
@@ -113,7 +133,7 @@ impl IfMatch {
 }
 
 impl IntoIterator for IfMatch {
-    type Item = MatchDirective;
+    type Item = ETag;
     type IntoIter = IntoIter;
 
     #[inline]
@@ -125,7 +145,7 @@ impl IntoIterator for IfMatch {
 }
 
 impl<'a> IntoIterator for &'a IfMatch {
-    type Item = &'a MatchDirective;
+    type Item = &'a ETag;
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -135,7 +155,7 @@ impl<'a> IntoIterator for &'a IfMatch {
 }
 
 impl<'a> IntoIterator for &'a mut IfMatch {
-    type Item = &'a mut MatchDirective;
+    type Item = &'a mut ETag;
     type IntoIter = IterMut<'a>;
 
     #[inline]
@@ -147,11 +167,11 @@ impl<'a> IntoIterator for &'a mut IfMatch {
 /// A borrowing iterator over entries in `IfMatch`.
 #[derive(Debug)]
 pub struct IntoIter {
-    inner: std::vec::IntoIter<MatchDirective>,
+    inner: std::vec::IntoIter<ETag>,
 }
 
 impl Iterator for IntoIter {
-    type Item = MatchDirective;
+    type Item = ETag;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -166,11 +186,11 @@ impl Iterator for IntoIter {
 /// A lending iterator over entries in `IfMatch`.
 #[derive(Debug)]
 pub struct Iter<'a> {
-    inner: slice::Iter<'a, MatchDirective>,
+    inner: slice::Iter<'a, ETag>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = &'a MatchDirective;
+    type Item = &'a ETag;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -185,11 +205,11 @@ impl<'a> Iterator for Iter<'a> {
 /// A mutable iterator over entries in `IfMatch`.
 #[derive(Debug)]
 pub struct IterMut<'a> {
-    inner: slice::IterMut<'a, MatchDirective>,
+    inner: slice::IterMut<'a, ETag>,
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut MatchDirective;
+    type Item = &'a mut ETag;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -235,8 +255,24 @@ mod test {
 
         let entries = IfMatch::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
-        assert_eq!(entries.next().unwrap(), ETag::new("0xcafebeef".to_string()));
-        assert_eq!(entries.next().unwrap(), ETag::new("0xbeefcafe".to_string()));
+        assert_eq!(entries.next().unwrap(), &ETag::new("0xcafebeef".to_string()));
+        assert_eq!(entries.next().unwrap(), &ETag::new("0xbeefcafe".to_string()));
+        Ok(())
+    }
+
+    #[test]
+    fn wildcard() -> crate::Result<()> {
+        let mut entries = IfMatch::new();
+        entries.push(ETag::new("0xcafebeef".to_string()));
+        entries.set_wildcard(true);
+
+        let mut res = Response::new(200);
+        entries.apply(&mut res);
+
+        let entries = IfMatch::from_headers(res)?.unwrap();
+        assert_eq!(entries.wildcard(), true);
+        let mut entries = entries.iter();
+        assert_eq!(entries.next().unwrap(), &ETag::new("0xcafebeef".to_string()));
         Ok(())
     }
 }
