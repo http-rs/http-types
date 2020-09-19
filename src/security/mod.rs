@@ -22,7 +22,7 @@ mod timing_allow_origin;
 
 pub use csp::{ContentSecurityPolicy, ReportTo, ReportToEndpoint, Source};
 #[doc(inline)]
-pub use timing_allow_origin::{TimingAllowOrigin, TimingOrigin};
+pub use timing_allow_origin::{TimingAllowOrigin};
 
 /// Apply a set of default protections.
 ///
