@@ -1,4 +1,4 @@
-use futures_lite::*;
+use futures_lite::{io, prelude::*};
 
 use std::pin::Pin;
 use std::task::{Context, Poll};

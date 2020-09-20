@@ -1,4 +1,4 @@
-use futures_lite::*;
+use futures_lite::{io, prelude::*};
 use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
@@ -75,7 +75,7 @@ impl Body {
     /// ```
     pub fn empty() -> Self {
         Self {
-            reader: Box::new(io::Cursor::new(Vec::new())),
+            reader: Box::new(io::empty()),
             mime: mime::BYTE_STREAM,
             length: Some(0),
         }

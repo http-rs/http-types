@@ -1,4 +1,4 @@
-use futures_lite::*;
+use futures_lite::Stream;
 
 use std::future::Future;
 use std::pin::Pin;
