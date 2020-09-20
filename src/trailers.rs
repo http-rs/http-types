@@ -50,7 +50,7 @@
 use crate::headers::{
     HeaderName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
-use futures_lite::*;
+use futures_lite::Stream;
 
 use std::convert::Into;
 use std::future::Future;

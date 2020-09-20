@@ -1,4 +1,4 @@
-use futures_lite::*;
+use futures_lite::{future, AsyncReadExt};
 use http_types::{Body, Method, Request, Response, StatusCode, Url};
 
 #[test]
