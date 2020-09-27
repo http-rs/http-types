@@ -243,10 +243,9 @@ impl<'a> Forwarded<'a> {
             _ => { /* extensions are allowed in the spec */ }
         }
 
-        if rest.starts_with(';') {
-            Ok(&rest[1..])
-        } else {
-            Ok(rest)
+        match rest.strip_prefix(';') {
+            Some(rest) => Ok(rest),
+            None => Ok(rest),
         }
     }
 
