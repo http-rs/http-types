@@ -69,8 +69,14 @@ impl Error {
     }
 
     /// Set the status code associated with this error.
-    pub fn set_status(&mut self, status: StatusCode) {
-        self.status = status;
+    pub fn set_status<S>(&mut self, status: S)
+    where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+    {
+        self.status = status
+            .try_into()
+            .expect("Could not convert into a valid `StatusCode`");
     }
 
     /// Get the backtrace for this Error.
