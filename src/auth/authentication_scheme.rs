@@ -7,25 +7,25 @@ use crate::bail;
 #[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum AuthenticationScheme {
-    /// Basic auth
+    /// [RFC7617](https://tools.ietf.org/html/rfc7617) Basic auth
     Basic,
-    /// Bearer auth
+    /// [RFC6750](https://tools.ietf.org/html/rfc6750) Bearer auth
     Bearer,
-    /// Digest auth
+    /// [RFC7616](https://tools.ietf.org/html/rfc7616) Digest auth
     Digest,
-    /// HOBA
+    /// [RFC7486](https://tools.ietf.org/html/rfc7486) HTTP Origin-Bound Authentication
     Hoba,
-    /// Mutual auth
+    /// [RFC8120](https://tools.ietf.org/html/rfc8120) Mutual auth
     Mutual,
-    /// Negotiate auth
+    /// [RFC4559](https://tools.ietf.org/html/rfc4559) Negotiate auth
     Negotiate,
-    /// Oauth
+    /// [RFC5849](https://tools.ietf.org/html/rfc5849) Oauth
     OAuth,
-    /// SCRAM SHA1 auth
+    /// [RFC7804](https://tools.ietf.org/html/rfc7804) SCRAM SHA1 auth
     ScramSha1,
-    /// SCRAM SHA256 auth
+    /// [RFC7804](https://tools.ietf.org/html/rfc7804) SCRAM SHA256 auth
     ScramSha256,
-    /// Vapid auth
+    /// [RFC8292](https://tools.ietf.org/html/rfc8292) Vapid auth
     Vapid,
 }
 
