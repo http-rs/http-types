@@ -71,7 +71,7 @@ impl Authorization {
         }))
     }
 
-    /// Sets the `If-Match` header.
+    /// Sets the header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
         headers.as_mut().insert(self.name(), self.value());
     }
@@ -94,9 +94,19 @@ impl Authorization {
         self.scheme
     }
 
+    /// Set the authorization scheme.
+    pub fn set_scheme(&mut self, scheme: AuthenticationScheme) {
+        self.scheme = scheme;
+    }
+
     /// Get the authorization credentials.
     pub fn credentials(&self) -> &str {
         self.credentials.as_str()
+    }
+
+    /// Set the authorization credentials.
+    pub fn set_credentials(&mut self, credentials: String) {
+        self.credentials = credentials;
     }
 }
 
