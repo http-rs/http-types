@@ -1,10 +1,10 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::bail;
+use crate::format_err;
 
 /// HTTP Mutual Authentication Algorithms
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[non_exhaustive]
 pub enum AuthenticationScheme {
     /// [RFC7617](https://tools.ietf.org/html/rfc7617) Basic auth
@@ -13,13 +13,13 @@ pub enum AuthenticationScheme {
     Bearer,
     /// [RFC7616](https://tools.ietf.org/html/rfc7616) Digest auth
     Digest,
-    /// [RFC7486](https://tools.ietf.org/html/rfc7486) HTTP Origin-Bound Authentication
+    /// [RFC7486](https://tools.ietf.org/html/rfc7486) HTTP Origin-Bound Authentication (HOBA)
     Hoba,
     /// [RFC8120](https://tools.ietf.org/html/rfc8120) Mutual auth
     Mutual,
     /// [RFC4559](https://tools.ietf.org/html/rfc4559) Negotiate auth
     Negotiate,
-    /// [RFC5849](https://tools.ietf.org/html/rfc5849) Oauth
+    /// [RFC5849](https://tools.ietf.org/html/rfc5849) OAuth
     OAuth,
     /// [RFC7804](https://tools.ietf.org/html/rfc7804) SCRAM SHA1 auth
     ScramSha1,
@@ -64,7 +64,11 @@ impl FromStr for AuthenticationScheme {
             "scram-sha-1" => Ok(Self::ScramSha1),
             "scram-sha-256" => Ok(Self::ScramSha256),
             "vapid" => Ok(Self::Vapid),
-            s => bail!("`{}` is not a recognized authentication scheme", s),
+            s => {
+                let mut err = format_err!("`{}` is not a recognized authentication scheme", s);
+                err.set_status(400);
+                Err(err)
+            }
         }
     }
 }
