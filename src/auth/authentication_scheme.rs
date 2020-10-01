@@ -50,16 +50,19 @@ impl FromStr for AuthenticationScheme {
     type Err = crate::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "Basic" => Ok(Self::Basic),
-            "Bearer" => Ok(Self::Bearer),
-            "Digest" => Ok(Self::Digest),
-            "HOBA" => Ok(Self::Hoba),
-            "Mutual" => Ok(Self::Mutual),
-            "Negotiate" => Ok(Self::Negotiate),
-            "OAuth" => Ok(Self::OAuth),
-            "SCRAM-SHA-1" => Ok(Self::ScramSha1),
-            "SCRAM-SHA-256" => Ok(Self::ScramSha256),
+        // NOTE(yosh): matching here is lowercase as specified by RFC2617#section-1.2
+        // > [...] case-insensitive token to identify the authentication scheme [...]
+        // https://tools.ietf.org/html/rfc2617#section-1.2
+        match s.to_lowercase().as_str() {
+            "basic" => Ok(Self::Basic),
+            "bearer" => Ok(Self::Bearer),
+            "digest" => Ok(Self::Digest),
+            "hoba" => Ok(Self::Hoba),
+            "mutual" => Ok(Self::Mutual),
+            "negotiate" => Ok(Self::Negotiate),
+            "oauth" => Ok(Self::OAuth),
+            "scram-sha-1" => Ok(Self::ScramSha1),
+            "scram-sha-256" => Ok(Self::ScramSha256),
             "vapid" => Ok(Self::Vapid),
             s => bail!("`{}` is not a recognized authentication scheme", s),
         }
