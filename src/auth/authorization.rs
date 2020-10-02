@@ -6,7 +6,7 @@ use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 ///
 /// # Specifications
 ///
-/// - [RFC 7235, section 4.2: Authorization](https://tools.ietf.org/html/rfc7232#section-3.4)
+/// - [RFC 7235, section 4.2: Authorization](https://tools.ietf.org/html/rfc7235#section-4.2)
 ///
 /// # Examples
 ///
