@@ -26,7 +26,9 @@
 mod authentication_scheme;
 mod authorization;
 mod basic_auth;
+mod www_authenticate;
 
 pub use authentication_scheme::AuthenticationScheme;
 pub use authorization::Authorization;
 pub use basic_auth::BasicAuth;
+pub use www_authenticate::WwwAuthenticate;
