@@ -1,7 +1,7 @@
 use crate::auth::{AuthenticationScheme, Authorization};
-use crate::format_err;
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 use crate::Status;
+use crate::{bail2 as bail, ensure2 as ensure};
 
 /// HTTP Basic authorization.
 ///
@@ -57,11 +57,12 @@ impl BasicAuth {
         };
 
         let scheme = auth.scheme();
-        if !matches!(scheme, AuthenticationScheme::Basic) {
-            let mut err = format_err!("Expected basic auth scheme found `{}`", scheme);
-            err.set_status(400);
-            return Err(err);
-        }
+        ensure!(
+            matches!(scheme, AuthenticationScheme::Basic),
+            400,
+            "Expected basic auth scheme found `{}`",
+            scheme
+        );
 
         let bytes = base64::decode(auth.credentials()).status(400)?;
         let credentials = String::from_utf8(bytes).status(400)?;
@@ -72,16 +73,8 @@ impl BasicAuth {
 
         let (username, password) = match (username, password) {
             (Some(username), Some(password)) => (username.to_string(), password.to_string()),
-            (Some(_), None) => {
-                let mut err = format_err!("Expected basic auth to a password");
-                err.set_status(400);
-                return Err(err);
-            }
-            (None, _) => {
-                let mut err = format_err!("Expected basic auth to contain a username");
-                err.set_status(400);
-                return Err(err);
-            }
+            (Some(_), None) => bail!(400, "Expected basic auth to a password"),
+            (None, _) => bail!(400, "Expected basic auth to contain a username"),
         };
 
         Ok(Some(Self { username, password }))

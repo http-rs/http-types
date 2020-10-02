@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::format_err;
+use crate::bail2 as bail;
 
 /// HTTP Mutual Authentication Algorithms
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -64,11 +64,7 @@ impl FromStr for AuthenticationScheme {
             "scram-sha-1" => Ok(Self::ScramSha1),
             "scram-sha-256" => Ok(Self::ScramSha256),
             "vapid" => Ok(Self::Vapid),
-            s => {
-                let mut err = format_err!("`{}` is not a recognized authentication scheme", s);
-                err.set_status(400);
-                Err(err)
-            }
+            s => bail!(400, "`{}` is not a recognized authentication scheme", s),
         }
     }
 }

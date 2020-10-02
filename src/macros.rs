@@ -122,7 +122,7 @@ macro_rules! ensure2 {
     };
     ($cond:expr, $status:literal, $msg:expr, $($arg:tt)*) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err2!($status, $fmt, $($arg)*));
+            return $crate::private::Err($crate::format_err2!($status, $msg, $($arg)*));
         }
     };
 }
@@ -175,7 +175,7 @@ macro_rules! format_err2 {
         err
     }};
     ($status:literal, $msg:expr, $($arg:tt)*) => {{
-        let mut err = $crate::private::new_adhoc(format!($msg, $($arg)*))
+        let mut err = $crate::private::new_adhoc(format!($msg, $($arg)*));
         err.set_status($status);
         err
     }};

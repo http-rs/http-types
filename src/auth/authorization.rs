@@ -1,5 +1,5 @@
 use crate::auth::AuthenticationScheme;
-use crate::bail;
+use crate::bail2 as bail;
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 
 /// Credentials to authenticate a user agent with a server.
@@ -60,8 +60,8 @@ impl Authorization {
         let scheme = iter.next();
         let credential = iter.next();
         let (scheme, credentials) = match (scheme, credential) {
-            (None, _) => bail!("Could not find scheme"),
-            (Some(_), None) => bail!("Could not find credentials"),
+            (None, _) => bail!(400, "Could not find scheme"),
+            (Some(_), None) => bail!(400, "Could not find credentials"),
             (Some(scheme), Some(credentials)) => (scheme.parse()?, credentials.to_owned()),
         };
 
