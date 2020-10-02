@@ -19,7 +19,7 @@ use crate::Status;
 ///
 /// let username = "nori";
 /// let password = "secret_fish!!";
-/// let authz = BasicAuth::new(username, Some(password));
+/// let authz = BasicAuth::new(username, password);
 ///
 /// let mut res = Response::new(200);
 /// authz.apply(&mut res);
@@ -27,25 +27,25 @@ use crate::Status;
 /// let authz = BasicAuth::from_headers(res)?.unwrap();
 ///
 /// assert_eq!(authz.username(), username);
-/// assert_eq!(authz.password(), Some(password));
+/// assert_eq!(authz.password(), password);
 /// #
 /// # Ok(()) }
 /// ```
 #[derive(Debug)]
 pub struct BasicAuth {
     username: String,
-    password: Option<String>,
+    password: String,
 }
 
 impl BasicAuth {
     /// Create a new instance of `BasicAuth`.
-    pub fn new<U, P>(username: U, password: Option<P>) -> Self
+    pub fn new<U, P>(username: U, password: P) -> Self
     where
         U: AsRef<str>,
         P: AsRef<str>,
     {
         let username = username.as_ref().to_owned();
-        let password = password.map(|p| p.as_ref().to_owned());
+        let password = password.as_ref().to_owned();
         Self { username, password }
     }
 
@@ -71,8 +71,12 @@ impl BasicAuth {
         let password = iter.next();
 
         let (username, password) = match (username, password) {
-            (Some(username), Some(password)) => (username.to_string(), Some(password.to_string())),
-            (Some(username), None) => (username.to_string(), None),
+            (Some(username), Some(password)) => (username.to_string(), password.to_string()),
+            (Some(_), None) => {
+                let mut err = format_err!("Expected basic auth to a password");
+                err.set_status(400);
+                return Err(err);
+            }
             (None, _) => {
                 let mut err = format_err!("Expected basic auth to contain a username");
                 err.set_status(400);
@@ -96,10 +100,7 @@ impl BasicAuth {
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
         let scheme = AuthenticationScheme::Basic;
-        let credentials = match self.password.as_ref() {
-            Some(password) => base64::encode(format!("{}:{}", self.username, password)),
-            None => base64::encode(self.username.clone()),
-        };
+        let credentials = base64::encode(format!("{}:{}", self.username, self.password));
         let auth = Authorization::new(scheme, credentials);
         auth.value()
     }
@@ -110,8 +111,8 @@ impl BasicAuth {
     }
 
     /// Get the password.
-    pub fn password(&self) -> Option<&str> {
-        self.password.as_deref()
+    pub fn password(&self) -> &str {
+        self.password.as_str()
     }
 }
 
@@ -124,7 +125,7 @@ mod test {
     fn smoke() -> crate::Result<()> {
         let username = "nori";
         let password = "secret_fish!!";
-        let authz = BasicAuth::new(username, Some(password));
+        let authz = BasicAuth::new(username, password);
 
         let mut headers = Headers::new();
         authz.apply(&mut headers);
@@ -132,7 +133,7 @@ mod test {
         let authz = BasicAuth::from_headers(headers)?.unwrap();
 
         assert_eq!(authz.username(), username);
-        assert_eq!(authz.password(), Some(password));
+        assert_eq!(authz.password(), password);
         Ok(())
     }
 

@@ -10,7 +10,7 @@
 //!
 //! let username = "nori";
 //! let password = "secret_fish!!";
-//! let authz = BasicAuth::new(username, Some(password));
+//! let authz = BasicAuth::new(username, password);
 //!
 //! let mut res = Response::new(200);
 //! authz.apply(&mut res);
@@ -18,7 +18,7 @@
 //! let authz = BasicAuth::from_headers(res)?.unwrap();
 //!
 //! assert_eq!(authz.username(), username);
-//! assert_eq!(authz.password(), Some(password));
+//! assert_eq!(authz.password(), password);
 //! #
 //! # Ok(()) }
 //! ```
