@@ -30,6 +30,7 @@ pub struct ContentLength {
     length: usize,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl ContentLength {
     /// Create a new instance of `Authorization`.
     pub fn new(length: usize) -> Self {
@@ -71,6 +72,11 @@ impl ContentLength {
     /// Get the content length.
     pub fn len(&self) -> usize {
         self.length
+    }
+
+    /// Set the content length.
+    pub fn set_len(&mut self, len: usize) {
+        self.length = len;
     }
 }
 
