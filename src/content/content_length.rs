@@ -1,7 +1,7 @@
 use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_LENGTH};
 use crate::Status;
 
-/// Credentials to authenticate a user agent with a server.
+/// The size of the entity-body, in bytes, sent to the recipient.
 ///
 /// # Specifications
 ///
@@ -27,13 +27,13 @@ use crate::Status;
 /// ```
 #[derive(Debug)]
 pub struct ContentLength {
-    length: usize,
+    length: u64,
 }
 
 #[allow(clippy::len_without_is_empty)]
 impl ContentLength {
-    /// Create a new instance of `Authorization`.
-    pub fn new(length: usize) -> Self {
+    /// Create a new instance.
+    pub fn new(length: u64) -> Self {
         Self { length }
     }
 
@@ -70,12 +70,12 @@ impl ContentLength {
     }
 
     /// Get the content length.
-    pub fn len(&self) -> usize {
+    pub fn len(&self) -> u64 {
         self.length
     }
 
     /// Set the content length.
-    pub fn set_len(&mut self, len: usize) {
+    pub fn set_len(&mut self, len: u64) {
         self.length = len;
     }
 }
