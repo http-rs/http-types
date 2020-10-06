@@ -1,5 +1,6 @@
 //! HTTP Server Context headers.
 
-mod allow;
+pub mod allow;
 
+#[doc(inline)]
 pub use allow::Allow;

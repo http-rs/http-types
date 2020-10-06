@@ -1,3 +1,5 @@
+//! List the set of methods supported by a resource.
+
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ALLOW};
 use crate::Method;
 
@@ -39,7 +41,7 @@ pub struct Allow {
 }
 
 impl Allow {
-    /// Create a new instance of `CacheControl`.
+    /// Create a new instance of `Allow`.
     pub fn new() -> Self {
         Self {
             entries: HashSet::new(),
@@ -128,7 +130,7 @@ impl<'a> IntoIterator for &'a Allow {
     }
 }
 
-/// A borrowing iterator over entries in `CacheControl`.
+/// A borrowing iterator over entries in `Allow`.
 #[derive(Debug)]
 pub struct IntoIter {
     inner: hash_set::IntoIter<Method>,
@@ -147,7 +149,7 @@ impl Iterator for IntoIter {
     }
 }
 
-/// A lending iterator over entries in `CacheControl`.
+/// A lending iterator over entries in `Allow`.
 #[derive(Debug)]
 pub struct Iter<'a> {
     inner: hash_set::Iter<'a, Method>,
