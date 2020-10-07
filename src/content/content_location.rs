@@ -4,7 +4,7 @@ use crate::{Status, Url};
 ///
 /// # Specifications
 ///
-/// - [RFC 7230, section 3.3.2: Content-Length](https://tools.ietf.org/html/rfc7230#section-3.3.2)
+/// - [RFC 7230, section 3.3.2: Content-Length](https://tools.ietf.org/html/rfc7231#section-3.1.4.2)
 ///
 /// # Examples
 ///
@@ -70,7 +70,7 @@ impl ContentLocation {
 
     /// Get the url.
     pub fn location(&self) -> String {
-        String::from(&self.url)
+        self.url.to_string()
     }
 
     /// Set the url.
