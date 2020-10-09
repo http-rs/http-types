@@ -69,7 +69,7 @@ impl ContentLocation {
 
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
-        let output = format!("{}", self.url.as_str());
+        let output = self.url.to_string();
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
