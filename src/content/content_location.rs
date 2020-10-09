@@ -14,7 +14,7 @@ use std::convert::TryInto;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::Response;
+/// use http_types::{Response,Url};
 /// use http_types::content::{ContentLocation};
 ///
 /// let content_location = ContentLocation::new("https://example.net/".to_string());
@@ -22,7 +22,7 @@ use std::convert::TryInto;
 /// let mut res = Response::new(200);
 /// content_location.apply(&mut res);
 ///
-/// let content_location = ContentLocation::from_headers(res)?.unwrap();
+/// let content_location = ContentLocation::from_headers(Url::parse("https://example.net/").unwrap(),res)?.unwrap();
 /// assert_eq!(content_location.location(), "https://example.net/");
 /// #
 /// # Ok(()) }
