@@ -52,7 +52,7 @@ impl ContentLocation {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let base = base_url.try_into().expect("Could not convert into a valid url");
+        let base = base_url.try_into()?;
         let url = base.join(value.as_str().trim()).status(400)?;
         Ok(Some(Self { url }))
     }
