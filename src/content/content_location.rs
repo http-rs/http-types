@@ -1,10 +1,13 @@
 use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_LOCATION};
 use crate::{Status, Url};
 
+use std::convert::TryInto;
+
+/// Indicates an alternate location for the returned data.
 ///
 /// # Specifications
 ///
-/// - [RFC 7230, section 3.3.2: Content-Length](https://tools.ietf.org/html/rfc7231#section-3.1.4.2)
+/// - [RFC 7231, section 3.1.4.2: Content-Length](https://tools.ietf.org/html/rfc7231#section-3.1.4.2)
 ///
 /// # Examples
 ///
@@ -26,18 +29,21 @@ use crate::{Status, Url};
 /// ```
 #[derive(Debug)]
 pub struct ContentLocation {
-    url: String,
+    url: Url,
 }
 
-#[allow(clippy::len_without_is_empty)]
 impl ContentLocation {
     /// Create a new instance of `Content-Location` header.
     pub fn new(url: String) -> Self {
-        Self { url }
+        Self { url : Url::parse(&url).unwrap() }
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers<U>(base_url: U, headers: impl AsRef<Headers>) -> crate::Result<Option<Self>>
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+   {
         let headers = match headers.as_ref().get(CONTENT_LOCATION) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -46,8 +52,9 @@ impl ContentLocation {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let url = Url::parse(value.as_str().trim()).status(400)?;
-        Ok(Some(Self { url : url.into_string() }))
+        let base = base_url.try_into().expect("Could not convert into a valid url");
+        let url = base.join(value.as_str().trim()).status(400)?;
+        Ok(Some(Self { url }))
     }
 
     /// Sets the header.
@@ -62,7 +69,7 @@ impl ContentLocation {
 
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
-        let output = format!("{}", self.url);
+        let output = format!("{}", self.url.as_str());
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
@@ -75,7 +82,7 @@ impl ContentLocation {
 
     /// Set the url.
     pub fn set_location(&mut self, location: &str) {
-        self.url = location.to_string();
+        self.url = Url::parse(location).unwrap();
     }
 }
 
@@ -86,21 +93,21 @@ mod test {
 
     #[test]
     fn smoke() -> crate::Result<()> {
-        let content_location = ContentLocation::new("https://example.net/test".to_string());
+        let content_location = ContentLocation::new("https://example.net/test.json".to_string());
 
         let mut headers = Headers::new();
         content_location.apply(&mut headers);
 
-        let content_location = ContentLocation::from_headers(headers)?.unwrap();
-        assert_eq!(content_location.location(), "https://example.net/test");
+        let content_location = ContentLocation::from_headers( Url::parse("https://example.net/").unwrap(), headers )?.unwrap();
+        assert_eq!(content_location.location(), "https://example.net/test.json");
         Ok(())
     }
 
     #[test]
     fn bad_request_on_parse_error() -> crate::Result<()> {
         let mut headers = Headers::new();
-        headers.insert(CONTENT_LOCATION, "<nori ate the tag. yum.>");
-        let err = ContentLocation::from_headers(headers).unwrap_err();
+        headers.insert(CONTENT_LOCATION, "htt://<nori ate the tag. yum.>");
+        let err = ContentLocation::from_headers(Url::parse("https://example.net").unwrap(), headers).unwrap_err();
         assert_eq!(err.status(), 400);
         Ok(())
     }
