@@ -8,14 +8,14 @@
 pub mod accept_encoding;
 pub mod content_encoding;
 
+mod content_location;
 mod encoding;
 mod encoding_proposal;
-mod content_location;
 
 #[doc(inline)]
 pub use accept_encoding::AcceptEncoding;
 #[doc(inline)]
 pub use content_encoding::ContentEncoding;
+pub use content_location::ContentLocation;
 pub use encoding::Encoding;
 pub use encoding_proposal::EncodingProposal;
-pub use content_location::ContentLocation;

@@ -7,7 +7,7 @@ use std::convert::TryInto;
 ///
 /// # Specifications
 ///
-/// - [RFC 7231, section 3.1.4.2: Content-Length](https://tools.ietf.org/html/rfc7231#section-3.1.4.2)
+/// - [RFC 7231, section 3.1.4.2: Content-Location](https://tools.ietf.org/html/rfc7231#section-3.1.4.2)
 ///
 /// # Examples
 ///
@@ -17,7 +17,7 @@ use std::convert::TryInto;
 /// use http_types::{Response,Url};
 /// use http_types::content::{ContentLocation};
 ///
-/// let content_location = ContentLocation::new("https://example.net/".to_string());
+/// let content_location = ContentLocation::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
 /// content_location.apply(&mut res);
@@ -34,8 +34,8 @@ pub struct ContentLocation {
 
 impl ContentLocation {
     /// Create a new instance of `Content-Location` header.
-    pub fn new(url: String) -> Self {
-        Self { url : Url::parse(&url).unwrap() }
+    pub fn new(url: Url) -> Self {
+        Self { url }
     }
 
     /// Create a new instance from headers.
@@ -43,7 +43,7 @@ impl ContentLocation {
     where
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
-   {
+    {
         let headers = match headers.as_ref().get(CONTENT_LOCATION) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -52,7 +52,7 @@ impl ContentLocation {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let base = base_url.try_into()?;
+        let base = base_url.try_into().unwrap();
         let url = base.join(value.as_str().trim()).status(400)?;
         Ok(Some(Self { url }))
     }
@@ -81,8 +81,8 @@ impl ContentLocation {
     }
 
     /// Set the url.
-    pub fn set_location(&mut self, location: &str) {
-        self.url = Url::parse(location).unwrap();
+    pub fn set_location(&mut self, location: Url) {
+        self.url = location
     }
 }
 
@@ -93,12 +93,14 @@ mod test {
 
     #[test]
     fn smoke() -> crate::Result<()> {
-        let content_location = ContentLocation::new("https://example.net/test.json".to_string());
+        let content_location = ContentLocation::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
         content_location.apply(&mut headers);
 
-        let content_location = ContentLocation::from_headers( Url::parse("https://example.net/").unwrap(), headers )?.unwrap();
+        let content_location =
+            ContentLocation::from_headers(Url::parse("https://example.net/").unwrap(), headers)?
+                .unwrap();
         assert_eq!(content_location.location(), "https://example.net/test.json");
         Ok(())
     }
@@ -107,7 +109,9 @@ mod test {
     fn bad_request_on_parse_error() -> crate::Result<()> {
         let mut headers = Headers::new();
         headers.insert(CONTENT_LOCATION, "htt://<nori ate the tag. yum.>");
-        let err = ContentLocation::from_headers(Url::parse("https://example.net").unwrap(), headers).unwrap_err();
+        let err =
+            ContentLocation::from_headers(Url::parse("https://example.net").unwrap(), headers)
+                .unwrap_err();
         assert_eq!(err.status(), 400);
         Ok(())
     }
