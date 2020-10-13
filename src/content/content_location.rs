@@ -52,9 +52,14 @@ impl ContentLocation {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let base = base_url.try_into()?;
-        let url = base.join(value.as_str().trim()).status(400)?;
-        Ok(Some(Self { url }))
+        let base = base_url.try_into().ok();
+        match base {
+            Some(base) => {
+                let url = base.join(value.as_str().trim()).status(400)?;
+                Ok(Some(Self { url }))
+            }
+            None => Ok(None),
+        }
     }
 
     /// Sets the header.
