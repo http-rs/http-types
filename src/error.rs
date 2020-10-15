@@ -112,6 +112,12 @@ impl Error {
         None
     }
 
+    /// Returns the inner [`anyhow::Error`]
+    /// Note: This will lose status code information
+    pub fn into_inner(self) -> anyhow::Error {
+        self.error
+    }
+
     /// Attempt to downcast the error object to a concrete type.
     pub fn downcast<E>(self) -> std::result::Result<E, Self>
     where
@@ -163,7 +169,6 @@ impl<E: Into<anyhow::Error>> From<E> for Error {
         Self::new(StatusCode::InternalServerError, error)
     }
 }
-
 impl AsRef<dyn StdError + Send + Sync> for Error {
     fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
         self.error.as_ref()
