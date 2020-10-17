@@ -22,7 +22,8 @@ use std::convert::TryInto;
 /// let mut res = Response::new(200);
 /// content_location.apply(&mut res);
 ///
-/// let content_location = ContentLocation::from_headers(Url::parse("https://example.net/").unwrap(),res)?.unwrap();
+/// let url = Url::parse("https://example.net/")?;
+/// let content_location = ContentLocation::from_headers(url, res)?.unwrap();
 /// assert_eq!(content_location.location(), "https://example.net/");
 /// #
 /// # Ok(()) }
