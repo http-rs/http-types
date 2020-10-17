@@ -122,6 +122,7 @@ pub mod conditional;
 pub mod content;
 pub mod headers;
 pub mod mime;
+pub mod other;
 pub mod proxies;
 
 mod body;
