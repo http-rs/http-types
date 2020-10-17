@@ -3,7 +3,7 @@ use crate::utils::HttpDate;
 
 use std::time::SystemTime;
 
-/// The date and time at which the message was originated.
+/// The date and time at which the message originated.
 ///
 /// # Specifications
 ///
