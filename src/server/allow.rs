@@ -66,7 +66,7 @@ impl Allow {
         Ok(Some(Self { entries }))
     }
 
-    /// Sets the `Server-Timing` header.
+    /// Sets the `Allow` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
         headers.as_mut().insert(ALLOW, self.value());
     }
