@@ -1,5 +1,4 @@
-use async_std::io::{self, BufRead, Read};
-use async_std::sync;
+use futures_lite::{io, prelude::*};
 
 use std::convert::{Into, TryInto};
 use std::mem;
@@ -38,8 +37,8 @@ pin_project_lite::pin_project! {
         local_addr: Option<String>,
         peer_addr: Option<String>,
         ext: Extensions,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
         has_trailers: bool,
     }
 }
@@ -52,7 +51,7 @@ impl Request {
         U::Error: std::fmt::Debug,
     {
         let url = url.try_into().expect("Could not convert into a valid url");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
         Self {
             method,
             url,
@@ -207,8 +206,7 @@ impl Request {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Request, Url};
     ///
@@ -234,8 +232,7 @@ impl Request {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Request, Url};
     ///
@@ -261,8 +258,7 @@ impl Request {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Request, Url};
     ///
@@ -295,8 +291,7 @@ impl Request {
     ///
     /// ```
     /// # use std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use async_std::io::Cursor;
     /// use http_types::{Body, Method, Request, Url};
     ///
@@ -323,7 +318,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::{Body, Method, Request, Url};
     ///
     /// let bytes = vec![1, 2, 3];
@@ -349,7 +344,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
     /// use http_types::{Body, Method, Request, Url};
     ///
@@ -383,7 +378,7 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
     /// use http_types::{Body, Method, Request, Url};
     ///
@@ -886,7 +881,7 @@ impl Clone for Request {
     }
 }
 
-impl Read for Request {
+impl AsyncRead for Request {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
@@ -897,7 +892,7 @@ impl Read for Request {
     }
 }
 
-impl BufRead for Request {
+impl AsyncBufRead for Request {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();

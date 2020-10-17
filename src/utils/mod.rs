@@ -2,6 +2,7 @@ mod date;
 
 pub(crate) use date::fmt_http_date;
 pub(crate) use date::parse_http_date;
+pub(crate) use date::HttpDate;
 
 use crate::{Error, Status, StatusCode};
 

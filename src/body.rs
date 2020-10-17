@@ -1,5 +1,4 @@
-use async_std::io::prelude::*;
-use async_std::io::{self, Cursor};
+use futures_lite::{io, prelude::*};
 use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
@@ -54,7 +53,7 @@ pin_project_lite::pin_project! {
     /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
-        reader: Box<dyn BufRead + Unpin + Send + Sync + 'static>,
+        reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
         mime: Mime,
         length: Option<usize>,
     }
@@ -102,7 +101,7 @@ impl Body {
     /// req.set_body(Body::from_reader(cursor, Some(len)));
     /// ```
     pub fn from_reader(
-        reader: impl BufRead + Unpin + Send + Sync + 'static,
+        reader: impl AsyncBufRead + Unpin + Send + Sync + 'static,
         len: Option<usize>,
     ) -> Self {
         Self {
@@ -125,7 +124,7 @@ impl Body {
     /// let body = Body::from_reader(cursor, None);
     /// let _ = body.into_reader();
     /// ```
-    pub fn into_reader(self) -> Box<dyn BufRead + Unpin + Send + Sync + 'static> {
+    pub fn into_reader(self) -> Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static> {
         self.reader
     }
 
@@ -160,7 +159,7 @@ impl Body {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::Body;
     ///
     /// let bytes = vec![1, 2, 3];
@@ -209,9 +208,7 @@ impl Body {
     /// # Examples
     ///
     /// ```
-    /// # use std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::Body;
     /// use async_std::io::Cursor;
     ///
@@ -246,7 +243,7 @@ impl Body {
         let bytes = serde_json::to_vec(&json)?;
         let body = Self {
             length: Some(bytes.len()),
-            reader: Box::new(Cursor::new(bytes)),
+            reader: Box::new(io::Cursor::new(bytes)),
             mime: mime::JSON,
         };
         Ok(body)
@@ -257,7 +254,7 @@ impl Body {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::Body;
     /// use http_types::convert::{Serialize, Deserialize};
     ///
@@ -290,7 +287,7 @@ impl Body {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::Body;
     /// use http_types::convert::{Serialize, Deserialize};
     ///
@@ -310,7 +307,7 @@ impl Body {
 
         let body = Self {
             length: Some(bytes.len()),
-            reader: Box::new(Cursor::new(bytes)),
+            reader: Box::new(io::Cursor::new(bytes)),
             mime: mime::FORM,
         };
         Ok(body)
@@ -326,7 +323,7 @@ impl Body {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::Body;
     /// use http_types::convert::{Serialize, Deserialize};
     ///
@@ -353,14 +350,14 @@ impl Body {
     /// # Examples
     ///
     /// ```no_run
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::{Body, Response, StatusCode};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
     /// res.set_body(Body::from_file("/path/to/file").await?);
     /// # Ok(()) }) }
     /// ```
-    #[cfg(all(feature = "async_std", not(target_os = "unknown")))]
+    #[cfg(all(feature = "fs", not(target_os = "unknown")))]
     pub async fn from_file<P>(path: P) -> io::Result<Self>
     where
         P: AsRef<std::path::Path>,
@@ -455,7 +452,7 @@ impl<'a> From<&'a [u8]> for Body {
     }
 }
 
-impl Read for Body {
+impl AsyncRead for Body {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
@@ -466,7 +463,7 @@ impl Read for Body {
     }
 }
 
-impl BufRead for Body {
+impl AsyncBufRead for Body {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
@@ -480,7 +477,7 @@ impl BufRead for Body {
 
 /// Look at first few bytes of a file to determine the mime type.
 /// This is used for various binary formats such as images and videos.
-#[cfg(all(feature = "async_std", not(target_os = "unknown")))]
+#[cfg(all(feature = "fs", not(target_os = "unknown")))]
 async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
     // We need to read the first 300 bytes to correctly infer formats such as tar.
     let mut buf = [0_u8; 300];
@@ -494,7 +491,7 @@ async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
 
 /// Look at the extension of a file to determine the mime type.
 /// This is useful for plain-text formats such as HTML and CSS.
-#[cfg(all(feature = "async_std", not(target_os = "unknown")))]
+#[cfg(all(feature = "fs", not(target_os = "unknown")))]
 fn guess_ext(path: &std::path::Path) -> Option<Mime> {
     let ext = path.extension().map(|p| p.to_str()).flatten();
     ext.and_then(Mime::from_extension)

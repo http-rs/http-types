@@ -1,5 +1,4 @@
-use async_std::io::{self, BufRead, Read};
-use async_std::sync;
+use futures_lite::{io, prelude::*};
 
 use std::convert::{Into, TryInto};
 use std::fmt::Debug;
@@ -43,8 +42,8 @@ pin_project_lite::pin_project! {
         headers: Headers,
         version: Option<Version>,
         has_trailers: bool,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
         #[pin]
         body: Body,
         ext: Extensions,
@@ -74,11 +73,11 @@ pin_project_lite::pin_project! {
         status: StatusCode,
         headers: Headers,
         version: Option<Version>,
-        trailers_sender: Option<sync::Sender<Trailers>>,
-        trailers_receiver: Option<sync::Receiver<Trailers>>,
+        trailers_sender: Option<async_channel::Sender<Trailers>>,
+        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
         has_trailers: bool,
-        upgrade_sender: Option<sync::Sender<upgrade::Connection>>,
-        upgrade_receiver: Option<sync::Receiver<upgrade::Connection>>,
+        upgrade_sender: Option<async_channel::Sender<upgrade::Connection>>,
+        upgrade_receiver: Option<async_channel::Receiver<upgrade::Connection>>,
         has_upgrade: bool,
         #[pin]
         body: Body,
@@ -99,7 +98,7 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
         Self {
             status,
             headers: Headers::new(),
@@ -124,8 +123,8 @@ impl Response {
         let status = status
             .try_into()
             .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = sync::channel(1);
-        let (upgrade_sender, upgrade_receiver) = sync::channel(1);
+        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
+        let (upgrade_sender, upgrade_receiver) = async_channel::bounded(1);
         Self {
             status,
             headers: Headers::new(),
@@ -231,8 +230,7 @@ impl Response {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -260,8 +258,7 @@ impl Response {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -288,8 +285,7 @@ impl Response {
     ///
     /// ```
     /// # use async_std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -322,8 +318,7 @@ impl Response {
     ///
     /// ```
     /// # use std::io::prelude::*;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// # async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use async_std::io::Cursor;
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -349,7 +344,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// let bytes = vec![1, 2, 3];
@@ -375,7 +370,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -409,7 +404,7 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), http_types::Error> { async_std::task::block_on(async {
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
@@ -665,7 +660,7 @@ impl Clone for Response {
     }
 }
 
-impl Read for Response {
+impl AsyncRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
@@ -676,7 +671,7 @@ impl Read for Response {
     }
 }
 
-impl BufRead for Response {
+impl AsyncBufRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();

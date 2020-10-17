@@ -50,8 +50,7 @@
 use crate::headers::{
     HeaderName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
-use async_std::prelude::*;
-use async_std::sync;
+use futures_lite::Stream;
 
 use std::convert::Into;
 use std::future::Future;
@@ -207,18 +206,18 @@ impl Index<&str> for Trailers {
 
 /// The sending half of a channel to send trailers.
 ///
-/// Unlike `async_std::sync::channel` the `send` method on this type can only be
+/// Unlike `async_channel::Sender` the `send` method on this type can only be
 /// called once, and cannot be cloned. That's because only a single instance of
 /// `Trailers` should be created.
 #[derive(Debug)]
 pub struct Sender {
-    sender: sync::Sender<Trailers>,
+    sender: async_channel::Sender<Trailers>,
 }
 
 impl Sender {
     /// Create a new instance of `Sender`.
     #[doc(hidden)]
-    pub fn new(sender: sync::Sender<Trailers>) -> Self {
+    pub fn new(sender: async_channel::Sender<Trailers>) -> Self {
         Self { sender }
     }
 
@@ -226,24 +225,24 @@ impl Sender {
     ///
     /// The channel will be consumed after having sent trailers.
     pub async fn send(self, trailers: Trailers) {
-        self.sender.send(trailers).await
+        let _ = self.sender.send(trailers).await;
     }
 }
 
 /// The receiving half of a channel to send trailers.
 ///
-/// Unlike `async_std::sync::channel` the `send` method on this type can only be
+/// Unlike `async_channel::Sender` the `send` method on this type can only be
 /// called once, and cannot be cloned. That's because only a single instance of
 /// `Trailers` should be created.
 #[must_use = "Futures do nothing unless polled or .awaited"]
 #[derive(Debug)]
 pub struct Receiver {
-    receiver: sync::Receiver<Trailers>,
+    receiver: async_channel::Receiver<Trailers>,
 }
 
 impl Receiver {
     /// Create a new instance of `Receiver`.
-    pub(crate) fn new(receiver: sync::Receiver<Trailers>) -> Self {
+    pub(crate) fn new(receiver: async_channel::Receiver<Trailers>) -> Self {
         Self { receiver }
     }
 }
