@@ -1,4 +1,5 @@
 use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_LOCATION};
+use crate::{Error, StatusCode};
 use crate::{Status, Url};
 
 use std::convert::TryInto;
@@ -53,14 +54,14 @@ impl ContentLocation {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let base = base_url.try_into().ok();
-        match base {
-            Some(base) => {
-                let url = base.join(value.as_str().trim()).status(400)?;
-                Ok(Some(Self { url }))
-            }
-            None => Ok(None),
-        }
+        let base = base_url.try_into().map_err(|_| {
+            let mut err = Error::new_adhoc("Invalid base url provided");
+            err.set_status(StatusCode::BadRequest);
+            err
+        })?;
+
+        let url = base.join(value.as_str().trim()).status(400)?;
+        Ok(Some(Self { url }))
     }
 
     /// Sets the header.
