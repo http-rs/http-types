@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::bail2 as bail;
+use crate::bail_status as bail;
 
 /// HTTP Mutual Authentication Algorithms
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

@@ -1,7 +1,7 @@
 use crate::auth::{AuthenticationScheme, Authorization};
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 use crate::Status;
-use crate::{bail2 as bail, ensure2 as ensure};
+use crate::{bail_status as bail, ensure_status as ensure};
 
 /// HTTP Basic authorization.
 ///
@@ -73,7 +73,7 @@ impl BasicAuth {
 
         let (username, password) = match (username, password) {
             (Some(username), Some(password)) => (username.to_string(), password.to_string()),
-            (Some(_), None) => bail!(400, "Expected basic auth to a password"),
+            (Some(_), None) => bail!(400, "Expected basic auth to contain a password"),
             (None, _) => bail!(400, "Expected basic auth to contain a username"),
         };
 

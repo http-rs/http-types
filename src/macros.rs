@@ -88,15 +88,15 @@ macro_rules! format_err {
 /// Return early with an error and a status code.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! bail2 {
+macro_rules! bail_status {
     ($status:literal, $msg:literal $(,)?) => {{
-        return $crate::private::Err($crate::format_err2!($status, $msg));
+        return $crate::private::Err($crate::format_err_status!($status, $msg));
     }};
     ($status:literal, $msg:expr $(,)?) => {
-        return $crate::private::Err($crate::format_err2!($status, $msg));
+        return $crate::private::Err($crate::format_err_status!($status, $msg));
     };
     ($status:literal, $msg:expr, $($arg:tt)*) => {
-        return $crate::private::Err($crate::format_err2!($status, $msg, $($arg)*));
+        return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*));
     };
 }
 
@@ -109,20 +109,20 @@ macro_rules! bail2 {
 /// rather than panicking.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! ensure2 {
+macro_rules! ensure_status {
     ($cond:expr, $status:literal, $msg:literal $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err2!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg));
         }
     };
     ($cond:expr, $status:literal, $msg:expr $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err2!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg));
         }
     };
     ($cond:expr, $status:literal, $msg:expr, $($arg:tt)*) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err2!($status, $msg, $($arg)*));
+            return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*));
         }
     };
 }
@@ -136,20 +136,20 @@ macro_rules! ensure2 {
 /// rather than panicking.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! ensure_eq2 {
+macro_rules! ensure_eq_status {
     ($left:expr, $right:expr, $status:literal, $msg:literal $(,)?) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err2!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg));
         }
     };
     ($left:expr, $right:expr, $status:literal, $msg:expr $(,)?) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err2!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg));
         }
     };
     ($left:expr, $right:expr, $status:literal, $msg:expr, $($arg:tt)*) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err2!($status, $msg, $($arg)*));
+            return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*));
         }
     };
 }
@@ -161,7 +161,7 @@ macro_rules! ensure_eq2 {
 /// `Debug` and `Display`.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! format_err2 {
+macro_rules! format_err_status {
     ($status:literal, $msg:literal $(,)?) => {{
         // Handle $:literal as a special case to make cargo-expanded code more
         // concise in the common case.

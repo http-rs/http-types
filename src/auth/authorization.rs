@@ -1,5 +1,5 @@
 use crate::auth::AuthenticationScheme;
-use crate::bail2 as bail;
+use crate::bail_status as bail;
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 
 /// Credentials to authenticate a user agent with a server.
