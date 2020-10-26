@@ -70,7 +70,7 @@ impl FromStr for Method {
     type Err = crate::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match &*s.to_ascii_uppercase() {
             "GET" => Ok(Self::Get),
             "HEAD" => Ok(Self::Head),
             "POST" => Ok(Self::Post),
