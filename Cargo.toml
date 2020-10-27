@@ -16,8 +16,10 @@ features = ["docs"]
 rustdoc-args = ["--cfg", "feature=\"docs\""]
 
 [features]
-default = ["fs", "cookie-secure"]
+default = ["error_anyhow", "fs", "cookie-secure"]
 docs = ["unstable"]
+error_anyhow = ["anyhow"]
+error_eyre = ["eyre", "stable-eyre"]
 unstable = []
 hyperium_http = ["http"]
 async_std = ["fs"]
@@ -25,6 +27,8 @@ cookie-secure = ["cookie/secure"]
 fs = ["async-std"]
 
 [dependencies]
+# features: error_anyhow
+anyhow = { version = "1.0.26", optional = true }
 # features: async_std
 async-std = { version = "1.6.0", optional = true }
 futures-lite = "1.11.1"
@@ -32,8 +36,6 @@ async-channel = "1.5.1"
 
 # features: hyperium/http
 http = { version = "0.2.0", optional = true }
-
-anyhow = "1.0.26"
 cookie = { version = "0.14.0", features = ["percent-encode"] }
 infer = "0.2.3"
 pin-project-lite = "0.1.0"
@@ -44,6 +46,11 @@ serde_urlencoded = "0.7.0"
 rand = "0.7.3"
 serde_qs = "0.7.0"
 base64 = "0.13.0"
+backtrace = "0.3.50"
+
+# features: error_anyhow
+eyre = { version = "0.6.1", optional = true }
+stable-eyre = { version = "0.2.1", optional = true }
 
 [dev-dependencies]
 http = "0.2.0"

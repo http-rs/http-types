@@ -1,10 +1,18 @@
 //! HTTP error types
 
+use std::convert::TryInto;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
 use crate::StatusCode;
-use std::convert::TryInto;
+
+#[cfg(all(not(backtrace), feature = "error_eyre"))]
+use stable_eyre::BacktraceExt;
+
+#[cfg(feature = "error_anyhow")]
+use anyhow::Error as BaseError;
+#[cfg(feature = "error_eyre")]
+use eyre::Report as BaseError;
 
 /// A specialized `Result` type for HTTP operations.
 ///
@@ -14,7 +22,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// The error type for HTTP operations.
 pub struct Error {
-    error: anyhow::Error,
+    error: BaseError,
     status: crate::StatusCode,
     type_name: Option<&'static str>,
 }
@@ -29,7 +37,7 @@ impl Error {
     where
         S: TryInto<StatusCode>,
         S::Error: Debug,
-        E: Into<anyhow::Error>,
+        E: Into<BaseError>,
     {
         Self {
             status: status
@@ -51,7 +59,7 @@ impl Error {
             status: status
                 .try_into()
                 .expect("Could not convert into a valid `StatusCode`"),
-            error: anyhow::Error::msg(msg),
+            error: BaseError::msg(msg),
             type_name: None,
         }
     }
@@ -96,7 +104,7 @@ impl Error {
     /// compiled on a toolchain that does not support backtraces, or
     /// if executed without backtraces enabled with
     /// `RUST_LIB_BACKTRACE=1`.
-    #[cfg(backtrace)]
+    #[cfg(all(backtrace, feature = "error_anyhow"))]
     pub fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
         let backtrace = self.error.backtrace();
         if let std::backtrace::BacktraceStatus::Captured = backtrace.status() {
@@ -106,10 +114,22 @@ impl Error {
         }
     }
 
-    #[cfg(not(backtrace))]
+    #[cfg(all(not(backtrace), feature = "error_anyhow"))]
     #[allow(missing_docs)]
     pub fn backtrace(&self) -> Option<()> {
         None
+    }
+
+    #[cfg(all(backtrace, feature = "error_eyre"))]
+    #[allow(missing_docs)]
+    pub fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
+        self.error.backtrace()
+    }
+
+    #[cfg(all(not(backtrace), feature = "error_eyre"))]
+    #[allow(missing_docs)]
+    pub fn backtrace(&self) -> Option<&backtrace::Backtrace> {
+        self.error.backtrace()
     }
 
     /// Attempt to downcast the error object to a concrete type.
@@ -158,7 +178,7 @@ impl Debug for Error {
     }
 }
 
-impl<E: Into<anyhow::Error>> From<E> for Error {
+impl<E: Into<BaseError>> From<E> for Error {
     fn from(error: E) -> Self {
         Self::new(StatusCode::InternalServerError, error)
     }
