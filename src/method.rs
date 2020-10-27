@@ -1,3 +1,5 @@
+use serde::de::{Error as DeError, Unexpected};
+use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
@@ -47,6 +49,44 @@ impl Method {
             self,
             Method::Get | Method::Head | Method::Options | Method::Trace
         )
+    }
+}
+
+struct MethodVisitor;
+
+impl<'de> Visitor<'de> for MethodVisitor {
+    type Value = Method;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "a HTTP method &str")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        match Method::from_str(v) {
+            Ok(method) => Ok(method),
+            Err(_) => Err(DeError::invalid_value(Unexpected::Str(v), &self)),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Method {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(MethodVisitor)
+    }
+}
+
+impl Serialize for Method {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
     }
 }
 
@@ -106,5 +146,22 @@ impl AsRef<str> for Method {
             Self::Trace => "TRACE",
             Self::Patch => "PATCH",
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Method;
+
+    #[test]
+    fn serde() -> Result<(), serde_json::Error> {
+        assert_eq!(Method::Get, serde_json::from_str("\"GET\"")?);
+        assert_eq!(Some("PATCH"), serde_json::to_value(Method::Patch)?.as_str());
+        Ok(())
+    }
+    #[test]
+    fn serde_fail() -> Result<(), serde_json::Error> {
+        serde_json::from_str::<Method>("\"ABC\"").expect_err("Did deserialize from invalid string");
+        Ok(())
     }
 }
