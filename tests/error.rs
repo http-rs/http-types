@@ -71,6 +71,19 @@ fn option_ext() {
     assert_eq!(err.status(), StatusCode::NotFound);
 }
 
+#[cfg(feature = "error_eyre")]
+#[test]
+fn eyre_error_into_http_types_error() {
+    let eyre_error = eyre::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
+    let http_types_error: Error = eyre_error.into();
+    assert_eq!(http_types_error.status(), StatusCode::InternalServerError);
+
+    let eyre_error = eyre::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
+    let http_types_error: Error = Error::new(StatusCode::ImATeapot, eyre_error);
+    assert_eq!(http_types_error.status(), StatusCode::ImATeapot);
+}
+
+#[cfg(feature = "error_anyhow")]
 #[test]
 fn anyhow_error_into_http_types_error() {
     let anyhow_error =
