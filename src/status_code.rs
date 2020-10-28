@@ -1,3 +1,5 @@
+use serde::de::{Error as DeError, Unexpected, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{self, Display};
 
 /// HTTP response status codes.
@@ -537,6 +539,84 @@ impl StatusCode {
     }
 }
 
+impl Serialize for StatusCode {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let value: u16 = *self as u16;
+        serializer.serialize_u16(value)
+    }
+}
+
+struct StatusCodeU16Visitor;
+
+impl<'de> Visitor<'de> for StatusCodeU16Visitor {
+    type Value = StatusCode;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "a u16 representing the status code")
+    }
+
+    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        self.visit_u16(v as u16)
+    }
+
+    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        self.visit_u16(v as u16)
+    }
+
+    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        self.visit_u16(v as u16)
+    }
+
+    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        use std::convert::TryFrom;
+        match StatusCode::try_from(v) {
+            Ok(status_code) => Ok(status_code),
+            Err(_) => Err(DeError::invalid_value(
+                Unexpected::Unsigned(v as u64),
+                &self,
+            )),
+        }
+    }
+
+    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        self.visit_u16(v as u16)
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: DeError,
+    {
+        self.visit_u16(v as u16)
+    }
+}
+
+impl<'de> Deserialize<'de> for StatusCode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(StatusCodeU16Visitor)
+    }
+}
+
 impl From<StatusCode> for u16 {
     fn from(code: StatusCode) -> u16 {
         code as u16
@@ -627,5 +707,20 @@ impl PartialEq<u16> for StatusCode {
 impl Display for StatusCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", *self as u16)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::StatusCode;
+    #[test]
+    fn serde_as_u16() -> Result<(), serde_json::Error> {
+        let status_code: StatusCode = serde_json::from_str("202")?;
+        assert_eq!(StatusCode::Accepted, status_code);
+        assert_eq!(
+            Some(202),
+            serde_json::to_value(&StatusCode::Accepted)?.as_u64()
+        );
+        Ok(())
     }
 }
