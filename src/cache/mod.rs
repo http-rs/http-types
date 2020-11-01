@@ -10,9 +10,11 @@
 
 mod age;
 mod cache_control;
+mod clear_site_data;
 mod expires;
 
 pub use age::Age;
 pub use cache_control::CacheControl;
 pub use cache_control::CacheDirective;
+pub use clear_site_data::{ClearDirective, ClearSiteData};
 pub use expires::Expires;
