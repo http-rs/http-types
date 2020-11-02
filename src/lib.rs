@@ -119,6 +119,7 @@ mod utils;
 
 pub mod auth;
 pub mod cache;
+pub mod client_hints;
 pub mod conditional;
 pub mod content;
 pub mod headers;

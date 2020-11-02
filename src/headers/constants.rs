@@ -138,6 +138,9 @@ pub const REFERER: HeaderName = HeaderName::from_lowercase_str("referer");
 ///  The `Retry-After` Header
 pub const RETRY_AFTER: HeaderName = HeaderName::from_lowercase_str("retry-after");
 
+///  The `Save-Data` Header
+pub const SAVE_DATA: HeaderName = HeaderName::from_lowercase_str("save-data");
+
 ///  The `Server` Header
 pub const SERVER: HeaderName = HeaderName::from_lowercase_str("server");
 
