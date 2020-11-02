@@ -20,7 +20,7 @@ pub use directive::ClearDirective;
 ///
 /// # Specifications
 ///
-/// - [RFC 7232, section 3.1: If-Match](https://tools.ietf.org/html/rfc7232#section-3.1)
+/// - [Clear Site Data](https://w3c.github.io/webappsec-clear-site-data/)
 ///
 /// # Examples
 ///
@@ -61,13 +61,13 @@ impl ClearSiteData {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(CLEAR_SITE_DATA) {
+        let header_values = match headers.as_ref().get(CLEAR_SITE_DATA) {
             Some(headers) => headers,
             None => return Ok(None),
         };
 
         let mut wildcard = false;
-        for value in headers {
+        for value in header_values {
             for part in value.as_str().trim().split(',') {
                 let part = part.trim();
                 if part == r#""*""# {
