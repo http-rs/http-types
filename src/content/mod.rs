@@ -10,6 +10,7 @@ pub mod content_encoding;
 
 mod content_length;
 mod content_location;
+mod content_type;
 mod encoding;
 mod encoding_proposal;
 
@@ -19,5 +20,6 @@ pub use accept_encoding::AcceptEncoding;
 pub use content_encoding::ContentEncoding;
 pub use content_length::ContentLength;
 pub use content_location::ContentLocation;
+pub use content_type::ContentType;
 pub use encoding::Encoding;
 pub use encoding_proposal::EncodingProposal;
