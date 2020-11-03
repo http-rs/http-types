@@ -21,13 +21,13 @@ use crate::Mime;
 /// use http_types::{Response, Mime};
 /// use std::str::FromStr;
 ///
-/// let ct = ContentType::new(Mime::from_str("text/*")?);
+/// let content_type = ContentType::new(Mime::from_str("text/*")?);
 ///
 /// let mut res = Response::new(200);
-/// ct.apply(&mut res);
+/// content_type.apply(&mut res);
 ///
-/// let ct = ContentType::from_headers(res)?.unwrap();
-/// assert_eq!(ct.value(), format!("{}", Mime::from_str("text/*")?).as_str());
+/// let content_type = ContentType::from_headers(res)?.unwrap();
+/// assert_eq!(content_type.value(), format!("{}", Mime::from_str("text/*")?).as_str());
 /// #
 /// # Ok(()) }
 /// ```
@@ -88,6 +88,24 @@ impl ContentType {
         let output = format!("{}", self.media_type);
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+    }
+}
+
+impl PartialEq<Mime> for ContentType {
+    fn eq(&self, other: &Mime) -> bool {
+        &self.media_type == other
+    }
+}
+
+impl PartialEq<&Mime> for ContentType {
+    fn eq(&self, other: &&Mime) -> bool {
+        &&self.media_type == other
+    }
+}
+
+impl From<Mime> for ContentType {
+    fn from(media_type: Mime) -> Self {
+        Self { media_type }
     }
 }
 

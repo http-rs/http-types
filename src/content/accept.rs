@@ -1,6 +1,6 @@
 //! Client header advertising available compression algorithms.
 
-use crate::content::MediaTypeProposal;
+use crate::content::{ContentType, MediaTypeProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT};
 use crate::utils::sort_by_weight;
 use crate::{Error, Mime, StatusCode};
@@ -29,10 +29,10 @@ use std::slice;
 /// accept.push(MediaTypeProposal::new(mime::PLAIN, None)?);
 ///
 /// let mut res = Response::new(200);
-/// let media_type = accept.negotiate(&[mime::XML])?;
-/// media_type.apply(&mut res);
+/// let content_type = accept.negotiate(&[mime::XML])?;
+/// content_type.apply(&mut res);
 ///
-/// assert_eq!(res["Content-Encoding"], "text/html");
+/// assert_eq!(res["Content-Type"], "application/xml;charset=utf-8");
 /// #
 /// # Ok(()) }
 /// ```
@@ -111,14 +111,14 @@ impl Accept {
     /// # Errors
     ///
     /// If no suitable encoding is found, an error with the status of `406` will be returned.
-    pub fn negotiate(&mut self, available: &[Mime]) -> crate::Result<Mime> {
+    pub fn negotiate(&mut self, available: &[Mime]) -> crate::Result<ContentType> {
         // Start by ordering the encodings.
         self.sort();
 
         // Try and find the first encoding that matches.
         for accept in &self.entries {
             if available.contains(&accept) {
-                return Ok(accept.clone().into());
+                return Ok(accept.media_type.clone().into());
             }
         }
 
