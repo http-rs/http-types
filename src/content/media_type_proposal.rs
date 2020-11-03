@@ -52,9 +52,9 @@ impl MediaTypeProposal {
     /// we have to parse the full string to the media type first, and then see if
     /// a `q` value has been set.
     pub(crate) fn from_str(s: &str) -> crate::Result<Self> {
-        let media_type = Mime::from_str(s)?;
+        let mut media_type = Mime::from_str(s)?;
         let weight = media_type
-            .param("q")
+            .remove_param("q")
             .map(|param| param.as_str().parse())
             .transpose()?;
         Ok(Self::new(media_type, weight)?)

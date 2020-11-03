@@ -109,6 +109,33 @@ impl Mime {
             })
             .flatten()
     }
+
+    /// Remove a param from the set. Returns the `ParamValue` if it was contained within the set.
+    pub fn remove_param(&mut self, name: impl Into<ParamName>) -> Option<ParamValue> {
+        let name: ParamName = name.into();
+        let mut unset_params = false;
+        let ret = self
+            .params
+            .as_mut()
+            .map(|inner| match inner {
+                ParamKind::Vec(v) => match v.iter().position(|(k, _)| k == &name) {
+                    Some(index) => Some(v.remove(index).1),
+                    None => None,
+                },
+                ParamKind::Utf8 => match name {
+                    ParamName(Cow::Borrowed("charset")) => {
+                        unset_params = true;
+                        Some(ParamValue(Cow::Borrowed("utf8")))
+                    }
+                    _ => None,
+                },
+            })
+            .flatten();
+        if unset_params {
+            self.params = None;
+        }
+        ret
+    }
 }
 
 impl PartialEq<Mime> for Mime {
