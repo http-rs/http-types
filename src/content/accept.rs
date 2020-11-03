@@ -20,19 +20,19 @@ use std::slice;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::content::{Accept, ContentEncoding, Encoding, Mime};
-/// use http_types::Response;
+/// use http_types::content::{Accept, MediaTypeProposal};
+/// use http_types::{mime, Response};
 ///
 /// let mut accept = Accept::new();
-/// accept.push(Mime::new(Encoding::Brotli, Some(0.8))?);
-/// accept.push(Mime::new(Encoding::Gzip, Some(0.4))?);
-/// accept.push(Mime::new(Encoding::Identity, None)?);
+/// accept.push(MediaTypeProposal::new(mime::HTML, Some(0.8))?);
+/// accept.push(MediaTypeProposal::new(mime::XML, Some(0.4))?);
+/// accept.push(MediaTypeProposal::new(mime::PLAIN, None)?);
 ///
 /// let mut res = Response::new(200);
-/// let encoding = accept.negotiate(&[Encoding::Brotli, Encoding::Gzip])?;
-/// encoding.apply(&mut res);
+/// let media_type = accept.negotiate(&[mime::XML])?;
+/// media_type.apply(&mut res);
 ///
-/// assert_eq!(res["Content-Encoding"], "br");
+/// assert_eq!(res["Content-Encoding"], "text/html");
 /// #
 /// # Ok(()) }
 /// ```
@@ -111,7 +111,7 @@ impl Accept {
     /// # Errors
     ///
     /// If no suitable encoding is found, an error with the status of `406` will be returned.
-    pub fn negotiate(&mut self, available: &[MediaTypeProposal]) -> crate::Result<Mime> {
+    pub fn negotiate(&mut self, available: &[Mime]) -> crate::Result<Mime> {
         // Start by ordering the encodings.
         self.sort();
 
@@ -307,122 +307,119 @@ mod test {
         Ok(())
     }
 
-    //     #[test]
-    //     fn wildcard() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         accept.set_wildcard(true);
+    #[test]
+    fn wildcard() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.set_wildcard(true);
 
-    //         let mut headers = Response::new(200);
-    //         accept.apply(&mut headers);
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
 
-    //         let accept = Accept::from_headers(headers)?.unwrap();
-    //         assert!(accept.wildcard());
-    //         Ok(())
-    //     }
+        let accept = Accept::from_headers(headers)?.unwrap();
+        assert!(accept.wildcard());
+        Ok(())
+    }
 
-    //     #[test]
-    //     fn wildcard_and_header() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         accept.push(Encoding::Gzip);
-    //         accept.set_wildcard(true);
+    #[test]
+    fn wildcard_and_header() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(mime::HTML);
+        accept.set_wildcard(true);
 
-    //         let mut headers = Response::new(200);
-    //         accept.apply(&mut headers);
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
 
-    //         let accept = Accept::from_headers(headers)?.unwrap();
-    //         assert!(accept.wildcard());
-    //         assert_eq!(accept.iter().next().unwrap(), Encoding::Gzip);
-    //         Ok(())
-    //     }
+        let accept = Accept::from_headers(headers)?.unwrap();
+        assert!(accept.wildcard());
+        assert_eq!(accept.iter().next().unwrap(), mime::HTML);
+        Ok(())
+    }
 
-    //     #[test]
-    //     fn iter() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         accept.push(Encoding::Gzip);
-    //         accept.push(Encoding::Brotli);
+    #[test]
+    fn iter() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(mime::HTML);
+        accept.push(mime::XML);
 
-    //         let mut headers = Response::new(200);
-    //         accept.apply(&mut headers);
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
 
-    //         let accept = Accept::from_headers(headers)?.unwrap();
-    //         let mut accept = accept.iter();
-    //         assert_eq!(accept.next().unwrap(), Encoding::Gzip);
-    //         assert_eq!(accept.next().unwrap(), Encoding::Brotli);
-    //         Ok(())
-    //     }
+        let accept = Accept::from_headers(headers)?.unwrap();
+        let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), mime::HTML);
+        assert_eq!(accept.next().unwrap(), mime::XML);
+        Ok(())
+    }
 
-    //     #[test]
-    //     fn reorder_based_on_weight() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         accept.push(Accept::new(Encoding::Gzip, Some(0.4))?);
-    //         accept.push(Accept::new(Encoding::Identity, None)?);
-    //         accept.push(Accept::new(Encoding::Brotli, Some(0.8))?);
+    #[test]
+    fn reorder_based_on_weight() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(MediaTypeProposal::new(mime::HTML, Some(0.4))?);
+        accept.push(MediaTypeProposal::new(mime::XML, None)?);
+        accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
 
-    //         let mut headers = Response::new(200);
-    //         accept.apply(&mut headers);
+        let mut headers = Response::new(200);
+        accept.apply(&mut headers);
 
-    //         let mut accept = Accept::from_headers(headers)?.unwrap();
-    //         accept.sort();
-    //         let mut accept = accept.iter();
-    //         assert_eq!(accept.next().unwrap(), Encoding::Brotli);
-    //         assert_eq!(accept.next().unwrap(), Encoding::Gzip);
-    //         assert_eq!(accept.next().unwrap(), Encoding::Identity);
-    //         Ok(())
-    //     }
+        let mut accept = Accept::from_headers(headers)?.unwrap();
+        accept.sort();
+        let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), mime::PLAIN);
+        assert_eq!(accept.next().unwrap(), mime::HTML);
+        assert_eq!(accept.next().unwrap(), mime::XML);
+        Ok(())
+    }
 
-    //     #[test]
-    //     fn reorder_based_on_weight_and_location() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         accept.push(Accept::new(Encoding::Identity, None)?);
-    //         accept.push(Accept::new(Encoding::Gzip, None)?);
-    //         accept.push(Accept::new(Encoding::Brotli, Some(0.8))?);
+    #[test]
+    fn reorder_based_on_weight_and_location() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(MediaTypeProposal::new(mime::HTML, None)?);
+        accept.push(MediaTypeProposal::new(mime::XML, None)?);
+        accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
 
-    //         let mut res = Response::new(200);
-    //         accept.apply(&mut res);
+        let mut res = Response::new(200);
+        accept.apply(&mut res);
 
-    //         let mut accept = Accept::from_headers(res)?.unwrap();
-    //         accept.sort();
-    //         let mut accept = accept.iter();
-    //         assert_eq!(accept.next().unwrap(), Encoding::Brotli);
-    //         assert_eq!(accept.next().unwrap(), Encoding::Gzip);
-    //         assert_eq!(accept.next().unwrap(), Encoding::Identity);
-    //         Ok(())
-    //     }
+        let mut accept = Accept::from_headers(res)?.unwrap();
+        accept.sort();
+        let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), mime::PLAIN);
+        assert_eq!(accept.next().unwrap(), mime::XML);
+        assert_eq!(accept.next().unwrap(), mime::HTML);
+        Ok(())
+    }
 
-    //     #[test]
-    //     fn negotiate() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         accept.push(Accept::new(Encoding::Brotli, Some(0.8))?);
-    //         accept.push(Accept::new(Encoding::Gzip, Some(0.4))?);
-    //         accept.push(Accept::new(Encoding::Identity, None)?);
+    #[test]
+    fn negotiate() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(MediaTypeProposal::new(mime::HTML, Some(0.4))?);
+        accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
+        accept.push(MediaTypeProposal::new(mime::XML, None)?);
 
-    //         assert_eq!(
-    //             accept.negotiate(&[Encoding::Brotli, Encoding::Gzip])?,
-    //             Encoding::Brotli,
-    //         );
-    //         Ok(())
-    //     }
+        assert_eq!(accept.negotiate(&[mime::HTML, mime::XML])?, mime::HTML);
+        Ok(())
+    }
 
-    //     #[test]
-    //     fn negotiate_not_acceptable() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         let err = accept.negotiate(&[Mime::JSON]).unwrap_err();
-    //         assert_eq!(err.status(), 406);
+    #[test]
+    fn negotiate_not_acceptable() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        let err = accept.negotiate(&[mime::JSON]).unwrap_err();
+        assert_eq!(err.status(), 406);
 
-    //         let mut accept = Accept::new();
-    //         accept.push(MediaTypeProposal::new(Mime::JSON, Some(0.8))?);
-    //         let err = accept.negotiate(&[Encoding::Gzip]).unwrap_err();
-    //         assert_eq!(err.status(), 406);
-    //         Ok(())
-    //     }
+        let mut accept = Accept::new();
+        accept.push(MediaTypeProposal::new(mime::JSON, Some(0.8))?);
+        let err = accept.negotiate(&[mime::XML]).unwrap_err();
+        assert_eq!(err.status(), 406);
+        Ok(())
+    }
 
-    //     #[test]
-    //     fn negotiate_wildcard() -> crate::Result<()> {
-    //         let mut accept = Accept::new();
-    //         accept.push(MediaTypeProposal::new(Mime::JSON, Some(0.8))?);
-    //         accept.set_wildcard(true);
+    #[test]
+    fn negotiate_wildcard() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(MediaTypeProposal::new(mime::JSON, Some(0.8))?);
+        accept.set_wildcard(true);
 
-    //         assert_eq!(accept.negotiate(&[Encoding::Gzip])?, Encoding::Gzip);
-    //         Ok(())
-    //     }
+        assert_eq!(accept.negotiate(&[mime::XML])?, mime::XML);
+        Ok(())
+    }
 }
