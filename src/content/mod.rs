@@ -5,6 +5,10 @@
 //! content it's chosen to share. This enables clients to receive resources with the
 //! best available compression, in the preferred language, and more.
 //!
+//! # Further Reading
+//!
+//! - [MDN: Content Negotiation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation)
+//!
 //! # Examples
 //!
 //! ```
