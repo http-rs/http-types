@@ -94,7 +94,7 @@
 //! declare it up front. But if you don't, things will still work.
 
 #![deny(missing_debug_implementations, nonstandard_style)]
-#![warn(missing_docs, unreachable_pub)]
+#![warn(missing_docs)]
 #![allow(clippy::new_without_default)]
 #![cfg_attr(backtrace, feature(backtrace))]
 #![cfg_attr(feature = "docs", feature(doc_cfg))]
@@ -117,6 +117,7 @@ pub mod url {
 #[macro_use]
 mod utils;
 
+pub mod auth;
 pub mod cache;
 pub mod conditional;
 pub mod content;

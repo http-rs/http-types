@@ -81,6 +81,9 @@ pub const AUTHORIZATION: HeaderName = HeaderName::from_lowercase_str("authorizat
 ///  The `Cache-Control` Header
 pub const CACHE_CONTROL: HeaderName = HeaderName::from_lowercase_str("cache-control");
 
+///  The `Clear-Site-Data` Header
+pub const CLEAR_SITE_DATA: HeaderName = HeaderName::from_lowercase_str("clear-site-data");
+
 ///  The `Connection` Header
 pub const CONNECTION: HeaderName = HeaderName::from_lowercase_str("connection");
 
