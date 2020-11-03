@@ -44,8 +44,8 @@ pub(crate) fn parse_weight(s: &str) -> crate::Result<f32> {
 
 /// Order proposals by weight. Try ordering by q value first. If equal or undefined,
 /// order by index, favoring the latest provided value.
-pub(crate) fn sort_by_weight<T: PartialOrd + Copy>(props: &mut Vec<T>) {
-    let mut arr: Vec<(usize, T)> = props.iter().copied().enumerate().collect();
+pub(crate) fn sort_by_weight<T: PartialOrd + Clone>(props: &mut Vec<T>) {
+    let mut arr: Vec<(usize, T)> = props.iter().cloned().enumerate().collect();
     arr.sort_unstable_by(|a, b| match b.1.partial_cmp(&a.1) {
         None | Some(Ordering::Equal) => b.0.cmp(&a.0),
         Some(ord) => ord,
