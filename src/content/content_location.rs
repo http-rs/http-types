@@ -5,6 +5,8 @@ use std::convert::TryInto;
 
 /// Indicates an alternate location for the returned data.
 ///
+/// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Location)
+///
 /// # Specifications
 ///
 /// - [RFC 7231, section 3.1.4.2: Content-Location](https://tools.ietf.org/html/rfc7231#section-3.1.4.2)
@@ -14,8 +16,8 @@ use std::convert::TryInto;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{Response,Url};
-/// use http_types::content::{ContentLocation};
+/// use http_types::{Response, Url};
+/// use http_types::content::ContentLocation;
 ///
 /// let content_location = ContentLocation::new(Url::parse("https://example.net/")?);
 ///
@@ -24,7 +26,7 @@ use std::convert::TryInto;
 ///
 /// let url = Url::parse("https://example.net/")?;
 /// let content_location = ContentLocation::from_headers(url, res)?.unwrap();
-/// assert_eq!(content_location.location(), "https://example.net/");
+/// assert_eq!(content_location.location(), &Url::parse("https://example.net/")?);
 /// #
 /// # Ok(()) }
 /// ```
@@ -81,13 +83,19 @@ impl ContentLocation {
     }
 
     /// Get the url.
-    pub fn location(&self) -> String {
-        self.url.to_string()
+    pub fn location(&self) -> &Url {
+        &self.url
     }
 
     /// Set the url.
-    pub fn set_location(&mut self, location: Url) {
+    pub fn set_location<U>(&mut self, location: U)
+    where
+        U: TryInto<Url>,
+        U::Error: std::fmt::Debug,
+    {
         self.url = location
+            .try_into()
+            .expect("Could not convert into valid URL")
     }
 }
 
@@ -106,7 +114,10 @@ mod test {
         let content_location =
             ContentLocation::from_headers(Url::parse("https://example.net/").unwrap(), headers)?
                 .unwrap();
-        assert_eq!(content_location.location(), "https://example.net/test.json");
+        assert_eq!(
+            content_location.location(),
+            &Url::parse("https://example.net/test.json")?
+        );
         Ok(())
     }
 
