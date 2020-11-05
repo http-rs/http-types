@@ -150,6 +150,9 @@ pub const SERVER: HeaderName = HeaderName::from_lowercase_str("server");
 ///  The `Server` Header
 pub const SERVER_TIMING: HeaderName = HeaderName::from_lowercase_str("server-timing");
 
+///  The `SourceMap` Header
+pub const SOURCE_MAP: HeaderName = HeaderName::from_lowercase_str("sourcemap");
+
 ///  The `Te` Header
 pub const TE: HeaderName = HeaderName::from_lowercase_str("te");
 
