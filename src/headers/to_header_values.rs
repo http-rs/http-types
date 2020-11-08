@@ -2,6 +2,7 @@ use std::io;
 use std::iter;
 use std::option;
 use std::slice;
+use std::borrow::Cow;
 
 use crate::headers::{HeaderValue, HeaderValues, Values};
 
@@ -50,6 +51,28 @@ impl<'a> ToHeaderValues for &'a str {
 }
 
 impl ToHeaderValues for String {
+    type Iter = option::IntoIter<HeaderValue>;
+
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
+        let value = self
+            .parse()
+            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+        Ok(Some(value).into_iter())
+    }
+}
+
+impl ToHeaderValues for &String {
+    type Iter = option::IntoIter<HeaderValue>;
+
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
+        let value = self
+            .parse()
+            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+        Ok(Some(value).into_iter())
+    }
+}
+
+impl ToHeaderValues for Cow<'_, str> {
     type Iter = option::IntoIter<HeaderValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
