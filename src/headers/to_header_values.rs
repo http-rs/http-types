@@ -1,8 +1,8 @@
+use std::borrow::Cow;
 use std::io;
 use std::iter;
 use std::option;
 use std::slice;
-use std::borrow::Cow;
 
 use crate::headers::{HeaderValue, HeaderValues, Values};
 
