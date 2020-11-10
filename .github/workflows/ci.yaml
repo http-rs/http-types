@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches:
+      - main
       - staging
       - trying
 
@@ -32,39 +33,34 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --all --bins --examples --features hyperium_http
+        args: --workspace --benches --bins --examples --tests --features hyperium_http
 
     - name: check unstable
       uses: actions-rs/cargo@v1
       with:
-        command:  check
-        args: --all --benches --bins --examples --tests --features "hyperium_http,unstable"
+        command: check
+        args: --workspace --benches --bins --examples --tests --features "hyperium_http,unstable"
 
     - name: tests
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --all --features "hyperium_http,unstable"
+        args: --workspace --features "hyperium_http,unstable"
 
-  check_fmt_and_docs:
+  check_fmt_clippy_docs:
     name: Checking fmt, clippy, and docs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        components: rustfmt, clippy
-        override: true
 
     - name: clippy
-      run: cargo clippy --tests --examples -- -D warnings
+      run: cargo clippy --workspace --benches --bins --examples --tests --features "hyperium_http,unstable" -- -D warnings
 
     - name: fmt
       run: cargo fmt --all -- --check
 
-    - name: Docs
-      run: cargo doc
+    - name: docs
+      run: cargo doc --no-deps
 
   # check_wasm:
   #   name: Check wasm targets
