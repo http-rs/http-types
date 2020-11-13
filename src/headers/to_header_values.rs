@@ -70,9 +70,6 @@ impl ToHeaderValues for Cow<'_, str> {
     type Iter = option::IntoIter<HeaderValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        let value = self
-            .parse()
-            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
-        Ok(Some(value).into_iter())
+        self.as_ref().to_header_values()
     }
 }
