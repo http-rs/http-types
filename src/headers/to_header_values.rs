@@ -54,10 +54,7 @@ impl ToHeaderValues for String {
     type Iter = option::IntoIter<HeaderValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        let value = self
-            .parse()
-            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
-        Ok(Some(value).into_iter())
+        self.as_str().to_header_values()
     }
 }
 
@@ -65,10 +62,7 @@ impl ToHeaderValues for &String {
     type Iter = option::IntoIter<HeaderValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        let value = self
-            .parse()
-            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
-        Ok(Some(value).into_iter())
+        self.as_str().to_header_values()
     }
 }
 
