@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::io;
 use std::iter;
 use std::option;
@@ -50,6 +51,22 @@ impl<'a> ToHeaderValues for &'a str {
 }
 
 impl ToHeaderValues for String {
+    type Iter = option::IntoIter<HeaderValue>;
+
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
+        self.as_str().to_header_values()
+    }
+}
+
+impl ToHeaderValues for &String {
+    type Iter = option::IntoIter<HeaderValue>;
+
+    fn to_header_values(&self) -> crate::Result<Self::Iter> {
+        self.as_str().to_header_values()
+    }
+}
+
+impl ToHeaderValues for Cow<'_, str> {
     type Iter = option::IntoIter<HeaderValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
