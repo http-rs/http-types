@@ -135,6 +135,9 @@ pub const PROXY_AUTHENTICATE: HeaderName = HeaderName::from_lowercase_str("proxy
 ///  The `Proxy-Authorization` Header
 pub const PROXY_AUTHORIZATION: HeaderName = HeaderName::from_lowercase_str("proxy-authorization");
 
+/// The `Proxy-Connection` Header
+pub const PROXY_CONNECTION: HeaderName = HeaderName::from_lowercase_str("proxy-connection");
+
 ///  The `Referer` Header
 pub const REFERER: HeaderName = HeaderName::from_lowercase_str("referer");
 
