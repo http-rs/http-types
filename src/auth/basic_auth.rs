@@ -63,8 +63,12 @@ impl BasicAuth {
             "Expected basic auth scheme found `{}`",
             scheme
         );
+        Self::from_credentials(auth.credentials()).map(Some)
+    }
 
-        let bytes = base64::decode(auth.credentials()).status(400)?;
+    /// Create a new instance from the base64 encoded credentials.
+    pub fn from_credentials(credentials: impl AsRef<[u8]>) -> crate::Result<Self> {
+        let bytes = base64::decode(credentials).status(400)?;
         let credentials = String::from_utf8(bytes).status(400)?;
 
         let mut iter = credentials.splitn(2, ':');
@@ -77,7 +81,7 @@ impl BasicAuth {
             (None, _) => bail!(400, "Expected basic auth to contain a username"),
         };
 
-        Ok(Some(Self { username, password }))
+        Ok(Self { username, password })
     }
 
     /// Sets the header.
