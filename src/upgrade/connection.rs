@@ -9,6 +9,12 @@ pub struct RawConnection<Inner> {
     inner: Inner,
 }
 
+impl Connection {
+    pub fn new<T: InnerConnection + 'static>(t: T) -> Self {
+        RawConnection { inner: Box::new(t) }
+    }
+}
+
 /// A boxed upgraded HTTP connection.
 pub type Connection = RawConnection<Box<dyn InnerConnection + 'static>>;
 
