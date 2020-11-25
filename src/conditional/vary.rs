@@ -140,6 +140,12 @@ impl Vary {
     }
 }
 
+impl crate::headers::ToHeader for Vary {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl IntoIterator for Vary {
     type Item = HeaderName;
     type IntoIter = IntoIter;

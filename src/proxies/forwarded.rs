@@ -318,6 +318,11 @@ impl<'a> Forwarded<'a> {
         headers.as_mut().insert(FORWARDED, self);
     }
 
+    /// Get the `HeaderName`.
+    pub fn name(&self) -> HeaderName {
+        FORWARDED
+    }
+
     /// Builds a Forwarded header as a String.
     ///
     /// # Example
@@ -405,6 +410,12 @@ impl<'a> Forwarded<'a> {
     /// Returns the `by` field of this header
     pub fn by(&self) -> Option<&str> {
         self.by.as_deref()
+    }
+}
+
+impl<'a> crate::headers::ToHeader for Forwarded<'a> {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()?.parse()?))
     }
 }
 

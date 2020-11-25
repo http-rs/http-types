@@ -80,6 +80,12 @@ impl ContentLength {
     }
 }
 
+impl crate::headers::ToHeader for ContentLength {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

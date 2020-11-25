@@ -246,6 +246,12 @@ impl TraceContext {
     }
 }
 
+impl crate::headers::ToHeader for TraceContext {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl fmt::Display for TraceContext {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(

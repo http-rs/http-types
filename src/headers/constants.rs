@@ -12,6 +12,12 @@ pub const CONTENT_LOCATION: HeaderName = HeaderName::from_lowercase_str("content
 pub const CONTENT_MD5: HeaderName = HeaderName::from_lowercase_str("content-md5");
 /// The `Content-Range` Header
 pub const CONTENT_RANGE: HeaderName = HeaderName::from_lowercase_str("content-range");
+/// The `Content-Security-Policy` Header
+pub const CONTENT_SECURITY_POLICY: HeaderName =
+    HeaderName::from_lowercase_str("content-security-policy");
+/// The `Content-Security-Policy-Report-Only` Header
+pub const CONTENT_SECURITY_POLICY_REPORT_ONLY: HeaderName =
+    HeaderName::from_lowercase_str("content-security-policy-report-only");
 /// The `Content-Type` Header
 pub const CONTENT_TYPE: HeaderName = HeaderName::from_lowercase_str("content-type");
 
