@@ -140,9 +140,7 @@ mod status_code;
 mod version;
 
 pub mod trace;
-cfg_unstable! {
-    pub mod upgrade;
-}
+pub mod upgrade;
 
 pub use body::Body;
 pub use error::{Error, Result};
