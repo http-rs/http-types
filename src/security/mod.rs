@@ -196,7 +196,7 @@ pub enum ReferrerOptions {
     UnsafeUrl,
 }
 
-/// Mitigates referrer leakage by controlling the referer[sic] header in links away from pages
+/// Mitigates referrer leakage by controlling the referer\[sic\] header in links away from pages
 ///
 /// [read more](https://scotthelme.co.uk/a-new-security-header-referrer-policy/)
 ///
