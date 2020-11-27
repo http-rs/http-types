@@ -59,6 +59,10 @@ impl Mime {
             "css" => Some(CSS),
             "svg" => Some(SVG),
             "xml" => Some(XML),
+            "png" => Some(PNG),
+            "jpg" | "jpeg" => Some(JPEG),
+            "wasm" => Some(WASM),
+            "ico" => Some(ICO),
             _ => None,
         }
     }
