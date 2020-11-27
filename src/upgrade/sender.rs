@@ -17,10 +17,10 @@ impl Sender {
         Self { sender }
     }
 
-    /// Send a `Trailer`.
+    /// Send a `Connection`.
     ///
-    /// The channel will be consumed after having sent trailers.
-    pub async fn send(self, trailers: Connection) {
-        let _ = self.sender.send(trailers).await;
+    /// The channel will be consumed after having sent the connection.
+    pub async fn send(self, conn: Connection) {
+        let _ = self.sender.send(conn).await;
     }
 }
