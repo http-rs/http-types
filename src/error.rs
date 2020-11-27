@@ -19,6 +19,17 @@ pub struct Error {
     type_name: Option<&'static str>,
 }
 
+#[allow(unreachable_pub)]
+#[derive(Debug)]
+#[doc(hidden)]
+pub struct BacktracePlaceholder;
+
+impl Display for BacktracePlaceholder {
+    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
+        unreachable!()
+    }
+}
+
 impl Error {
     /// Create a new error object from any error type.
     ///
@@ -108,7 +119,7 @@ impl Error {
 
     #[cfg(not(backtrace))]
     #[allow(missing_docs)]
-    pub fn backtrace(&self) -> Option<()> {
+    pub const fn backtrace(&self) -> Option<BacktracePlaceholder> {
         None
     }
 
