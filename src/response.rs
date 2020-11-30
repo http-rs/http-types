@@ -17,7 +17,6 @@ use crate::trailers::{self, Trailers};
 use crate::{Body, Extensions, StatusCode, Version};
 use crate::upgrade;
 
-#[cfg(not(feature = "unstable"))]
 pin_project_lite::pin_project! {
     /// An HTTP response.
     ///
@@ -54,7 +53,6 @@ pin_project_lite::pin_project! {
 
 impl Response {
     /// Create a new response.
-    #[cfg(not(feature = "unstable"))]
     pub fn new<S>(status: S) -> Self
     where
         S: TryInto<StatusCode>,

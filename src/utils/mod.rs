@@ -9,18 +9,6 @@ use crate::{Error, Status, StatusCode};
 use std::cmp::Ordering;
 use std::str::FromStr;
 
-/// Declares unstable items.
-#[doc(hidden)]
-macro_rules! cfg_unstable {
-    ($($item:item)*) => {
-        $(
-            #[cfg(feature = "unstable")]
-            #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
-            $item
-        )*
-    }
-}
-
 /// Parse a weight of the form `q=0.123`.
 pub(crate) fn parse_weight(s: &str) -> crate::Result<f32> {
     let mut parts = s.split('=');
