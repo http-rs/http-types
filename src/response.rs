@@ -14,8 +14,8 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
-use crate::{Body, Extensions, StatusCode, Version};
 use crate::upgrade;
+use crate::{Body, Extensions, StatusCode, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP response.
