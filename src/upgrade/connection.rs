@@ -1,28 +1,38 @@
 use futures_lite::{io, prelude::*};
 
+use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
 /// An upgraded HTTP connection.
-#[derive(Debug, Clone)]
-pub struct RawConnection<Inner> {
-    inner: Inner,
+pub struct Connection {
+    inner: Box<dyn InnerConnection>,
 }
 
-impl Connection {
-    pub fn new<T: InnerConnection + 'static>(t: T) -> Self {
-        RawConnection { inner: Box::new(t) }
+impl Debug for Connection {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let inner = "Box<dyn Asyncread + AsyncWrite + Send + Sync + Unpin>";
+        f.debug_struct("Connection")
+            .field(&"inner", &inner)
+            .finish()
     }
 }
 
-/// A boxed upgraded HTTP connection.
-pub type Connection = RawConnection<Box<dyn InnerConnection + 'static>>;
+impl Connection {
+    /// Create a new instance of `Connection`.
+    pub fn new<T>(t: T) -> Self
+    where
+        T: AsyncRead + AsyncWrite + Send + Sync + Unpin + 'static,
+    {
+        Self { inner: Box::new(t) }
+    }
+}
 
 /// Trait to signal the requirements for an underlying connection type.
 pub trait InnerConnection: AsyncRead + AsyncWrite + Send + Sync + Unpin {}
 impl<T: AsyncRead + AsyncWrite + Send + Sync + Unpin> InnerConnection for T {}
 
-impl<Inner: AsyncRead + Unpin> AsyncRead for RawConnection<Inner> {
+impl AsyncRead for Connection {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -32,7 +42,7 @@ impl<Inner: AsyncRead + Unpin> AsyncRead for RawConnection<Inner> {
     }
 }
 
-impl<Inner: AsyncWrite + Unpin> AsyncWrite for RawConnection<Inner> {
+impl AsyncWrite for Connection {
     fn poll_write(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,

@@ -14,13 +14,9 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
+use crate::upgrade;
 use crate::{Body, Extensions, StatusCode, Version};
 
-cfg_unstable! {
-    use crate::upgrade;
-}
-
-#[cfg(not(feature = "unstable"))]
 pin_project_lite::pin_project! {
     /// An HTTP response.
     ///
@@ -44,38 +40,6 @@ pin_project_lite::pin_project! {
         has_trailers: bool,
         trailers_sender: Option<async_channel::Sender<Trailers>>,
         trailers_receiver: Option<async_channel::Receiver<Trailers>>,
-        #[pin]
-        body: Body,
-        ext: Extensions,
-        local_addr: Option<String>,
-        peer_addr: Option<String>,
-    }
-}
-
-#[cfg(feature = "unstable")]
-pin_project_lite::pin_project! {
-    /// An HTTP response.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # fn main() -> Result<(), http_types::Error> {
-    /// #
-    /// use http_types::{Response, StatusCode};
-    ///
-    /// let mut res = Response::new(StatusCode::Ok);
-    /// res.set_body("Hello, Nori!");
-    /// #
-    /// # Ok(()) }
-    /// ```
-    #[derive(Debug)]
-    pub struct Response {
-        status: StatusCode,
-        headers: Headers,
-        version: Option<Version>,
-        trailers_sender: Option<async_channel::Sender<Trailers>>,
-        trailers_receiver: Option<async_channel::Receiver<Trailers>>,
-        has_trailers: bool,
         upgrade_sender: Option<async_channel::Sender<upgrade::Connection>>,
         upgrade_receiver: Option<async_channel::Receiver<upgrade::Connection>>,
         has_upgrade: bool,
@@ -89,32 +53,6 @@ pin_project_lite::pin_project! {
 
 impl Response {
     /// Create a new response.
-    #[cfg(not(feature = "unstable"))]
-    pub fn new<S>(status: S) -> Self
-    where
-        S: TryInto<StatusCode>,
-        S::Error: Debug,
-    {
-        let status = status
-            .try_into()
-            .expect("Could not convert into a valid `StatusCode`");
-        let (trailers_sender, trailers_receiver) = async_channel::bounded(1);
-        Self {
-            status,
-            headers: Headers::new(),
-            version: None,
-            body: Body::empty(),
-            trailers_sender: Some(trailers_sender),
-            trailers_receiver: Some(trailers_receiver),
-            has_trailers: false,
-            ext: Extensions::new(),
-            peer_addr: None,
-            local_addr: None,
-        }
-    }
-
-    /// Create a new response.
-    #[cfg(feature = "unstable")]
     pub fn new<S>(status: S) -> Self
     where
         S: TryInto<StatusCode>,
@@ -558,7 +496,6 @@ impl Response {
     }
 
     /// Sends an upgrade connection to the a receiver.
-    #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub fn send_upgrade(&mut self) -> upgrade::Sender {
         self.has_upgrade = true;
@@ -570,7 +507,6 @@ impl Response {
     }
 
     /// Receive an upgraded connection from a sender.
-    #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub async fn recv_upgrade(&mut self) -> upgrade::Receiver {
         self.has_upgrade = true;
@@ -582,7 +518,6 @@ impl Response {
     }
 
     /// Returns `true` if a protocol upgrade is in progress.
-    #[cfg(feature = "unstable")]
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
     pub fn has_upgrade(&self) -> bool {
         self.has_upgrade
@@ -646,11 +581,8 @@ impl Clone for Response {
             trailers_sender: self.trailers_sender.clone(),
             trailers_receiver: self.trailers_receiver.clone(),
             has_trailers: false,
-            #[cfg(feature = "unstable")]
             upgrade_sender: self.upgrade_sender.clone(),
-            #[cfg(feature = "unstable")]
             upgrade_receiver: self.upgrade_receiver.clone(),
-            #[cfg(feature = "unstable")]
             has_upgrade: false,
             body: Body::empty(),
             ext: Extensions::new(),
