@@ -682,7 +682,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::get(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::get("https://example.com");
     /// req.set_body("Hello, Nori!");
     /// assert_eq!(req.method(), Method::Get);
     /// ```
@@ -704,7 +704,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::head(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::head("https://example.com");
     /// assert_eq!(req.method(), Method::Head);
     /// ```
     pub fn head<U>(url: U) -> Self
@@ -725,7 +725,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::post(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::post("https://example.com");
     /// assert_eq!(req.method(), Method::Post);
     /// ```
     pub fn post<U>(url: U) -> Self
@@ -746,7 +746,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::put(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::put("https://example.com");
     /// assert_eq!(req.method(), Method::Put);
     /// ```
     pub fn put<U>(url: U) -> Self
@@ -766,7 +766,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::delete(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::delete("https://example.com");
     /// assert_eq!(req.method(), Method::Delete);
     /// ```
     pub fn delete<U>(url: U) -> Self
@@ -787,7 +787,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::connect(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::connect("https://example.com");
     /// assert_eq!(req.method(), Method::Connect);
     /// ```
     pub fn connect<U>(url: U) -> Self
@@ -808,7 +808,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::options(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::options("https://example.com");
     /// assert_eq!(req.method(), Method::Options);
     /// ```
     pub fn options<U>(url: U) -> Self
@@ -829,7 +829,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::trace(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::trace("https://example.com");
     /// assert_eq!(req.method(), Method::Trace);
     /// ```
     pub fn trace<U>(url: U) -> Self
@@ -849,7 +849,7 @@ impl Request {
     /// ```
     /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::patch(Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::patch("https://example.com");
     /// assert_eq!(req.method(), Method::Patch);
     /// ```
     pub fn patch<U>(url: U) -> Self
