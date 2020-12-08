@@ -83,9 +83,9 @@
 //! # The Body Type
 //!
 //! In HTTP, [`Body`](struct.Body.html) types are optional. The content of a `Body` is a stream of
-//! bytes with a specific encoding; this encoding is its [`Mime` type](struct.Mime.html). The `Mime` can
+//! bytes with a specific encoding; this encoding is its [`MediaType` type](struct.MediaType.html). The `MediaType` can
 //! be set using the [`set_content_type`](struct.Request.html#method.set_content_type) method, and
-//! there are many different possible `Mime` types.
+//! there are many different possible `MediaType` types.
 //!
 //! `http-types`' `Body` struct can take anything that implements
 //! [`AsyncBufRead`](https://docs.rs/futures/0.3.1/futures/io/trait.AsyncBufRead.html) and stream
@@ -122,7 +122,7 @@ pub mod cache;
 pub mod conditional;
 pub mod content;
 pub mod headers;
-pub mod mime;
+pub mod media_type;
 pub mod other;
 pub mod proxies;
 pub mod server;
@@ -155,7 +155,7 @@ pub use version::Version;
 pub use trailers::Trailers;
 
 #[doc(inline)]
-pub use mime::Mime;
+pub use media_type::MediaType;
 
 #[doc(inline)]
 pub use headers::Headers;

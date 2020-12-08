@@ -16,20 +16,20 @@ use crate::headers::{HeaderValue, ToHeaderValues};
 
 use infer::Infer;
 
-/// An IANA media type.
+/// An IANA MIME media type.
 ///
 /// ```
-/// use http_types::Mime;
+/// use http_types::MediaType;
 /// use std::str::FromStr;
 ///
-/// let mime = Mime::from_str("text/html;charset=utf-8").unwrap();
-/// assert_eq!(mime.essence(), "text/html");
-/// assert_eq!(mime.param("charset").unwrap(), "utf-8");
+/// let media_type = MediaType::from_str("text/html;charset=utf-8").unwrap();
+/// assert_eq!(media_type.essence(), "text/html");
+/// assert_eq!(media_type.param("charset").unwrap(), "utf-8");
 /// ```
 // NOTE: we cannot statically initialize Strings with values yet, so we keep dedicated static
 // fields for the static strings.
 #[derive(Clone)]
-pub struct Mime {
+pub struct MediaType {
     pub(crate) essence: String,
     pub(crate) basetype: String,
     pub(crate) subtype: String,
@@ -39,18 +39,18 @@ pub struct Mime {
     pub(crate) params: Option<ParamKind>,
 }
 
-impl Mime {
-    /// Sniff the mime type from a byte slice.
+impl MediaType {
+    /// Sniff the media_type type from a byte slice.
     pub fn sniff(bytes: &[u8]) -> crate::Result<Self> {
         let info = Infer::new();
-        let mime = match info.get(&bytes) {
+        let media_type = match info.get(&bytes) {
             Some(info) => info.mime,
-            None => crate::bail!("Could not sniff the mime type"),
+            None => crate::bail!("Could not sniff the media_type type"),
         };
-        Mime::from_str(&mime)
+        MediaType::from_str(&media_type)
     }
 
-    /// Guess the mime type from a file extension
+    /// Guess the media_type type from a file extension
     pub fn from_extension(extension: impl AsRef<str>) -> Option<Self> {
         match extension.as_ref() {
             "html" => Some(HTML),
@@ -63,7 +63,7 @@ impl Mime {
         }
     }
 
-    /// Access the Mime's `type` value.
+    /// Access the MediaType's `type` value.
     ///
     /// According to the spec this method should be named `type`, but that's a reserved keyword in
     /// Rust so hence prefix with `base` instead.
@@ -75,7 +75,7 @@ impl Mime {
         }
     }
 
-    /// Access the Mime's `subtype` value.
+    /// Access the MediaType's `subtype` value.
     pub fn subtype(&self) -> &str {
         if let Some(subtype) = self.static_subtype {
             &subtype
@@ -84,7 +84,7 @@ impl Mime {
         }
     }
 
-    /// Access the Mime's `essence` value.
+    /// Access the MediaType's `essence` value.
     pub fn essence(&self) -> &str {
         if let Some(essence) = self.static_essence {
             &essence
@@ -111,8 +111,8 @@ impl Mime {
     }
 }
 
-impl PartialEq<Mime> for Mime {
-    fn eq(&self, other: &Mime) -> bool {
+impl PartialEq<MediaType> for MediaType {
+    fn eq(&self, other: &MediaType) -> bool {
         let left = match self.static_essence {
             Some(essence) => essence,
             None => &self.essence,
@@ -125,13 +125,13 @@ impl PartialEq<Mime> for Mime {
     }
 }
 
-impl Display for Mime {
+impl Display for MediaType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         parse::format(self, f)
     }
 }
 
-impl Debug for Mime {
+impl Debug for MediaType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(essence) = self.static_essence {
             Debug::fmt(essence, f)
@@ -141,29 +141,29 @@ impl Debug for Mime {
     }
 }
 
-impl FromStr for Mime {
+impl FromStr for MediaType {
     type Err = crate::Error;
 
-    /// Create a new `Mime`.
+    /// Create a new `MediaType`.
     ///
-    /// Follows the [WHATWG MIME parsing algorithm](https://mimesniff.spec.whatwg.org/#parsing-a-mime-type).
+    /// Follows the [WHATWG MIME parsing algorithm](https://media_typesniff.spec.whatwg.org/#parsing-a-media_type-type).
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse::parse(s)
     }
 }
 
-impl<'a> From<&'a str> for Mime {
+impl<'a> From<&'a str> for MediaType {
     fn from(value: &'a str) -> Self {
         Self::from_str(value).unwrap()
     }
 }
 
-impl ToHeaderValues for Mime {
+impl ToHeaderValues for MediaType {
     type Iter = option::IntoIter<HeaderValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        let mime = self.clone();
-        let header: HeaderValue = mime.into();
+        let media_type = self.clone();
+        let header: HeaderValue = media_type.into();
 
         // A HeaderValue will always convert into itself.
         Ok(header.to_header_values().unwrap())

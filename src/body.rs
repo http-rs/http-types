@@ -5,7 +5,7 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::{mime, Mime};
+use crate::{media_type, MediaType};
 use crate::{Status, StatusCode};
 
 pin_project_lite::pin_project! {
@@ -46,15 +46,15 @@ pin_project_lite::pin_project! {
     ///
     /// # Content Encoding
     ///
-    /// By default `Body` will come with a fallback Mime type that is used by `Request` and
-    /// `Response` if no other type has been set, and no other Mime type can be inferred.
+    /// By default `Body` will come with a fallback MediaType type that is used by `Request` and
+    /// `Response` if no other type has been set, and no other MediaType type can be inferred.
     ///
-    /// It's _strongly_ recommended to always set a mime type on both the `Request` and `Response`,
+    /// It's _strongly_ recommended to always set a media_type type on both the `Request` and `Response`,
     /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
         reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
-        mime: Mime,
+        media_type: MediaType,
         length: Option<usize>,
         bytes_read: usize
     }
@@ -63,8 +63,8 @@ pin_project_lite::pin_project! {
 impl Body {
     /// Create a new empty `Body`.
     ///
-    /// The body will have a length of `0`, and the Mime type set to `application/octet-stream` if
-    /// no other mime type has been set or can be sniffed.
+    /// The body will have a length of `0`, and the MediaType type set to `application/octet-stream` if
+    /// no other media_type type has been set or can be sniffed.
     ///
     /// # Examples
     ///
@@ -77,7 +77,7 @@ impl Body {
     pub fn empty() -> Self {
         Self {
             reader: Box::new(io::empty()),
-            mime: mime::BYTE_STREAM,
+            media_type: media_type::BYTE_STREAM,
             length: Some(0),
             bytes_read: 0,
         }
@@ -85,7 +85,7 @@ impl Body {
 
     /// Create a `Body` from a reader with an optional length.
     ///
-    /// The Mime type is set to `application/octet-stream` if no other mime type has been set or can
+    /// The MediaType type is set to `application/octet-stream` if no other media_type type has been set or can
     /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
     /// framed messages such as [Chunked
     /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
@@ -108,7 +108,7 @@ impl Body {
     ) -> Self {
         Self {
             reader: Box::new(reader),
-            mime: mime::BYTE_STREAM,
+            media_type: media_type::BYTE_STREAM,
             length: len,
             bytes_read: 0,
         }
@@ -133,7 +133,7 @@ impl Body {
 
     /// Create a `Body` from a Vec of bytes.
     ///
-    /// The Mime type is set to `application/octet-stream` if no other mime type has been set or can
+    /// The MediaType type is set to `application/octet-stream` if no other media_type type has been set or can
     /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
     /// framed messages such as [Chunked
     /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
@@ -151,7 +151,7 @@ impl Body {
     /// ```
     pub fn from_bytes(bytes: Vec<u8>) -> Self {
         Self {
-            mime: mime::BYTE_STREAM,
+            media_type: media_type::BYTE_STREAM,
             length: Some(bytes.len()),
             reader: Box::new(io::Cursor::new(bytes)),
             bytes_read: 0,
@@ -183,7 +183,7 @@ impl Body {
 
     /// Create a `Body` from a String
     ///
-    /// The Mime type is set to `text/plain` if no other mime type has been set or can
+    /// The MediaType type is set to `text/plain` if no other media_type type has been set or can
     /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
     /// framed messages such as [Chunked
     /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
@@ -201,7 +201,7 @@ impl Body {
     /// ```
     pub fn from_string(s: String) -> Self {
         Self {
-            mime: mime::PLAIN,
+            media_type: media_type::PLAIN,
             length: Some(s.len()),
             reader: Box::new(io::Cursor::new(s.into_bytes())),
             bytes_read: 0,
@@ -232,7 +232,7 @@ impl Body {
 
     /// Creates a `Body` from a type, serializing it as JSON.
     ///
-    /// # Mime
+    /// # MediaType
     ///
     /// The encoding is set to `application/json`.
     ///
@@ -249,7 +249,7 @@ impl Body {
         let body = Self {
             length: Some(bytes.len()),
             reader: Box::new(io::Cursor::new(bytes)),
-            mime: mime::JSON,
+            media_type: media_type::JSON,
             bytes_read: 0,
         };
         Ok(body)
@@ -282,7 +282,7 @@ impl Body {
 
     /// Creates a `Body` from a type, serializing it using form encoding.
     ///
-    /// # Mime
+    /// # MediaType
     ///
     /// The encoding is set to `application/x-www-form-urlencoded`.
     ///
@@ -314,7 +314,7 @@ impl Body {
         let body = Self {
             length: Some(bytes.len()),
             reader: Box::new(io::Cursor::new(bytes)),
-            mime: mime::FORM,
+            media_type: media_type::FORM,
             bytes_read: 0,
         };
         Ok(body)
@@ -351,7 +351,7 @@ impl Body {
 
     /// Create a `Body` from a file.
     ///
-    /// The Mime type set to `application/octet-stream` if no other mime type has
+    /// The MediaType type set to `application/octet-stream` if no other media_type type has
     /// been set or can be sniffed.
     ///
     /// # Examples
@@ -375,13 +375,13 @@ impl Body {
 
         // Look at magic bytes first, look at extension second, fall back to
         // octet stream.
-        let mime = peek_mime(&mut file)
+        let media_type = peek_media_type(&mut file)
             .await?
             .or_else(|| guess_ext(path))
-            .unwrap_or(mime::BYTE_STREAM);
+            .unwrap_or(media_type::BYTE_STREAM);
 
         Ok(Self {
-            mime,
+            media_type,
             length: Some(len as usize),
             reader: Box::new(io::BufReader::new(file)),
             bytes_read: 0,
@@ -410,14 +410,14 @@ impl Body {
         self.length.map(|length| length == 0)
     }
 
-    /// Returns the mime type of this Body.
-    pub fn mime(&self) -> &Mime {
-        &self.mime
+    /// Returns the media_type type of this Body.
+    pub fn media_type(&self) -> &MediaType {
+        &self.media_type
     }
 
-    /// Sets the mime type of this Body.
-    pub fn set_mime(&mut self, mime: impl Into<Mime>) {
-        self.mime = mime.into();
+    /// Sets the media_type type of this Body.
+    pub fn set_media_type(&mut self, media_type: impl Into<MediaType>) {
+        self.media_type = media_type.into();
     }
 }
 
@@ -494,26 +494,26 @@ impl AsyncBufRead for Body {
     }
 }
 
-/// Look at first few bytes of a file to determine the mime type.
+/// Look at first few bytes of a file to determine the media_type type.
 /// This is used for various binary formats such as images and videos.
 #[cfg(all(feature = "fs", not(target_os = "unknown")))]
-async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
+async fn peek_media_type(file: &mut async_std::fs::File) -> io::Result<Option<MediaType>> {
     // We need to read the first 300 bytes to correctly infer formats such as tar.
     let mut buf = [0_u8; 300];
     file.read(&mut buf).await?;
-    let mime = Mime::sniff(&buf).ok();
+    let media_type = MediaType::sniff(&buf).ok();
 
     // Reset the file cursor back to the start.
     file.seek(io::SeekFrom::Start(0)).await?;
-    Ok(mime)
+    Ok(media_type)
 }
 
-/// Look at the extension of a file to determine the mime type.
+/// Look at the extension of a file to determine the media_type type.
 /// This is useful for plain-text formats such as HTML and CSS.
 #[cfg(all(feature = "fs", not(target_os = "unknown")))]
-fn guess_ext(path: &std::path::Path) -> Option<Mime> {
+fn guess_ext(path: &std::path::Path) -> Option<MediaType> {
     let ext = path.extension().map(|p| p.to_str()).flatten();
-    ext.and_then(Mime::from_extension)
+    ext.and_then(MediaType::from_extension)
 }
 
 #[cfg(test)]
