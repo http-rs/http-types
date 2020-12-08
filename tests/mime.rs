@@ -4,7 +4,7 @@ use http_types::{mime, Body, Response};
 
 #[async_std::test]
 async fn guess_plain_text_mime() -> io::Result<()> {
-    let body = Body::from_file("tests/fixtures/index.html").await?;
+    let body = Body::from_path("tests/fixtures/index.html").await?;
     let mut res = Response::new(200);
     res.set_body(body);
     assert_eq!(res.content_type(), Some(mime::HTML));
@@ -13,7 +13,7 @@ async fn guess_plain_text_mime() -> io::Result<()> {
 
 #[async_std::test]
 async fn guess_binary_mime() -> http_types::Result<()> {
-    let body = Body::from_file("tests/fixtures/nori.png").await?;
+    let body = Body::from_path("tests/fixtures/nori.png").await?;
     let mut res = Response::new(200);
     res.set_body(body);
     assert_eq!(res.content_type(), Some(mime::PNG));
@@ -27,7 +27,7 @@ async fn guess_binary_mime() -> http_types::Result<()> {
 
 #[async_std::test]
 async fn guess_mime_fallback() -> io::Result<()> {
-    let body = Body::from_file("tests/fixtures/unknown.custom").await?;
+    let body = Body::from_path("tests/fixtures/unknown.custom").await?;
     let mut res = Response::new(200);
     res.set_body(body);
     assert_eq!(res.content_type(), Some(mime::BYTE_STREAM));
@@ -36,7 +36,7 @@ async fn guess_mime_fallback() -> io::Result<()> {
 
 #[async_std::test]
 async fn parse_empty_files() -> http_types::Result<()> {
-    let body = Body::from_file("tests/fixtures/empty.custom").await?;
+    let body = Body::from_path("tests/fixtures/empty.custom").await?;
     let mut res = Response::new(200);
     res.set_body(body);
     assert_eq!(res.content_type(), Some(mime::BYTE_STREAM));

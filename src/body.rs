@@ -349,7 +349,7 @@ impl Body {
         Ok(serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)?)
     }
 
-    /// Create a `Body` from a file.
+    /// Create a `Body` from a file path.
     ///
     /// The Mime type set to `application/octet-stream` if no other mime type has
     /// been set or can be sniffed.
@@ -361,11 +361,11 @@ impl Body {
     /// use http_types::{Body, Response, StatusCode};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
-    /// res.set_body(Body::from_file("/path/to/file").await?);
+    /// res.set_body(Body::from_path("/path/to/file").await?);
     /// # Ok(()) }) }
     /// ```
     #[cfg(all(feature = "fs", not(target_os = "unknown")))]
-    pub async fn from_file<P>(path: P) -> io::Result<Self>
+    pub async fn from_path<P>(path: P) -> io::Result<Self>
     where
         P: AsRef<std::path::Path>,
     {
@@ -378,6 +378,42 @@ impl Body {
         let mime = peek_mime(&mut file)
             .await?
             .or_else(|| guess_ext(path))
+            .unwrap_or(mime::BYTE_STREAM);
+
+        Ok(Self {
+            mime,
+            length: Some(len as usize),
+            reader: Box::new(io::BufReader::new(file)),
+            bytes_read: 0,
+        })
+    }
+
+    /// Create a `Body` from a file.
+    ///
+    /// The Mime type set to `application/octet-stream` if no other mime type has
+    /// been set or can be sniffed.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
+    /// use http_types::{Body, Response, StatusCode};
+    /// use async_std::fs::File;
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// let file = File::open("path/to/file").await?;
+    /// res.set_body(Body::from_file(file).await?);
+    /// # Ok(()) }) }
+    /// ```
+    #[cfg(all(feature = "fs", not(target_os = "unknown")))]
+    pub async fn from_file(mut file: async_std::fs::File) -> io::Result<Self>
+    {
+        let len = file.metadata().await?.len();
+
+        // Look at magic bytes first, fall back to
+        // octet stream.
+        let mime = peek_mime(&mut file)
+            .await?
             .unwrap_or(mime::BYTE_STREAM);
 
         Ok(Self {
