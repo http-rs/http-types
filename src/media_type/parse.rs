@@ -1,10 +1,10 @@
 use std::fmt;
 
-use super::{Mime, ParamKind, ParamName, ParamValue};
+use super::{MediaType, ParamKind, ParamName, ParamValue};
 
-/// Parse a string into a mime type.
-/// Follows the [WHATWG MIME parsing algorithm](https://mimesniff.spec.whatwg.org/#parsing-a-mime-type)
-pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
+/// Parse a string into a media_type type.
+/// Follows the [WHATWG MIME parsing algorithm](https://media_typesniff.spec.whatwg.org/#parsing-a-media_type-type)
+pub(crate) fn parse(input: &str) -> crate::Result<MediaType> {
     // 1
     let input = input.trim_matches(is_http_whitespace_char);
 
@@ -106,7 +106,7 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
         }
     }
 
-    Ok(Mime {
+    Ok(MediaType {
         essence: format!("{}/{}", &basetype, &subtype),
         basetype,
         subtype,
@@ -117,7 +117,7 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
     })
 }
 
-/// Validates [HTTP token code points](https://mimesniff.spec.whatwg.org/#http-token-code-point)
+/// Validates [HTTP token code points](https://media_typesniff.spec.whatwg.org/#http-token-code-point)
 fn is_http_token_code_point(c: char) -> bool {
     matches!(c,
         '!'
@@ -140,7 +140,7 @@ fn is_http_token_code_point(c: char) -> bool {
         | '0'..='9')
 }
 
-/// Validates [HTTP quoted-string token code points](https://mimesniff.spec.whatwg.org/#http-quoted-string-token-code-point)
+/// Validates [HTTP quoted-string token code points](https://media_typesniff.spec.whatwg.org/#http-quoted-string-token-code-point)
 fn is_http_quoted_string_token_code_point(c: char) -> bool {
     matches!(c, '\t' | ' '..='~' | '\u{80}'..='\u{FF}')
 }
@@ -203,14 +203,14 @@ fn collect_http_quoted_string(mut input: &str) -> (String, &str) {
     (value, input)
 }
 
-/// Implementation of [WHATWG MIME serialization algorithm](https://mimesniff.spec.whatwg.org/#serializing-a-mime-type)
-pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    if let Some(essence) = mime_type.static_essence {
+/// Implementation of [WHATWG MIME serialization algorithm](https://media_typesniff.spec.whatwg.org/#serializing-a-media_type-type)
+pub(crate) fn format(media_type_type: &MediaType, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    if let Some(essence) = media_type_type.static_essence {
         write!(f, "{}", essence)?
     } else {
-        write!(f, "{}", &mime_type.essence)?
+        write!(f, "{}", &media_type_type.essence)?
     }
-    if let Some(params) = &mime_type.params {
+    if let Some(params) = &media_type_type.params {
         match params {
             ParamKind::Utf8 => write!(f, ";charset=utf-8")?,
             ParamKind::Vec(params) => {
@@ -226,11 +226,11 @@ pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Resul
                                 .0
                                 .chars()
                                 .flat_map(|c| match c {
-                                    '"' | '\\' => EscapeMimeValue {
-                                        state: EscapeMimeValueState::Backslash(c)
+                                    '"' | '\\' => EscapeMediaTypeValue {
+                                        state: EscapeMediaTypeValueState::Backslash(c)
                                     },
-                                    c => EscapeMimeValue {
-                                        state: EscapeMimeValueState::Char(c)
+                                    c => EscapeMediaTypeValue {
+                                        state: EscapeMediaTypeValueState::Char(c)
                                     },
                                 })
                                 .collect::<String>()
@@ -243,29 +243,29 @@ pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Resul
     Ok(())
 }
 
-struct EscapeMimeValue {
-    state: EscapeMimeValueState,
+struct EscapeMediaTypeValue {
+    state: EscapeMediaTypeValueState,
 }
 
 #[derive(Clone, Debug)]
-enum EscapeMimeValueState {
+enum EscapeMediaTypeValueState {
     Done,
     Char(char),
     Backslash(char),
 }
 
-impl Iterator for EscapeMimeValue {
+impl Iterator for EscapeMediaTypeValue {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
         match self.state {
-            EscapeMimeValueState::Done => None,
-            EscapeMimeValueState::Char(c) => {
-                self.state = EscapeMimeValueState::Done;
+            EscapeMediaTypeValueState::Done => None,
+            EscapeMediaTypeValueState::Char(c) => {
+                self.state = EscapeMediaTypeValueState::Done;
                 Some(c)
             }
-            EscapeMimeValueState::Backslash(c) => {
-                self.state = EscapeMimeValueState::Char(c);
+            EscapeMediaTypeValueState::Backslash(c) => {
+                self.state = EscapeMediaTypeValueState::Char(c);
                 Some('\\')
             }
         }
@@ -273,33 +273,33 @@ impl Iterator for EscapeMimeValue {
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         match self.state {
-            EscapeMimeValueState::Done => (0, Some(0)),
-            EscapeMimeValueState::Char(_) => (1, Some(1)),
-            EscapeMimeValueState::Backslash(_) => (2, Some(2)),
+            EscapeMediaTypeValueState::Done => (0, Some(0)),
+            EscapeMediaTypeValueState::Char(_) => (1, Some(1)),
+            EscapeMediaTypeValueState::Backslash(_) => (2, Some(2)),
         }
     }
 }
 
 #[test]
 fn test() {
-    let mime = parse("text/html").unwrap();
-    assert_eq!(mime.basetype(), "text");
-    assert_eq!(mime.subtype(), "html");
+    let media_type = parse("text/html").unwrap();
+    assert_eq!(media_type.basetype(), "text");
+    assert_eq!(media_type.subtype(), "html");
 
-    // technically invalid mime, but allow anyway
-    let mime = parse("text/html;").unwrap();
-    assert_eq!(mime.basetype(), "text");
-    assert_eq!(mime.subtype(), "html");
+    // technically invalid media_type, but allow anyway
+    let media_type = parse("text/html;").unwrap();
+    assert_eq!(media_type.basetype(), "text");
+    assert_eq!(media_type.subtype(), "html");
 
-    let mime = parse("text/html; charset=utf-8").unwrap();
-    assert_eq!(mime.basetype(), "text");
-    assert_eq!(mime.subtype(), "html");
-    assert_eq!(mime.param("charset").unwrap(), "utf-8");
+    let media_type = parse("text/html; charset=utf-8").unwrap();
+    assert_eq!(media_type.basetype(), "text");
+    assert_eq!(media_type.subtype(), "html");
+    assert_eq!(media_type.param("charset").unwrap(), "utf-8");
 
-    let mime = parse("text/html; charset=utf-8;").unwrap();
-    assert_eq!(mime.basetype(), "text");
-    assert_eq!(mime.subtype(), "html");
-    assert_eq!(mime.param("charset").unwrap(), "utf-8");
+    let media_type = parse("text/html; charset=utf-8;").unwrap();
+    assert_eq!(media_type.basetype(), "text");
+    assert_eq!(media_type.subtype(), "html");
+    assert_eq!(media_type.param("charset").unwrap(), "utf-8");
 
     assert!(parse("text").is_err());
     assert!(parse("text/").is_err());
@@ -308,7 +308,7 @@ fn test() {
 }
 
 /// Web Platform tests for MIME type parsing
-/// From https://github.com/web-platform-tests/wpt/blob/master/mimesniff/mime-types/resources/mime-types.json
+/// From https://github.com/web-platform-tests/wpt/blob/master/media_typesniff/media_type-types/resources/media_type-types.json
 #[test]
 fn whatwag_tests() {
     fn assert_parse(input: &str, expected: &str) {
@@ -467,7 +467,7 @@ fn whatwag_tests() {
     assert_parse("x/x;test", "x/x");
     assert_parse("x/x;test=\"\\", "x/x;test=\"\\\\\"");
 
-    // Whitespace (not handled by generated-mime-types.json or above)
+    // Whitespace (not handled by generated-media_type-types.json or above)
     assert_parse("x/x;x= ", "x/x");
     assert_parse("x/x;x=\t", "x/x");
     assert_parse("x/x\n\r\t ;x=x", "x/x;x=x");

@@ -143,7 +143,7 @@ pub fn hsts(mut headers: impl AsMut<Headers>) {
 /// Prevent browsers from trying to guess (“sniff”) the MIME type, which can have security
 /// implications.
 ///
-/// [read more](https://helmetjs.github.io/docs/dont-sniff-mimetype/)
+/// [read more](https://helmetjs.github.io/docs/dont-sniff-media_typetype/)
 ///
 // /// ## Examples
 // /// ```

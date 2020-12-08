@@ -12,7 +12,7 @@ use crate::headers::{
     self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
     CONTENT_TYPE,
 };
-use crate::mime::Mime;
+use crate::media_type::MediaType;
 use crate::trailers::{self, Trailers};
 use crate::upgrade;
 use crate::{Body, Extensions, StatusCode, Version};
@@ -367,22 +367,22 @@ impl Response {
     }
 
     /// Set the response MIME.
-    pub fn set_content_type(&mut self, mime: Mime) -> Option<HeaderValues> {
-        let value: HeaderValue = mime.into();
+    pub fn set_content_type(&mut self, media_type: MediaType) -> Option<HeaderValues> {
+        let value: HeaderValue = media_type.into();
 
-        // A Mime instance is guaranteed to be valid header name.
+        // A MediaType instance is guaranteed to be valid header name.
         self.insert_header(CONTENT_TYPE, value)
     }
 
     /// Copy MIME data from the body.
     fn copy_content_type_from_body(&mut self) {
         if self.header(CONTENT_TYPE).is_none() {
-            self.set_content_type(self.body.mime().clone());
+            self.set_content_type(self.body.media_type().clone());
         }
     }
 
     /// Get the current content type
-    pub fn content_type(&self) -> Option<Mime> {
+    pub fn content_type(&self) -> Option<MediaType> {
         self.header(CONTENT_TYPE)?.last().as_str().parse().ok()
     }
 

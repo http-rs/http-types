@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use crate::headers::HeaderValues;
 use crate::Error;
-use crate::{Cookie, Mime};
+use crate::{Cookie, MediaType};
 
 /// A header value.
 #[derive(Clone, Eq, PartialEq, Hash)]
@@ -46,10 +46,10 @@ impl HeaderValue {
     }
 }
 
-impl From<Mime> for HeaderValue {
-    fn from(mime: Mime) -> Self {
+impl From<MediaType> for HeaderValue {
+    fn from(media_type: MediaType) -> Self {
         HeaderValue {
-            inner: format!("{}", mime),
+            inner: format!("{}", media_type),
         }
     }
 }
@@ -62,10 +62,10 @@ impl From<Cookie<'_>> for HeaderValue {
     }
 }
 
-impl From<&Mime> for HeaderValue {
-    fn from(mime: &Mime) -> Self {
+impl From<&MediaType> for HeaderValue {
+    fn from(media_type: &MediaType) -> Self {
         HeaderValue {
-            inner: format!("{}", mime),
+            inner: format!("{}", media_type),
         }
     }
 }
