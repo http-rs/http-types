@@ -406,15 +406,12 @@ impl Body {
     /// # Ok(()) }) }
     /// ```
     #[cfg(all(feature = "fs", not(target_os = "unknown")))]
-    pub async fn from_file(mut file: async_std::fs::File) -> io::Result<Self>
-    {
+    pub async fn from_file(mut file: async_std::fs::File) -> io::Result<Self> {
         let len = file.metadata().await?.len();
 
         // Look at magic bytes first, fall back to
         // octet stream.
-        let mime = peek_mime(&mut file)
-            .await?
-            .unwrap_or(mime::BYTE_STREAM);
+        let mime = peek_mime(&mut file).await?.unwrap_or(mime::BYTE_STREAM);
 
         Ok(Self {
             mime,
