@@ -88,7 +88,7 @@
 //! there are many different possible `Mime` types.
 //!
 //! `http-types`' `Body` struct can take anything that implements
-//! [`AsyncBufRead`](https://docs.rs/futures/0.3.1/futures/io/trait.AsyncBufRead.html) and stream
+//! [`AsyncRead`](https://docs.rs/futures/0.3.1/futures/io/trait.AsyncRead.html) and stream
 //! it out. Depending on the version of HTTP used, the underlying bytes will be transmitted
 //! differently. As a rule, if you know the size of the body it's usually more efficient to
 //! declare it up front. But if you don't, things will still work.

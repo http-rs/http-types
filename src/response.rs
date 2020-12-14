@@ -603,18 +603,6 @@ impl AsyncRead for Response {
     }
 }
 
-impl AsyncBufRead for Response {
-    #[allow(missing_doc_code_examples)]
-    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
-        let this = self.project();
-        this.body.poll_fill_buf(cx)
-    }
-
-    fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body).consume(amt)
-    }
-}
-
 impl AsRef<Headers> for Response {
     fn as_ref(&self) -> &Headers {
         &self.headers
