@@ -24,7 +24,7 @@ macro_rules! media_type_const {
              concat!(
                 "Content-Type for ",
                 $desc,
-                ".\n\n# MediaType Type\n\n```text\n",
+                ".\n\n# media type\n\n```text\n",
                 $base, "/", $sub, $doccomment, "\n```")
         );
     };
@@ -58,7 +58,7 @@ media_type_const!(BYTE_STREAM, "byte streams", "application", "octet-stream");
 media_type_const!(FORM, "forms", "application", "x-www-form-urlencoded");
 media_type_const!(MULTIPART_FORM, "multipart forms", "multipart", "form-data");
 media_type_const!(WASM, "webassembly", "application", "wasm");
-// There are multiple `.ico` media_type types known, but `image/x-icon`
+// There are multiple `.ico` media types known, but `image/x-icon`
 // is what most browser use. See:
 // https://en.wikipedia.org/wiki/ICO_%28file_format%29#MIME_type
 media_type_const!(ICO, "ICO icons", "image", "x-icon");

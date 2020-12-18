@@ -46,10 +46,10 @@ pin_project_lite::pin_project! {
     ///
     /// # Content Encoding
     ///
-    /// By default `Body` will come with a fallback MediaType type that is used by `Request` and
-    /// `Response` if no other type has been set, and no other MediaType type can be inferred.
+    /// By default `Body` will come with a fallback media type that is used by `Request` and
+    /// `Response` if no other type has been set, and no other media type can be inferred.
     ///
-    /// It's _strongly_ recommended to always set a media_type type on both the `Request` and `Response`,
+    /// It's _strongly_ recommended to always set a media type on both the `Request` and `Response`,
     /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
@@ -63,8 +63,8 @@ pin_project_lite::pin_project! {
 impl Body {
     /// Create a new empty `Body`.
     ///
-    /// The body will have a length of `0`, and the MediaType type set to `application/octet-stream` if
-    /// no other media_type type has been set or can be sniffed.
+    /// The body will have a length of `0`, and the media type set to `application/octet-stream` if
+    /// no other media type has been set or can be sniffed.
     ///
     /// # Examples
     ///
@@ -85,7 +85,7 @@ impl Body {
 
     /// Create a `Body` from a reader with an optional length.
     ///
-    /// The MediaType type is set to `application/octet-stream` if no other media_type type has been set or can
+    /// The media type is set to `application/octet-stream` if no other media type has been set or can
     /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
     /// framed messages such as [Chunked
     /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
@@ -133,7 +133,7 @@ impl Body {
 
     /// Create a `Body` from a Vec of bytes.
     ///
-    /// The MediaType type is set to `application/octet-stream` if no other media_type type has been set or can
+    /// The media type is set to `application/octet-stream` if no other media type has been set or can
     /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
     /// framed messages such as [Chunked
     /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
@@ -183,7 +183,7 @@ impl Body {
 
     /// Create a `Body` from a String
     ///
-    /// The MediaType type is set to `text/plain` if no other media_type type has been set or can
+    /// The media type is set to `text/plain` if no other media type has been set or can
     /// be sniffed. If a `Body` has no length, HTTP implementations will often switch over to
     /// framed messages such as [Chunked
     /// Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding).
@@ -351,7 +351,7 @@ impl Body {
 
     /// Create a `Body` from a file.
     ///
-    /// The MediaType type set to `application/octet-stream` if no other media_type type has
+    /// The media type set to `application/octet-stream` if no other media type has
     /// been set or can be sniffed.
     ///
     /// # Examples
@@ -410,12 +410,12 @@ impl Body {
         self.length.map(|length| length == 0)
     }
 
-    /// Returns the media_type type of this Body.
+    /// Returns the media type of this Body.
     pub fn media_type(&self) -> &MediaType {
         &self.media_type
     }
 
-    /// Sets the media_type type of this Body.
+    /// Sets the media type of this Body.
     pub fn set_media_type(&mut self, media_type: impl Into<MediaType>) {
         self.media_type = media_type.into();
     }
@@ -494,7 +494,7 @@ impl AsyncBufRead for Body {
     }
 }
 
-/// Look at first few bytes of a file to determine the media_type type.
+/// Look at first few bytes of a file to determine the media type.
 /// This is used for various binary formats such as images and videos.
 #[cfg(all(feature = "fs", not(target_os = "unknown")))]
 async fn peek_media_type(file: &mut async_std::fs::File) -> io::Result<Option<MediaType>> {
@@ -508,7 +508,7 @@ async fn peek_media_type(file: &mut async_std::fs::File) -> io::Result<Option<Me
     Ok(media_type)
 }
 
-/// Look at the extension of a file to determine the media_type type.
+/// Look at the extension of a file to determine the media type.
 /// This is useful for plain-text formats such as HTML and CSS.
 #[cfg(all(feature = "fs", not(target_os = "unknown")))]
 fn guess_ext(path: &std::path::Path) -> Option<MediaType> {

@@ -40,17 +40,17 @@ pub struct MediaType {
 }
 
 impl MediaType {
-    /// Sniff the media_type type from a byte slice.
+    /// Sniff the media type from a byte slice.
     pub fn sniff(bytes: &[u8]) -> crate::Result<Self> {
         let info = Infer::new();
         let media_type = match info.get(&bytes) {
             Some(info) => info.mime,
-            None => crate::bail!("Could not sniff the media_type type"),
+            None => crate::bail!("Could not sniff the media type"),
         };
         MediaType::from_str(&media_type)
     }
 
-    /// Guess the media_type type from a file extension
+    /// Guess the media type from a file extension
     pub fn from_extension(extension: impl AsRef<str>) -> Option<Self> {
         match extension.as_ref() {
             "html" => Some(HTML),

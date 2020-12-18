@@ -2,7 +2,7 @@ use std::fmt;
 
 use super::{MediaType, ParamKind, ParamName, ParamValue};
 
-/// Parse a string into a media_type type.
+/// Parse a string into a media type.
 /// Follows the [WHATWG MIME parsing algorithm](https://media_typesniff.spec.whatwg.org/#parsing-a-media_type-type)
 pub(crate) fn parse(input: &str) -> crate::Result<MediaType> {
     // 1
