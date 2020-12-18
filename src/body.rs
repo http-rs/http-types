@@ -1,4 +1,4 @@
-use futures_lite::{io, prelude::*, ready, AsyncRead as Read};
+use futures_lite::{io, prelude::*, ready, AsyncRead};
 use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
@@ -53,7 +53,7 @@ pin_project_lite::pin_project! {
     /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
-        reader: Box<dyn Read + Unpin + Send + Sync + 'static>,
+        reader: Box<dyn AsyncRead + Unpin + Send + Sync + 'static>,
         mime: Mime,
         length: Option<usize>,
         bytes_read: usize
@@ -103,7 +103,7 @@ impl Body {
     /// req.set_body(Body::from_reader(cursor, Some(len)));
     /// ```
     pub fn from_reader(
-        reader: impl Read + Unpin + Send + Sync + 'static,
+        reader: impl AsyncRead + Unpin + Send + Sync + 'static,
         len: Option<usize>,
     ) -> Self {
         Self {
@@ -127,7 +127,7 @@ impl Body {
     /// let body = Body::from_reader(cursor, None);
     /// let _ = body.into_reader();
     /// ```
-    pub fn into_reader(self) -> Box<dyn Read + Unpin + Send + Sync + 'static> {
+    pub fn into_reader(self) -> Box<dyn AsyncRead + Unpin + Send + Sync + 'static> {
         self.reader
     }
 
