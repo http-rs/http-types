@@ -62,8 +62,8 @@ impl Referer {
         let url = match Url::parse(header_value.as_str()) {
             Ok(url) => url,
             Err(_) => match base_url.try_into() {
-                Ok(base_url) => base_url.join(header_value.as_str().trim()).status(400)?,
-                Err(_) => bail!(400, "Invalid base url provided"),
+                Ok(base_url) => base_url.join(header_value.as_str().trim()).status(500)?,
+                Err(_) => bail!(500, "Invalid base url provided"),
             },
         };
 
@@ -94,14 +94,13 @@ impl Referer {
     }
 
     /// Set the url.
-    pub fn set_location<U>(&mut self, location: U)
+    pub fn set_location<U>(&mut self, location: U) -> Result<(), U::Error>
     where
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
     {
-        self.location = location
-            .try_into()
-            .expect("Could not convert into valid URL")
+        self.location = location.try_into()?;
+        Ok(())
     }
 }
 
@@ -132,7 +131,7 @@ mod test {
         headers.insert(REFERER, "htt://<nori ate the tag. yum.>");
         let err =
             Referer::from_headers(Url::parse("https://example.net").unwrap(), headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.status(), 500);
         Ok(())
     }
 
