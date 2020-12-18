@@ -20,7 +20,7 @@
 //! let mut accept = Accept::new();
 //! accept.push(MediaTypeProposal::new(mime::HTML, Some(0.8))?);
 //! accept.push(MediaTypeProposal::new(mime::XML, Some(0.4))?);
-//! accept.push(MediaTypeProposal::new(mime::PLAIN, None)?);
+//! accept.push(mime::PLAIN);
 //!
 //! let mut res = Response::new(200);
 //! let content_type = accept.negotiate(&[mime::XML])?;

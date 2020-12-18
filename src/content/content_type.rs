@@ -3,7 +3,7 @@ use std::{convert::TryInto, str::FromStr};
 use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_TYPE};
 use crate::Mime;
 
-/// Indicate the media type of the resource.
+/// Indicate the media type of a resource's content.
 ///
 /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type)
 ///
@@ -21,7 +21,7 @@ use crate::Mime;
 /// use http_types::{Response, Mime};
 /// use std::str::FromStr;
 ///
-/// let content_type = ContentType::new(Mime::from_str("text/*")?);
+/// let content_type = ContentType::new("text/*");
 ///
 /// let mut res = Response::new(200);
 /// content_type.apply(&mut res);

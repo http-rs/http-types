@@ -1,4 +1,4 @@
-//! Client header advertising which media types the client is able to understand
+//! Client header advertising which media types the client is able to understand.
 
 use crate::content::{ContentType, MediaTypeProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT};
@@ -9,7 +9,7 @@ use std::fmt::{self, Debug, Write};
 use std::option;
 use std::slice;
 
-/// Client header advertising which media types the client is able to understand
+/// Client header advertising which media types the client is able to understand.
 ///
 /// Using content negotiation, the server then selects one of the proposals, uses
 /// it and informs the client of its choice with the `Content-Type` response
@@ -17,7 +17,7 @@ use std::slice;
 /// where the request is done: when fetching a CSS stylesheet a different value
 /// is set for the request than when fetching an image, video or a script.
 ///
-/// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding)
+/// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept)
 ///
 /// # Specifications
 ///
@@ -34,7 +34,7 @@ use std::slice;
 /// let mut accept = Accept::new();
 /// accept.push(MediaTypeProposal::new(mime::HTML, Some(0.8))?);
 /// accept.push(MediaTypeProposal::new(mime::XML, Some(0.4))?);
-/// accept.push(MediaTypeProposal::new(mime::PLAIN, None)?);
+/// accept.push(mime::PLAIN);
 ///
 /// let mut res = Response::new(200);
 /// let content_type = accept.negotiate(&[mime::XML])?;
