@@ -126,6 +126,9 @@ pub mod mime;
 pub mod other;
 pub mod proxies;
 pub mod server;
+pub mod trace;
+pub mod transfer;
+pub mod upgrade;
 
 mod body;
 mod error;
@@ -138,9 +141,6 @@ mod response;
 mod status;
 mod status_code;
 mod version;
-
-pub mod trace;
-pub mod upgrade;
 
 pub use body::Body;
 pub use error::{Error, Result};
