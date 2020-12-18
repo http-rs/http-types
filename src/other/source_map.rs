@@ -60,7 +60,7 @@ impl SourceMap {
             Ok(url) => url,
             Err(_) => match base_url.try_into() {
                 Ok(base_url) => base_url.join(header_value.as_str().trim()).status(400)?,
-                Err(_) => bail!(400, "Invalid base url provided"),
+                Err(_) => bail!(500, "Invalid base url provided"),
             },
         };
 
@@ -91,14 +91,13 @@ impl SourceMap {
     }
 
     /// Set the url.
-    pub fn set_location<U>(&mut self, location: U)
+    pub fn set_location<U>(&mut self, location: U) -> Result<(), U::Error>
     where
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
     {
-        self.location = location
-            .try_into()
-            .expect("Could not convert into valid URL")
+        self.location = location.try_into()?;
+        Ok(())
     }
 }
 
