@@ -101,7 +101,7 @@ impl DerefMut for MediaTypeProposal {
     }
 }
 
-// NOTE: Firefox populates Accept-Accept as `gzip, deflate, br`. This means
+// NOTE: For Accept-Encoding Firefox sends the values: `gzip, deflate, br`. This means
 // when parsing media_types we should choose the last value in the list under
 // equal weights. This impl doesn't know which value was passed later, so that
 // behavior needs to be handled separately.
