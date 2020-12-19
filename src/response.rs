@@ -13,7 +13,7 @@ use crate::headers::{
     CONTENT_TYPE,
 };
 use crate::mime::Mime;
-use crate::trailers::{self, Trailers};
+use crate::transfer::{trailers, Trailers};
 use crate::upgrade;
 use crate::{Body, Extensions, StatusCode, Version};
 

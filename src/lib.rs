@@ -153,10 +153,18 @@ pub use status_code::StatusCode;
 pub use version::Version;
 
 #[doc(inline)]
+pub use transfer::trailers::Trailers;
+
+#[doc(inline)]
+pub use mime::Mime;
+
+#[doc(inline)]
+pub use headers::Headers;
+
+#[doc(inline)]
 pub use crate::url::Url;
 
 pub mod security;
-pub mod trailers;
 
 #[cfg(feature = "hyperium_http")]
 mod hyperium_http;
