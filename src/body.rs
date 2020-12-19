@@ -5,7 +5,7 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::{mime, Mime};
+use crate::mime::{self, Mime};
 use crate::{Status, StatusCode};
 
 pin_project_lite::pin_project! {

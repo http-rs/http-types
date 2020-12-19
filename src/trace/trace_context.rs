@@ -262,7 +262,7 @@ mod test {
 
     #[test]
     fn default() -> crate::Result<()> {
-        let mut headers = crate::Headers::new();
+        let mut headers = crate::headers::Headers::new();
         headers.insert(TRACEPARENT, "00-01-deadbeef-00");
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert_eq!(context.version(), 0);
@@ -285,7 +285,7 @@ mod test {
 
     #[test]
     fn not_sampled() -> crate::Result<()> {
-        let mut headers = crate::Headers::new();
+        let mut headers = crate::headers::Headers::new();
         headers.insert(TRACEPARENT, "00-01-02-00");
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert_eq!(context.sampled(), false);
@@ -294,7 +294,7 @@ mod test {
 
     #[test]
     fn sampled() -> crate::Result<()> {
-        let mut headers = crate::Headers::new();
+        let mut headers = crate::headers::Headers::new();
         headers.insert(TRACEPARENT, "00-01-02-01");
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert_eq!(context.sampled(), true);

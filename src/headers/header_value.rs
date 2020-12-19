@@ -4,7 +4,8 @@ use std::str::FromStr;
 
 use crate::headers::HeaderValues;
 use crate::Error;
-use crate::{Cookie, Mime};
+use crate::cookies::Cookie;
+use crate::mime::Mime;
 
 /// A header value.
 #[derive(Clone, Eq, PartialEq, Hash)]

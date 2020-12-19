@@ -1,5 +1,5 @@
 use super::ParamKind;
-use crate::Mime;
+use crate::mime::Mime;
 
 macro_rules! utf8_mime_const {
     ($name:ident, $desc:expr, $base:expr, $sub:expr) => {

@@ -1,4 +1,4 @@
-use crate::Headers;
+use crate::headers::Headers;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;

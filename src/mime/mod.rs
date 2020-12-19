@@ -19,7 +19,7 @@ use infer::Infer;
 /// An IANA media type.
 ///
 /// ```
-/// use http_types::Mime;
+/// use http_types::mime::Mime;
 /// use std::str::FromStr;
 ///
 /// let mime = Mime::from_str("text/html;charset=utf-8").unwrap();

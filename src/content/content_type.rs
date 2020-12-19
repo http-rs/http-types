@@ -1,7 +1,7 @@
 use std::{convert::TryInto, str::FromStr};
 
 use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_TYPE};
-use crate::Mime;
+use crate::mime::Mime;
 
 /// Indicate the media type of a resource's content.
 ///
@@ -18,7 +18,8 @@ use crate::Mime;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::content::ContentType;
-/// use http_types::{Response, Mime};
+/// use http_types::Response;
+/// use http_types::mime::Mime;
 /// use std::str::FromStr;
 ///
 /// let content_type = ContentType::new("text/*");

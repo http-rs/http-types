@@ -1,6 +1,6 @@
 use crate::ensure;
 use crate::headers::HeaderValue;
-use crate::Mime;
+use crate::mime::Mime;
 
 use std::ops::{Deref, DerefMut};
 use std::{
