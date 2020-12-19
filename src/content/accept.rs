@@ -2,9 +2,9 @@
 
 use crate::content::{ContentType, MediaTypeProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT};
+use crate::mime::Mime;
 use crate::utils::sort_by_weight;
 use crate::{Error, StatusCode};
-use crate::mime::Mime;
 
 use std::fmt::{self, Debug, Write};
 use std::option;

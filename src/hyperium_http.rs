@@ -1,7 +1,7 @@
 // This is the compat file for the "hyperium/http" crate.
 
-use crate::headers::{HeaderName, HeaderValue};
-use crate::{Body, Headers, Method, Request, Response, StatusCode, Url, Version};
+use crate::headers::{HeaderName, HeaderValue, Headers};
+use crate::{Body, Method, Request, Response, StatusCode, Url, Version};
 use std::convert::TryFrom;
 use std::str::FromStr;
 

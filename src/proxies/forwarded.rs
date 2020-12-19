@@ -545,7 +545,7 @@ mod tests {
         assert_eq!(forwarded.forwarded_for(), vec!["client.com"]);
         assert_eq!(forwarded.host(), Some("host.com"));
         assert_eq!(forwarded.proto(), Some("https"));
-        assert!(matches!(forwarded, Forwarded{..}));
+        assert!(matches!(forwarded, Forwarded { .. }));
         Ok(())
     }
 
@@ -644,7 +644,7 @@ mod tests {
         assert_eq!(forwarded.forwarded_for(), vec!["client"]);
         assert_eq!(forwarded.host(), Some("example.com"));
         assert_eq!(forwarded.proto(), Some("https"));
-        assert!(matches!(forwarded, Forwarded{..}));
+        assert!(matches!(forwarded, Forwarded { .. }));
         Ok(())
     }
 

@@ -2,10 +2,10 @@ use std::convert::TryFrom;
 use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
-use crate::headers::HeaderValues;
-use crate::Error;
 use crate::cookies::Cookie;
+use crate::headers::HeaderValues;
 use crate::mime::Mime;
+use crate::Error;
 
 /// A header value.
 #[derive(Clone, Eq, PartialEq, Hash)]
