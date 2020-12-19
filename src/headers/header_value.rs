@@ -3,8 +3,10 @@ use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
 use crate::headers::HeaderValues;
+#[cfg(feature = "cookies")]
+use crate::Cookie;
 use crate::Error;
-use crate::{Cookie, Mime};
+use crate::Mime;
 
 /// A header value.
 #[derive(Clone, Eq, PartialEq, Hash)]
@@ -54,6 +56,7 @@ impl From<Mime> for HeaderValue {
     }
 }
 
+#[cfg(feature = "cookies")]
 impl From<Cookie<'_>> for HeaderValue {
     fn from(cookie: Cookie<'_>) -> Self {
         HeaderValue {
