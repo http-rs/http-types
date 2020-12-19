@@ -1,4 +1,4 @@
-use http_types::{url::Url, Method};
+use http_types::Method;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -14,10 +14,7 @@ struct OptionalParams {
 
 #[test]
 fn successfully_deserialize_query() {
-    let req = http_types::Request::new(
-        Method::Get,
-        Url::parse("http://example.com/?msg=Hello").unwrap(),
-    );
+    let req = http_types::Request::new(Method::Get, "http://example.com/?msg=Hello").unwrap();
 
     let params = req.query::<Params>();
     assert!(params.is_ok());
@@ -26,7 +23,7 @@ fn successfully_deserialize_query() {
 
 #[test]
 fn unsuccessfully_deserialize_query() {
-    let req = http_types::Request::new(Method::Get, Url::parse("http://example.com/").unwrap());
+    let req = http_types::Request::new(Method::Get, "http://example.com/").unwrap();
 
     let params = req.query::<Params>();
     assert!(params.is_err());
@@ -38,10 +35,8 @@ fn unsuccessfully_deserialize_query() {
 
 #[test]
 fn malformatted_query() {
-    let req = http_types::Request::new(
-        Method::Get,
-        Url::parse("http://example.com/?error=should_fail").unwrap(),
-    );
+    let req =
+        http_types::Request::new(Method::Get, "http://example.com/?error=should_fail").unwrap();
 
     let params = req.query::<Params>();
     assert!(params.is_err());
@@ -53,7 +48,7 @@ fn malformatted_query() {
 
 #[test]
 fn empty_query_string_for_struct_with_no_required_fields() {
-    let req = http_types::Request::new(Method::Get, Url::parse("http://example.com").unwrap());
+    let req = http_types::Request::new(Method::Get, "http://example.com").unwrap();
 
     let params = req.query::<OptionalParams>();
     assert!(params.is_ok());

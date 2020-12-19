@@ -27,7 +27,7 @@
 //! use async_std::task;
 //! use std::str::FromStr;
 //!
-//! let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+//! let mut req = Request::new(Method::Get, "https://example.com")?;
 //!
 //! let sender = req.send_trailers();
 //! let mut trailers = Trailers::new();

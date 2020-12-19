@@ -129,9 +129,9 @@ impl TraceContext {
     /// # fn main() -> http_types::Result<()> {
     /// #
     /// use http_types::trace::TraceContext;
-    /// use http_types::{Request, Response, Url, Method};
+    /// use http_types::{Method, Request, Response};
     ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
+    /// let mut req = Request::new(Method::Get, "https://example.com")?;
     /// req.insert_header(
     ///   "traceparent",
     ///   "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
