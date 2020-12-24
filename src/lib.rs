@@ -102,6 +102,7 @@
 #![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
 
 /// HTTP cookies.
+#[cfg(feature = "cookies")]
 pub mod cookies {
     pub use cookie::*;
 }
@@ -163,6 +164,7 @@ pub use headers::Headers;
 #[doc(inline)]
 pub use crate::url::Url;
 
+#[cfg(feature = "cookies")]
 #[doc(inline)]
 pub use crate::cookies::Cookie;
 
