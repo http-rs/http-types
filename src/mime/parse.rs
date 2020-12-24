@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt;
 
 use super::{Mime, ParamKind, ParamName, ParamValue};
@@ -107,13 +108,10 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
     }
 
     Ok(Mime {
-        essence: format!("{}/{}", &basetype, &subtype),
-        basetype,
-        subtype,
+        essence: Cow::Owned(format!("{}/{}", &basetype, &subtype)),
+        basetype: basetype.into(),
+        subtype: subtype.into(),
         params: params.map(ParamKind::Vec),
-        static_essence: None,
-        static_basetype: None,
-        static_subtype: None,
     })
 }
 
@@ -205,11 +203,7 @@ fn collect_http_quoted_string(mut input: &str) -> (String, &str) {
 
 /// Implementation of [WHATWG MIME serialization algorithm](https://mimesniff.spec.whatwg.org/#serializing-a-mime-type)
 pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    if let Some(essence) = mime_type.static_essence {
-        write!(f, "{}", essence)?
-    } else {
-        write!(f, "{}", &mime_type.essence)?
-    }
+    write!(f, "{}", &mime_type.essence)?;
     if let Some(params) = &mime_type.params {
         match params {
             ParamKind::Utf8 => write!(f, ";charset=utf-8")?,

@@ -28,14 +28,11 @@ use infer::Infer;
 /// ```
 // NOTE: we cannot statically initialize Strings with values yet, so we keep dedicated static
 // fields for the static strings.
-#[derive(Clone)]
+#[derive(Clone, Eq)]
 pub struct Mime {
-    pub(crate) essence: String,
-    pub(crate) basetype: String,
-    pub(crate) subtype: String,
-    pub(crate) static_essence: Option<&'static str>,
-    pub(crate) static_basetype: Option<&'static str>,
-    pub(crate) static_subtype: Option<&'static str>,
+    pub(crate) essence: Cow<'static, str>,
+    pub(crate) basetype: Cow<'static, str>,
+    pub(crate) subtype: Cow<'static, str>,
     pub(crate) params: Option<ParamKind>,
 }
 
@@ -68,29 +65,17 @@ impl Mime {
     /// According to the spec this method should be named `type`, but that's a reserved keyword in
     /// Rust so hence prefix with `base` instead.
     pub fn basetype(&self) -> &str {
-        if let Some(basetype) = self.static_basetype {
-            &basetype
-        } else {
-            &self.basetype
-        }
+        &self.basetype
     }
 
     /// Access the Mime's `subtype` value.
     pub fn subtype(&self) -> &str {
-        if let Some(subtype) = self.static_subtype {
-            &subtype
-        } else {
-            &self.subtype
-        }
+        &self.subtype
     }
 
     /// Access the Mime's `essence` value.
     pub fn essence(&self) -> &str {
-        if let Some(essence) = self.static_essence {
-            &essence
-        } else {
-            &self.essence
-        }
+        &self.essence
     }
 
     /// Get a reference to a param.
@@ -138,20 +123,6 @@ impl Mime {
     }
 }
 
-impl PartialEq<Mime> for Mime {
-    fn eq(&self, other: &Mime) -> bool {
-        let left = match self.static_essence {
-            Some(essence) => essence,
-            None => &self.essence,
-        };
-        let right = match other.static_essence {
-            Some(essence) => essence,
-            None => &other.essence,
-        };
-        left == right
-    }
-}
-
 impl Display for Mime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         parse::format(self, f)
@@ -160,11 +131,7 @@ impl Display for Mime {
 
 impl Debug for Mime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(essence) = self.static_essence {
-            Debug::fmt(essence, f)
-        } else {
-            Debug::fmt(&self.essence, f)
-        }
+        Debug::fmt(&self.essence, f)
     }
 }
 
@@ -196,6 +163,13 @@ impl ToHeaderValues for Mime {
         Ok(header.to_header_values().unwrap())
     }
 }
+
+impl PartialEq<Mime> for Mime {
+    fn eq(&self, other: &Mime) -> bool {
+        self.essence == other.essence
+    }
+}
+
 /// A parameter name.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ParamName(Cow<'static, str>);

@@ -1,5 +1,6 @@
 use super::ParamKind;
 use crate::Mime;
+use std::borrow::Cow;
 
 macro_rules! utf8_mime_const {
     ($name:ident, $desc:expr, $base:expr, $sub:expr) => {
@@ -32,13 +33,10 @@ macro_rules! mime_const {
     (doc_expanded, $name:ident, $desc:expr, $base:expr, $sub:expr, $params:expr, $doccomment:expr) => {
         #[doc = $doccomment]
         pub const $name: Mime = Mime {
-            essence: String::new(),
-            basetype: String::new(),
-            subtype: String::new(),
+            essence: Cow::Borrowed(concat!($base, "/", $sub)),
+            basetype: Cow::Borrowed($base),
+            subtype: Cow::Borrowed($sub),
             params: $params,
-            static_essence: Some(concat!($base, "/", $sub)),
-            static_basetype: Some($base),
-            static_subtype: Some($sub),
         };
     };
 }
