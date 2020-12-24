@@ -1,8 +1,8 @@
-// #[cfg(features = "fs")]
+#[cfg(features = "fs")]
 mod tests {
     use async_std::fs;
     use async_std::io;
-    use http_types::{mime, Body, Request, Response};
+    use http_types::{mime, Body, Response};
 
     #[async_std::test]
     async fn guess_plain_text_mime() -> io::Result<()> {

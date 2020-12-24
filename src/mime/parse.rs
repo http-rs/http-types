@@ -214,23 +214,15 @@ pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Resul
         if value.0.chars().all(is_http_token_code_point) && !value.0.is_empty() {
             write!(f, ";{}={}", name, value)?;
         } else {
-            write!(
-                f,
-                ";{}=\"{}\"",
-                name,
-                value
-                    .0
-                    .chars()
-                    .flat_map(|c| match c {
-                        '"' | '\\' => EscapeMimeValue {
-                            state: EscapeMimeValueState::Backslash(c)
-                        },
-                        c => EscapeMimeValue {
-                            state: EscapeMimeValueState::Char(c)
-                        },
-                    })
-                    .collect::<String>()
-            )?;
+            let value = value
+                .0
+                .chars()
+                .flat_map(|c| match c {
+                    '"' | '\\' => EscapeMimeValue::backslash(c),
+                    c => EscapeMimeValue::char(c),
+                })
+                .collect::<String>();
+            write!(f, ";{}=\"{}\"", name, value)?;
         }
     }
     Ok(())
@@ -238,6 +230,20 @@ pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Resul
 
 struct EscapeMimeValue {
     state: EscapeMimeValueState,
+}
+
+impl EscapeMimeValue {
+    fn backslash(c: char) -> Self {
+        EscapeMimeValue {
+            state: EscapeMimeValueState::Backslash(c),
+        }
+    }
+
+    fn char(c: char) -> Self {
+        EscapeMimeValue {
+            state: EscapeMimeValueState::Char(c),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
