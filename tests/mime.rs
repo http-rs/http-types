@@ -1,8 +1,8 @@
-#[cfg(features = "fs")]
+// #[cfg(features = "fs")]
 mod tests {
     use async_std::fs;
     use async_std::io;
-    use http_types::{mime, Body, Response};
+    use http_types::{mime, Body, Request, Response};
 
     #[async_std::test]
     async fn guess_plain_text_mime() -> io::Result<()> {
@@ -44,4 +44,13 @@ mod tests {
         assert_eq!(res.content_type(), Some(mime::BYTE_STREAM));
         Ok(())
     }
+
+    // #[test]
+    // fn match_mime_types() {
+    //     let req = Request::get("https://example.com");
+    //     match req.content_type() {
+    //         Some(mime::JSON) => {}
+    //         _ => {}
+    //     }
+    // }
 }

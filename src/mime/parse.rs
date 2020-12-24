@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::fmt;
 
-use super::{Mime, ParamKind, ParamName, ParamValue};
+use super::{Mime, ParamName, ParamValue};
 
 /// Parse a string into a mime type.
 /// Follows the [WHATWG MIME parsing algorithm](https://mimesniff.spec.whatwg.org/#parsing-a-mime-type)
@@ -41,7 +41,8 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
     // 10.
     let basetype = basetype.to_ascii_lowercase();
     let subtype = subtype.to_ascii_lowercase();
-    let mut params = None;
+    let mut params = vec![];
+    let mut is_utf8 = false;
 
     // 11.
     let mut input = input;
@@ -92,13 +93,14 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
         };
 
         // 10.
-        if !parameter_name.is_empty()
+        if parameter_name == "charset" && parameter_value == "utf-8" {
+            is_utf8 = true;
+        } else if !parameter_name.is_empty()
             && parameter_name.chars().all(is_http_token_code_point)
             && parameter_value
                 .chars()
                 .all(is_http_quoted_string_token_code_point)
         {
-            let params = params.get_or_insert_with(Vec::new);
             let name = ParamName(parameter_name.into());
             let value = ParamValue(parameter_value.into());
             if !params.iter().any(|(k, _)| k == &name) {
@@ -111,7 +113,8 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
         essence: Cow::Owned(format!("{}/{}", &basetype, &subtype)),
         basetype: basetype.into(),
         subtype: subtype.into(),
-        params: params.map(ParamKind::Vec),
+        params,
+        is_utf8,
     })
 }
 
@@ -204,34 +207,30 @@ fn collect_http_quoted_string(mut input: &str) -> (String, &str) {
 /// Implementation of [WHATWG MIME serialization algorithm](https://mimesniff.spec.whatwg.org/#serializing-a-mime-type)
 pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", &mime_type.essence)?;
-    if let Some(params) = &mime_type.params {
-        match params {
-            ParamKind::Utf8 => write!(f, ";charset=utf-8")?,
-            ParamKind::Vec(params) => {
-                for (name, value) in params {
-                    if value.0.chars().all(is_http_token_code_point) && !value.0.is_empty() {
-                        write!(f, ";{}={}", name, value)?;
-                    } else {
-                        write!(
-                            f,
-                            ";{}=\"{}\"",
-                            name,
-                            value
-                                .0
-                                .chars()
-                                .flat_map(|c| match c {
-                                    '"' | '\\' => EscapeMimeValue {
-                                        state: EscapeMimeValueState::Backslash(c)
-                                    },
-                                    c => EscapeMimeValue {
-                                        state: EscapeMimeValueState::Char(c)
-                                    },
-                                })
-                                .collect::<String>()
-                        )?;
-                    }
-                }
-            }
+    if mime_type.is_utf8 {
+        write!(f, ";charset=utf-8")?;
+    }
+    for (name, value) in mime_type.params.iter() {
+        if value.0.chars().all(is_http_token_code_point) && !value.0.is_empty() {
+            write!(f, ";{}={}", name, value)?;
+        } else {
+            write!(
+                f,
+                ";{}=\"{}\"",
+                name,
+                value
+                    .0
+                    .chars()
+                    .flat_map(|c| match c {
+                        '"' | '\\' => EscapeMimeValue {
+                            state: EscapeMimeValueState::Backslash(c)
+                        },
+                        c => EscapeMimeValue {
+                            state: EscapeMimeValueState::Char(c)
+                        },
+                    })
+                    .collect::<String>()
+            )?;
         }
     }
     Ok(())
