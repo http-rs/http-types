@@ -1,9 +1,9 @@
-use std::time::Duration;
-use std::{convert::TryInto, str::FromStr};
+use std::time::{Duration, SystemTime, SystemTimeError};
 
 use crate::headers::{HeaderName, HeaderValue, Headers, RETRY_AFTER};
+use crate::utils::{fmt_http_date, parse_http_date};
 
-/// Indicate an alternate location for the returned data
+/// Indicate how long the user agent should wait before making a follow-up request.
 ///
 /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After)
 ///
@@ -13,73 +13,80 @@ use crate::headers::{HeaderName, HeaderValue, Headers, RETRY_AFTER};
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::other::RetryAfter;
-/// use http_types::{Response, Duration};
+/// use http_types::Response;
+/// use std::time::{SystemTime, Duration};
+/// use async_std::task;
 ///
-/// let loc = RetryAfter::new(Duration::parse("https://example.com/foo/bar")?);
+/// let now = SystemTime::now();
+/// let retry = RetryAfter::new_at(now + Duration::from_secs(10));
 ///
-/// let mut res = Response::new(200);
-/// loc.apply(&mut res);
+/// let mut headers = Response::new(429);
+/// retry.apply(&mut headers);
 ///
-/// let base_url = Duration::parse("https://example.com")?;
-/// let loc = RetryAfter::from_headers(base_url, res)?.unwrap();
-/// assert_eq!(
-///     loc.value(),
-///     Duration::parse("https://example.com/foo/bar")?.as_str()
-/// );
+/// // Sleep for the duration, then try the task again.
+/// let retry = RetryAfter::from_headers(headers)?.unwrap();
+/// task::sleep(retry.duration_since(now)?);
 /// #
 /// # Ok(()) }
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RetryAfter {
-    dur: Duration,
+    inner: RetryDirective,
 }
 
 #[allow(clippy::len_without_is_empty)]
 impl RetryAfter {
-    /// Create a new instance.
+    /// Create a new instance from a `Duration`.
+    ///
+    /// This value will be encoded over the wire as a relative offset in seconds.
     pub fn new(dur: Duration) -> Self {
         Self {
-            dur: location
-                .try_into()
-                .expect("could not convert into a valid URL"),
+            inner: RetryDirective::Duration(dur),
+        }
+    }
+
+    /// Create a new instance from a `SystemTime` instant.
+    ///
+    /// This value will be encoded a specific `Date` over the wire.
+    pub fn new_at(at: SystemTime) -> Self {
+        Self {
+            inner: RetryDirective::SystemTime(at),
         }
     }
 
     /// Create a new instance from headers.
-    ///
-    /// `Retry-After` headers can provide both full and partial URLs. In
-    /// order to always return fully qualified URLs, a base URL must be passed to
-    /// reference the current environment. In HTTP/1.1 and above this value can
-    /// always be determined from the request.
-    pub fn from_headers<U>(base_url: U, headers: impl AsRef<Headers>) -> crate::Result<Option<Self>>
-    where
-        U: TryInto<Duration>,
-        U::Error: std::fmt::Debug,
-    {
-        let headers = match headers.as_ref().get(RETRY_AFTER) {
-            Some(headers) => headers,
+    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+        let header = match headers.as_ref().get(RETRY_AFTER) {
+            Some(headers) => headers.last(),
             None => return Ok(None),
         };
 
-        // If we successfully parsed the header then there's always at least one
-        // entry. We want the last entry.
-        let location = headers.iter().last().unwrap();
-
-        let location = match Duration::from_str(location.as_str()) {
-            Ok(url) => url,
+        let inner = match header.as_str().parse::<u64>() {
+            Ok(dur) => RetryDirective::Duration(Duration::from_secs(dur)),
             Err(_) => {
-                let base_url = base_url
-                    .try_into()
-                    .expect("Could not convert base_url into a valid URL");
-                let url = base_url.join(location.as_str())?;
-                url
+                let at = parse_http_date(header.as_str())?;
+                RetryDirective::SystemTime(at)
             }
         };
-        Ok(Some(Self { dur: location }))
+        Ok(Some(Self { inner }))
+    }
+
+    /// Returns the amount of time elapsed from an earlier point in time.
+    ///
+    /// # Errors
+    ///
+    /// This may return an error if the `earlier` time was after the current time.
+    pub fn duration_since(&self, earlier: SystemTime) -> Result<Duration, SystemTimeError> {
+        let at = match self.inner {
+            RetryDirective::Duration(dur) => SystemTime::now() + dur,
+            RetryDirective::SystemTime(at) => at,
+        };
+
+        at.duration_since(earlier)
     }
 
     /// Sets the header.
@@ -94,9 +101,21 @@ impl RetryAfter {
 
     /// Get the `HeaderValue`.
     pub fn value(&self) -> HeaderValue {
-        let output = format!("{}", self.dur);
+        let output = match self.inner {
+            RetryDirective::Duration(dur) => format!("{}", dur.as_secs()),
+            RetryDirective::SystemTime(at) => fmt_http_date(at),
+        };
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+    }
+}
+
+impl Into<SystemTime> for RetryAfter {
+    fn into(self) -> SystemTime {
+        match self.inner {
+            RetryDirective::Duration(dur) => SystemTime::now() + dur,
+            RetryDirective::SystemTime(at) => at,
+        }
     }
 }
 
@@ -105,22 +124,30 @@ mod test {
     use super::*;
     use crate::headers::Headers;
 
-    // NOTE(yosh): I couldn't get a 400 test in because I couldn't generate any
-    // invalid URLs. By default they get escaped, so ehhh -- I think it's fine.
-
     #[test]
     fn smoke() -> crate::Result<()> {
-        let loc = RetryAfter::new(Duration::parse("https://example.com/foo/bar")?);
+        let now = SystemTime::now();
+        let retry = RetryAfter::new_at(now + Duration::from_secs(10));
 
         let mut headers = Headers::new();
-        loc.apply(&mut headers);
+        retry.apply(&mut headers);
 
-        let base_url = Duration::parse("https://example.com")?;
-        let loc = RetryAfter::from_headers(base_url, headers)?.unwrap();
-        assert_eq!(
-            loc.value(),
-            Duration::parse("https://example.com/foo/bar")?.as_str()
-        );
+        // `SystemTime::now` uses sub-second precision which means there's some
+        // offset that's not encoded.
+        let retry = RetryAfter::from_headers(headers)?.unwrap();
+        let delta = retry.duration_since(now)?;
+        assert!(delta >= Duration::from_secs(9));
+        assert!(delta <= Duration::from_secs(10));
         Ok(())
     }
+}
+
+/// What value are we decoding into?
+///
+/// This value is intionally never exposes; all end-users want is a `Duration`
+/// value that tells them how long to wait for before trying again.
+#[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
+enum RetryDirective {
+    Duration(Duration),
+    SystemTime(SystemTime),
 }
