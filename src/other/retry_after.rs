@@ -21,15 +21,14 @@ use crate::utils::{fmt_http_date, parse_http_date};
 /// use std::time::{SystemTime, Duration};
 /// use async_std::task;
 ///
-/// let now = SystemTime::now();
-/// let retry = RetryAfter::new_at(now + Duration::from_secs(10));
+/// let retry = RetryAfter::new(Duration::from_secs(10));
 ///
 /// let mut headers = Response::new(429);
 /// retry.apply(&mut headers);
 ///
 /// // Sleep for the duration, then try the task again.
 /// let retry = RetryAfter::from_headers(headers)?.unwrap();
-/// task::sleep(retry.duration_since(now)?);
+/// task::sleep(retry.duration_since(SystemTime::now())?);
 /// #
 /// # Ok(()) }
 /// ```
@@ -119,6 +118,16 @@ impl Into<SystemTime> for RetryAfter {
     }
 }
 
+/// What value are we decoding into?
+///
+/// This value is intionally never exposes; all end-users want is a `Duration`
+/// value that tells them how long to wait for before trying again.
+#[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
+enum RetryDirective {
+    Duration(Duration),
+    SystemTime(SystemTime),
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -126,6 +135,24 @@ mod test {
 
     #[test]
     fn smoke() -> crate::Result<()> {
+        let retry = RetryAfter::new(Duration::from_secs(10));
+
+        let mut headers = Headers::new();
+        retry.apply(&mut headers);
+
+        // `SystemTime::now` uses sub-second precision which means there's some
+        // offset that's not encoded.
+        let now = SystemTime::now();
+        let retry = RetryAfter::from_headers(headers)?.unwrap();
+        assert_eq!(
+            retry.duration_since(now)?.as_secs(),
+            Duration::from_secs(10).as_secs()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn new_at() -> crate::Result<()> {
         let now = SystemTime::now();
         let retry = RetryAfter::new_at(now + Duration::from_secs(10));
 
@@ -140,14 +167,4 @@ mod test {
         assert!(delta <= Duration::from_secs(10));
         Ok(())
     }
-}
-
-/// What value are we decoding into?
-///
-/// This value is intionally never exposes; all end-users want is a `Duration`
-/// value that tells them how long to wait for before trying again.
-#[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-enum RetryDirective {
-    Duration(Duration),
-    SystemTime(SystemTime),
 }
