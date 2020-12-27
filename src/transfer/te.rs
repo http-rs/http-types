@@ -33,7 +33,7 @@ use std::slice;
 /// let encoding = te.negotiate(&[Encoding::Brotli, Encoding::Gzip])?;
 /// encoding.apply(&mut res);
 ///
-/// assert_eq!(res["Content-Encoding"], "br");
+/// assert_eq!(res["Transfer-Encoding"], "br");
 /// #
 /// # Ok(()) }
 /// ```
