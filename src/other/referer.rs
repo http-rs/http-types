@@ -104,6 +104,15 @@ impl Referer {
     }
 }
 
+impl crate::headers::Header for Referer {
+    fn header_name(&self) -> HeaderName {
+        REFERER
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

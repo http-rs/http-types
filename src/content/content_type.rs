@@ -91,6 +91,15 @@ impl ContentType {
     }
 }
 
+impl crate::headers::Header for ContentType {
+    fn header_name(&self) -> HeaderName {
+        CONTENT_TYPE
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl PartialEq<Mime> for ContentType {
     fn eq(&self, other: &Mime) -> bool {
         &self.media_type == other

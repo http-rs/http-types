@@ -1,3 +1,5 @@
+use http::header::LAST_MODIFIED;
+
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, LAST_MODIFIED};
 use crate::utils::{fmt_http_date, parse_http_date};
 
@@ -81,6 +83,15 @@ impl LastModified {
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+    }
+}
+
+impl crate::headers::Header for LastModified {
+    fn header_name(&self) -> HeaderName {
+        LAST_MODIFIED
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 

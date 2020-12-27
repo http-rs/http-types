@@ -1,6 +1,7 @@
 //! HTTP headers.
 
 mod constants;
+mod header;
 mod header_name;
 mod header_value;
 mod header_values;
@@ -14,6 +15,7 @@ mod to_header_values;
 mod values;
 
 pub use constants::*;
+pub use header::Header;
 pub use header_name::HeaderName;
 pub use header_value::HeaderValue;
 pub use header_values::HeaderValues;

@@ -131,6 +131,15 @@ impl ServerTiming {
     }
 }
 
+impl crate::headers::Header for ServerTiming {
+    fn header_name(&self) -> HeaderName {
+        SERVER_TIMING
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for ServerTiming {
     type Item = Metric;
     type IntoIter = IntoIter;

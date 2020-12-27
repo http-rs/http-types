@@ -1,5 +1,7 @@
 //! Apply the HTTP method if the ETag matches.
 
+use http::header::IF_MATCH;
+
 use crate::conditional::ETag;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MATCH};
 
@@ -131,6 +133,15 @@ impl IfMatch {
         IterMut {
             inner: self.entries.iter_mut(),
         }
+    }
+}
+
+impl crate::headers::Header for IfMatch {
+    fn header_name(&self) -> HeaderName {
+        IF_MATCH
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 

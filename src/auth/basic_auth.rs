@@ -1,3 +1,5 @@
+use anyhow::bail;
+
 use crate::auth::{AuthenticationScheme, Authorization};
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 use crate::Status;
@@ -110,6 +112,16 @@ impl BasicAuth {
     /// Get the password.
     pub fn password(&self) -> &str {
         self.password.as_str()
+    }
+}
+
+impl crate::headers::Header for BasicAuth {
+    fn header_name(&self) -> HeaderName {
+        AUTHORIZATION
+    }
+
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 

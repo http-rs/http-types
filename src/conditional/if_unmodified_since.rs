@@ -1,3 +1,5 @@
+use http::header::IF_UNMODIFIED_SINCE;
+
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_UNMODIFIED_SINCE};
 use crate::utils::{fmt_http_date, parse_http_date};
 
@@ -82,6 +84,15 @@ impl IfUnmodifiedSince {
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+    }
+}
+
+impl crate::headers::Header for IfUnmodifiedSince {
+    fn header_name(&self) -> HeaderName {
+        IF_UNMODIFIED_SINCE
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 

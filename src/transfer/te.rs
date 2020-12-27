@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT_ENCODING};
+use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues};
 use crate::transfer::{Encoding, EncodingProposal, TransferEncoding};
 use crate::utils::sort_by_weight;
 use crate::{Error, StatusCode};
@@ -54,7 +54,7 @@ impl TE {
     /// Create an instance of `TE` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(ACCEPT_ENCODING) {
+        let headers = match headers.as_ref().get(headers::TE) {
             Some(headers) => headers,
             None => return Ok(None),
         };
@@ -138,12 +138,12 @@ impl TE {
 
     /// Sets the `Accept-Encoding` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(ACCEPT_ENCODING, self.value());
+        headers.as_mut().insert(headers::TE, self.value());
     }
 
     /// Get the `HeaderName`.
     pub fn name(&self) -> HeaderName {
-        ACCEPT_ENCODING
+        headers::TE
     }
 
     /// Get the `HeaderValue`.
@@ -180,6 +180,15 @@ impl TE {
         IterMut {
             inner: self.entries.iter_mut(),
         }
+    }
+}
+
+impl crate::headers::Header for TE {
+    fn header_name(&self) -> HeaderName {
+        headers::TE
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 

@@ -90,6 +90,15 @@ impl Expires {
     }
 }
 
+impl crate::headers::Header for Expires {
+    fn header_name(&self) -> HeaderName {
+        EXPIRES
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl ToHeaderValues for Expires {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {

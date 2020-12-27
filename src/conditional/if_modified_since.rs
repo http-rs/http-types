@@ -1,3 +1,5 @@
+use http::header::IF_MODIFIED_SINCE;
+
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MODIFIED_SINCE};
 use crate::utils::{fmt_http_date, parse_http_date};
 
@@ -90,6 +92,15 @@ impl ToHeaderValues for IfModifiedSince {
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
         Ok(self.value().to_header_values().unwrap())
+    }
+}
+
+impl crate::headers::Header for IfModifiedSince {
+    fn header_name(&self) -> HeaderName {
+        IF_MODIFIED_SINCE
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 
