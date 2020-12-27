@@ -2,7 +2,7 @@ use crate::bail_status as bail;
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-/// A relationship passed as part of a [`LinkDirective`].
+/// A relationship that's part of a [`LinkDirective`][crate::other::LinkDirective].
 ///
 /// # Specifications
 ///
@@ -455,10 +455,3 @@ impl FromStr for RelationType {
         }
     }
 }
-
-// https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=7865c2b552623ee5a770c377664bcedd
-// https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=d70ff41ea9fcfa8a94a1584f48a464e3
-// https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=e58695d3302e5086224847133c539344
-// https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=e58695d3302e5086224847133c539344
-// https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=e58695d3302e5086224847133c539344
-// https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=e58695d3302e5086224847133c539344

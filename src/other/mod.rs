@@ -10,6 +10,7 @@ mod source_map;
 
 pub use date::Date;
 pub use expect::Expect;
+pub use link::Link;
 pub use link_directive::LinkDirective;
 pub use referer::Referer;
 pub use relation_type::RelationType;
