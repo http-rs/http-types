@@ -120,6 +120,9 @@ pub const IF_UNMODIFIED_SINCE: HeaderName = HeaderName::from_lowercase_str("if-u
 ///  The `Last-Modified` Header
 pub const LAST_MODIFIED: HeaderName = HeaderName::from_lowercase_str("last-modified");
 
+///  The `Link` Header
+pub const LINK: HeaderName = HeaderName::from_lowercase_str("link");
+
 ///  The `Location` Header
 pub const LOCATION: HeaderName = HeaderName::from_lowercase_str("location");
 
