@@ -1,5 +1,3 @@
-use anyhow::bail;
-
 use crate::auth::{AuthenticationScheme, Authorization};
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 use crate::Status;

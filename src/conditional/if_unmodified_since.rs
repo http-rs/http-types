@@ -1,5 +1,3 @@
-use http::header::IF_UNMODIFIED_SINCE;
-
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_UNMODIFIED_SINCE};
 use crate::utils::{fmt_http_date, parse_http_date};
 

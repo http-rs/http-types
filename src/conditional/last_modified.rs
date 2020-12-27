@@ -1,5 +1,3 @@
-use http::header::LAST_MODIFIED;
-
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, LAST_MODIFIED};
 use crate::utils::{fmt_http_date, parse_http_date};
 

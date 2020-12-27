@@ -1,7 +1,5 @@
 //! Apply the HTTP method if the ETag matches.
 
-use http::header::IF_MATCH;
-
 use crate::conditional::ETag;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MATCH};
 

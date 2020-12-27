@@ -9,8 +9,6 @@ use std::fmt::{self, Debug, Write};
 use std::option;
 use std::slice;
 
-use super::AcceptEncoding;
-
 /// Client header advertising which media types the client is able to understand.
 ///
 /// Using content negotiation, the server then selects one of the proposals, uses

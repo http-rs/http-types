@@ -3,8 +3,6 @@
 //! This is used to update caches or to prevent uploading a new resource when
 //! one already exists.
 
-use http::header::IF_NONE_MATCH;
-
 use crate::conditional::ETag;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_NONE_MATCH};
 
