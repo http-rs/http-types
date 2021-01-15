@@ -44,4 +44,13 @@ mod tests {
         assert_eq!(res.content_type(), Some(mime::BYTE_STREAM));
         Ok(())
     }
+
+    // #[test]
+    // fn match_mime_types() {
+    //     let req = Request::get("https://example.com");
+    //     match req.content_type() {
+    //         Some(mime::JSON) => {}
+    //         _ => {}
+    //     }
+    // }
 }
