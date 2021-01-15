@@ -351,8 +351,9 @@ impl Body {
 
     /// Create a `Body` from a file.
     ///
-    /// The Mime type set to `application/octet-stream` if no other mime type has
-    /// been set or can be sniffed.
+    /// The Mime type is sniffed from the file contents if possible, otherwise
+    /// it is inferred from the path's extension if possible, otherwise is set
+    /// to `application/octet-stream`.
     ///
     /// # Examples
     ///
@@ -370,7 +371,36 @@ impl Body {
         P: AsRef<std::path::Path>,
     {
         let path = path.as_ref();
-        let mut file = async_std::fs::File::open(path).await?;
+        let file = async_std::fs::File::open(path).await?;
+        Self::from_open_file(file, path).await
+    }
+
+    /// Create a `Body` from an already-open file.
+    ///
+    /// The Mime type is sniffed from the file contents if possible, otherwise
+    /// it is inferred from the path's extension if possible, otherwise is set
+    /// to `application/octet-stream`.
+    ///
+    /// The path here is only used to provide an extension for guessing the Mime
+    /// type, and may be empty if the path is unknown.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
+    /// use http_types::{Body, Response, StatusCode};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// let path = std::path::Path::new("/path/to/file");
+    /// let file = async_std::fs::File::open(path).await?;
+    /// res.set_body(Body::from_open_file(file, path).await?);
+    /// # Ok(()) }) }
+    /// ```
+    #[cfg(all(feature = "fs", not(target_os = "unknown")))]
+    pub async fn from_open_file(
+        mut file: async_std::fs::File,
+        path: &std::path::Path,
+    ) -> io::Result<Self> {
         let len = file.metadata().await?.len();
 
         // Look at magic bytes first, look at extension second, fall back to
