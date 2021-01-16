@@ -692,6 +692,12 @@ impl std::convert::TryFrom<u16> for StatusCode {
     }
 }
 
+impl PartialEq<&StatusCode> for u16 {
+    fn eq(&self, other: &&StatusCode) -> bool {
+        *self == **other as u16
+    }
+}
+
 impl PartialEq<StatusCode> for u16 {
     fn eq(&self, other: &StatusCode) -> bool {
         *self == *other as u16
@@ -701,6 +707,12 @@ impl PartialEq<StatusCode> for u16 {
 impl PartialEq<u16> for StatusCode {
     fn eq(&self, other: &u16) -> bool {
         *self as u16 == *other
+    }
+}
+
+impl PartialEq<u16> for &StatusCode {
+    fn eq(&self, other: &u16) -> bool {
+        **self as u16 == *other
     }
 }
 
