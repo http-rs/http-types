@@ -1,8 +1,15 @@
 //! Multipart/form-data types.
 //!
+//! # Specifications
+//!
+//! [RFC 2046, section 5.1: Multipart Media Type](https://tools.ietf.org/html/rfc2046#section-5.1)
+//! [RFC 2388: Returning Values from Forms: multipart/form-data](https://tools.ietf.org/html/rfc2388)
+//! [RFC 7578: Returning Values from Forms: multipart/form-data](https://tools.ietf.org/html/rfc7578)
+//!
 //! # Examples
 //!
 //! Request:
+//!
 //! ```
 //! use http_types::multipart::{Multipart, Entry};
 //!
@@ -27,7 +34,7 @@
 //! let mut entries = res.body_multipart();
 //! while let Some(entry) = entries.await {
 //!     println!("name: {}", entry.name());
-//!     println!("data: {}", entry.into_string()?);
+//!     println!("data: {}", entry.into_string().await?);
 //! }
 //! ```
 
@@ -38,7 +45,6 @@ use std::{fmt::Debug, pin::Pin, str::FromStr};
 
 use futures_core::stream::Stream;
 use futures_lite::{io, prelude::*};
-use futures_util::stream::TryStreamExt;
 use multipart::server::Multipart as Parser;
 
 use crate::mime;
@@ -133,7 +139,9 @@ impl Stream for Multipart {
                 if let Some(mime) = mime {
                     entry.set_mime(mime);
                 } else {
-                    // https://tools.ietf.org/html/rfc7578#section-4.4
+                    // Each part MAY have an (optional) "Content-Type" header
+                    // field, which defaults to "text/plain".
+                    // src: https://tools.ietf.org/html/rfc7578#section-4.4
                     entry.set_mime(mime::PLAIN);
                 }
 
@@ -149,83 +157,35 @@ impl Stream for Multipart {
     }
 }
 
-// struct MultipartReader {
-//     entry_iter: Box<dyn Iterator<Item = Entry>>,
-// }
-
-// impl From<Multipart> for MultipartReader {
-//     fn from(multipart: Multipart) -> Self {
-//         Self {
-//             entry_iter: Box::new(multipart.entries.into_iter())
-//         }
-//     }
-// }
-
-// impl AsyncRead for MultipartReader {
-//     #[allow(missing_doc_code_examples)]
-//     fn poll_read(
-//         mut self: Pin<&mut Self>,
-//         cx: &mut Context<'_>,
-//         buf: &mut [u8],
-//     ) -> Poll<io::Result<usize>> {
-//         if let Some(entry) = self.entry_iter.next() {
-//             Pin::new(&mut entry).poll_read(cx, buf)
-//         } else {
-//             Poll::Ready()
-//         }
-//     }
-// }
-
-// impl AsyncBufRead for MultipartReader {
-//     #[allow(missing_doc_code_examples)]
-//     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
-//         let this = self.project();
-//         this.reader.poll_fill_buf(cx)
-//     }
-
-//     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-//         Pin::new(&mut self.reader).consume(amt)
-//     }
-// }
-
-// We need AsRef<[u8]> on BufReader for TryStreamExt (into_async_read) so... wrap and patch it in ourselves, for now.
-#[doc(hidden)]
-#[derive(Debug)]
-pub struct BufReader<R: AsyncRead> {
-    inner: io::BufReader<R>,
+struct MultipartReader {
+    entry_iter: Box<dyn Iterator<Item = Entry>>,
 }
 
-#[doc(hidden)]
-impl<R: AsyncRead> BufReader<R> {
-    #[allow(missing_doc_code_examples)]
-    #[doc(hidden)]
-    pub fn new(inner: R) -> Self {
+impl From<Multipart> for MultipartReader {
+    fn from(multipart: Multipart) -> Self {
         Self {
-            inner: io::BufReader::new(inner),
+            entry_iter: Box::new(multipart.entries.into_iter()),
         }
     }
 }
 
-#[doc(hidden)]
-impl<R: AsyncRead> AsRef<[u8]> for BufReader<R> {
+impl AsyncRead for MultipartReader {
     #[allow(missing_doc_code_examples)]
-    #[doc(hidden)]
-    fn as_ref(&self) -> &[u8] {
-        self.inner.buffer()
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &mut [u8],
+    ) -> Poll<io::Result<usize>> {
+        if let Some(mut entry) = self.entry_iter.next() {
+            Pin::new(&mut entry).poll_read(cx, buf)
+        } else {
+            todo!();
+        }
     }
 }
 
 impl From<Multipart> for Body {
-    fn from(multipart: Multipart) -> Self {
-        let stream = multipart.map(|maybe_entry| {
-            maybe_entry
-                .map(BufReader::new)
-                .map_err(|err| {
-                    std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
-                })
-        });
-        let mut body = Body::from_reader(io::BufReader::new(stream.into_async_read()), None);
-        body.set_mime(mime::MULTIPART_FORM);
-        body
+    fn from(_multipart: Multipart) -> Self {
+        todo!();
     }
 }

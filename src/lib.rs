@@ -124,16 +124,13 @@ pub mod conditional;
 pub mod content;
 pub mod headers;
 pub mod mime;
+pub mod multipart;
 pub mod other;
 pub mod proxies;
 pub mod server;
 pub mod trace;
 pub mod transfer;
 pub mod upgrade;
-
-cfg_unstable! {
-    pub mod multipart;
-}
 
 mod body;
 mod error;

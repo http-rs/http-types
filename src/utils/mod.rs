@@ -40,3 +40,16 @@ pub(crate) fn sort_by_weight<T: PartialOrd + Clone>(props: &mut Vec<T>) {
     });
     *props = arr.into_iter().map(|(_, t)| t).collect::<Vec<T>>();
 }
+
+/// Declares unstable items.
+#[allow(dead_code)]
+#[doc(hidden)]
+macro_rules! cfg_unstable {
+    ($($item:item)*) => {
+        $(
+            #[cfg(feature = "unstable")]
+            #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+            $item
+        )*
+    }
+}

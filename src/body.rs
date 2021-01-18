@@ -56,7 +56,7 @@ pin_project_lite::pin_project! {
         reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
         mime: Mime,
         length: Option<usize>,
-        bytes_read: usize
+        bytes_read: usize,
         pub(crate) file_name: Option<String>,
     }
 }
