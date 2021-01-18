@@ -109,9 +109,9 @@ impl RetryAfter {
     }
 }
 
-impl Into<SystemTime> for RetryAfter {
-    fn into(self) -> SystemTime {
-        match self.inner {
+impl From<RetryAfter> for SystemTime {
+    fn from(retry_after: RetryAfter) -> Self {
+        match retry_after.inner {
             RetryDirective::Duration(dur) => SystemTime::now() + dur,
             RetryDirective::SystemTime(at) => at,
         }

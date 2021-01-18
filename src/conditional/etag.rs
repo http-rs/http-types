@@ -117,7 +117,7 @@ impl ETag {
 
         if !s
             .bytes()
-            .all(|c| c == 0x21 || (c >= 0x23 && c <= 0x7E) || c >= 0x80)
+            .all(|c| c == 0x21 || (0x23..=0x7E).contains(&c) || c >= 0x80)
         {
             return Err(Error::from_str(
                 StatusCode::BadRequest,
