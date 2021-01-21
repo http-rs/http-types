@@ -349,7 +349,7 @@ impl Body {
         Ok(serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)?)
     }
 
-    /// Create a `Body` from a file.
+    /// Create a `Body` from a file named by a path.
     ///
     /// The Mime type is sniffed from the file contents if possible, otherwise
     /// it is inferred from the path's extension if possible, otherwise is set
@@ -362,17 +362,17 @@ impl Body {
     /// use http_types::{Body, Response, StatusCode};
     ///
     /// let mut res = Response::new(StatusCode::Ok);
-    /// res.set_body(Body::from_file("/path/to/file").await?);
+    /// res.set_body(Body::from_path("/path/to/file").await?);
     /// # Ok(()) }) }
     /// ```
     #[cfg(all(feature = "fs", not(target_os = "unknown")))]
-    pub async fn from_file<P>(path: P) -> io::Result<Self>
+    pub async fn from_path<P>(path: P) -> io::Result<Self>
     where
         P: AsRef<std::path::Path>,
     {
         let path = path.as_ref();
         let file = async_std::fs::File::open(path).await?;
-        Self::from_open_file(file, path).await
+        Self::from_file(file, path).await
     }
 
     /// Create a `Body` from an already-open file.
@@ -393,11 +393,11 @@ impl Body {
     /// let mut res = Response::new(StatusCode::Ok);
     /// let path = std::path::Path::new("/path/to/file");
     /// let file = async_std::fs::File::open(path).await?;
-    /// res.set_body(Body::from_open_file(file, path).await?);
+    /// res.set_body(Body::from_file(file, path).await?);
     /// # Ok(()) }) }
     /// ```
     #[cfg(all(feature = "fs", not(target_os = "unknown")))]
-    pub async fn from_open_file(
+    pub async fn from_file(
         mut file: async_std::fs::File,
         path: &std::path::Path,
     ) -> io::Result<Self> {
