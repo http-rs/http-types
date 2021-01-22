@@ -16,3 +16,26 @@ pub trait Header {
         headers.as_mut().insert(name, value);
     }
 }
+
+impl<'a, 'b> Header for (&'a str, &'b str) {
+    fn header_name(&self) -> HeaderName {
+        HeaderName::from(self.0)
+    }
+
+    fn header_value(&self) -> HeaderValue {
+        HeaderValue::from_bytes(self.1.to_owned().into_bytes())
+            .expect("String slice should be valid ASCII")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn header_from_strings() {
+        let strings = ("Content-Length", "12");
+        assert_eq!(strings.header_name(), "Content-Length");
+        assert_eq!(strings.header_value(), "12");
+    }
+}
