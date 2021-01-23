@@ -56,7 +56,8 @@ pin_project_lite::pin_project! {
         reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
         mime: Mime,
         length: Option<usize>,
-        bytes_read: usize
+        bytes_read: usize,
+        pub(crate) file_name: Option<String>,
     }
 }
 
@@ -80,6 +81,7 @@ impl Body {
             mime: mime::BYTE_STREAM,
             length: Some(0),
             bytes_read: 0,
+            file_name: None,
         }
     }
 
@@ -111,6 +113,7 @@ impl Body {
             mime: mime::BYTE_STREAM,
             length: len,
             bytes_read: 0,
+            file_name: None,
         }
     }
 
@@ -155,6 +158,7 @@ impl Body {
             length: Some(bytes.len()),
             reader: Box::new(io::Cursor::new(bytes)),
             bytes_read: 0,
+            file_name: None,
         }
     }
 
@@ -205,6 +209,7 @@ impl Body {
             length: Some(s.len()),
             reader: Box::new(io::Cursor::new(s.into_bytes())),
             bytes_read: 0,
+            file_name: None,
         }
     }
 
@@ -251,6 +256,7 @@ impl Body {
             reader: Box::new(io::Cursor::new(bytes)),
             mime: mime::JSON,
             bytes_read: 0,
+            file_name: None,
         };
         Ok(body)
     }
@@ -316,6 +322,7 @@ impl Body {
             reader: Box::new(io::Cursor::new(bytes)),
             mime: mime::FORM,
             bytes_read: 0,
+            file_name: None,
         };
         Ok(body)
     }
@@ -370,7 +377,7 @@ impl Body {
         P: AsRef<std::path::Path>,
     {
         let path = path.as_ref();
-        let mut file = async_std::fs::File::open(path).await?;
+        let mut file = async_std::fs::File::open(&path).await?;
         let len = file.metadata().await?.len();
 
         // Look at magic bytes first, look at extension second, fall back to
@@ -385,6 +392,7 @@ impl Body {
             length: Some(len as usize),
             reader: Box::new(io::BufReader::new(file)),
             bytes_read: 0,
+            file_name: Some(path.to_string_lossy().to_string()),
         })
     }
 
@@ -418,6 +426,19 @@ impl Body {
     /// Sets the mime type of this Body.
     pub fn set_mime(&mut self, mime: impl Into<Mime>) {
         self.mime = mime.into();
+    }
+
+    /// Get the file name of the `Body`, if it's set.
+    pub fn file_name(&self) -> Option<&str> {
+        self.file_name.as_deref()
+    }
+
+    /// Set the file name of the `Body`.
+    pub fn set_file_name<S>(&mut self, file_name: Option<S>)
+    where
+        S: AsRef<str>,
+    {
+        self.file_name = file_name.map(|v| v.as_ref().to_owned());
     }
 }
 
