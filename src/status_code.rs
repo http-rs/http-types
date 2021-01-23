@@ -1,13 +1,13 @@
 use serde::de::{Error as DeError, Unexpected, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 
 /// HTTP response status codes.
 ///
 /// As defined by [rfc7231 section 6](https://tools.ietf.org/html/rfc7231#section-6).
 /// [Read more](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 #[repr(u16)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub enum StatusCode {
     /// 100 Continue
     ///
@@ -704,9 +704,15 @@ impl PartialEq<u16> for StatusCode {
     }
 }
 
+impl Debug for StatusCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", *self as u16, self.canonical_reason())
+    }
+}
+
 impl Display for StatusCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", *self as u16)
+        write!(f, "{}: {}", *self as u16, self.canonical_reason())
     }
 }
 
