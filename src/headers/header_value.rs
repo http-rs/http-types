@@ -2,6 +2,7 @@ use std::convert::TryFrom;
 use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
+#[cfg(feature = "cookies")]
 use crate::cookies::Cookie;
 use crate::headers::HeaderValues;
 use crate::mime::Mime;
@@ -55,6 +56,7 @@ impl From<Mime> for HeaderValue {
     }
 }
 
+#[cfg(feature = "cookies")]
 impl From<Cookie<'_>> for HeaderValue {
     fn from(cookie: Cookie<'_>) -> Self {
         HeaderValue {
