@@ -1,9 +1,9 @@
 use futures_lite::{future, AsyncReadExt};
-use http_types::{Body, Method, Request, Response, StatusCode, Url};
+use http_types::{Body, Method, Request, Response, StatusCode};
 
 #[test]
 fn test_req_res_set_body() {
-    let mut req = Request::new(Method::Get, Url::parse("http://example.com/").unwrap());
+    let mut req = Request::new(Method::Get, "http://example.com/").unwrap();
     req.set_body(Body::empty());
     let mut res = Response::new(StatusCode::Ok);
     res.set_body(req);
@@ -17,7 +17,7 @@ fn test_req_res_set_body() {
 
 #[test]
 fn test_req_res_take_replace_body() {
-    let mut req = Request::new(Method::Get, Url::parse("http://example.com/").unwrap());
+    let mut req = Request::new(Method::Get, "http://example.com/").unwrap();
     req.take_body();
     let mut res = Response::new(StatusCode::Ok);
     res.replace_body(req);

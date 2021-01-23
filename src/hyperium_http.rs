@@ -90,13 +90,13 @@ fn from_url_to_uri(url: &Url) -> http::Uri {
 }
 
 impl TryFrom<http::Request<Body>> for Request {
-    type Error = crate::url::ParseError;
+    type Error = crate::Error;
 
     fn try_from(req: http::Request<Body>) -> Result<Self, Self::Error> {
         let (parts, body) = req.into_parts();
         let method = parts.method.into();
         let url = from_uri_to_url(parts.uri)?;
-        let mut req = Request::new(method, url);
+        let mut req = Request::new(method, url)?;
         req.set_body(body);
         req.set_version(Some(parts.version.into()));
         hyperium_headers_to_headers(parts.headers, req.as_mut());
