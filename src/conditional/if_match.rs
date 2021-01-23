@@ -134,6 +134,12 @@ impl IfMatch {
     }
 }
 
+impl crate::headers::ToHeader for IfMatch {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl IntoIterator for IfMatch {
     type Item = ETag;
     type IntoIter = IntoIter;

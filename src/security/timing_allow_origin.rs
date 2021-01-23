@@ -162,6 +162,12 @@ impl TimingAllowOrigin {
     }
 }
 
+impl crate::headers::ToHeader for TimingAllowOrigin {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl IntoIterator for TimingAllowOrigin {
     type Item = Url;
     type IntoIter = IntoIter;

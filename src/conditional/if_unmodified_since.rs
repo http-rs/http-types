@@ -85,6 +85,12 @@ impl IfUnmodifiedSince {
     }
 }
 
+impl crate::headers::ToHeader for IfUnmodifiedSince {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl ToHeaderValues for IfUnmodifiedSince {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {

@@ -142,6 +142,12 @@ impl ClearSiteData {
     }
 }
 
+impl crate::headers::ToHeader for ClearSiteData {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl IntoIterator for ClearSiteData {
     type Item = ClearDirective;
     type IntoIter = IntoIter;

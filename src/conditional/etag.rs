@@ -130,6 +130,12 @@ impl ETag {
     }
 }
 
+impl crate::headers::ToHeader for ETag {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl Display for ETag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

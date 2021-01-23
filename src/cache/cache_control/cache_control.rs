@@ -104,6 +104,12 @@ impl CacheControl {
     }
 }
 
+impl crate::headers::ToHeader for CacheControl {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 impl IntoIterator for CacheControl {
     type Item = CacheDirective;
     type IntoIter = IntoIter;

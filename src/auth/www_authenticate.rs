@@ -132,6 +132,12 @@ impl WwwAuthenticate {
     }
 }
 
+impl crate::headers::ToHeader for WwwAuthenticate {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        Ok((self.name(), self.value()))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

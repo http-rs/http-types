@@ -1,5 +1,10 @@
+use crate::headers::{
+    HeaderName, HeaderValue, CONTENT_SECURITY_POLICY, CONTENT_SECURITY_POLICY_REPORT_ONLY,
+};
 use crate::Headers;
+
 use serde::{Deserialize, Serialize};
+
 use std::collections::HashMap;
 use std::fmt;
 
@@ -337,23 +342,44 @@ impl ContentSecurityPolicy {
         self
     }
 
+    /// Get the `HeaderName`.
+    pub fn name(&self) -> HeaderName {
+        if self.report_only_flag {
+            CONTENT_SECURITY_POLICY_REPORT_ONLY
+        } else {
+            CONTENT_SECURITY_POLICY
+        }
+    }
+
     /// Create and retrieve the policy value
     fn value(&mut self) -> String {
-        for (directive, sources) in &self.directives {
-            let policy = format!("{} {}", directive, sources.join(" "));
-            self.policy.push(policy);
-            self.policy.sort();
-        }
+        self.policy.extend(
+            self.directives
+                .iter()
+                .map(|(directive, sources)| format!("{} {}", directive, sources.join(" "))),
+        );
+        self.policy.sort();
         self.policy.join("; ")
     }
 
     /// Sets the `Content-Security-Policy` (CSP) HTTP header to prevent cross-site injections
     pub fn apply(&mut self, mut headers: impl AsMut<Headers>) {
-        let name = if self.report_only_flag {
-            "Content-Security-Policy-Report-Only"
-        } else {
-            "Content-Security-Policy"
-        };
-        headers.as_mut().insert(name, self.value());
+        headers.as_mut().insert(self.name(), self.value());
+    }
+}
+
+impl crate::headers::ToHeader for ContentSecurityPolicy {
+    fn to_header(self) -> crate::Result<(HeaderName, HeaderValue)> {
+        let mut policies = self.policy.clone();
+        policies.extend(
+            self.directives
+                .iter()
+                .map(|(directive, sources)| format!("{} {}", directive, sources.join(" "))),
+        );
+        policies.sort();
+
+        let value = policies.join("; ");
+
+        Ok((self.name(), value.parse()?))
     }
 }
