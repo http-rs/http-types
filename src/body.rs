@@ -1,4 +1,4 @@
-use futures_lite::{io, prelude::*, ready};
+use futures_lite::{io, prelude::*, ready, AsyncRead};
 use serde::{de::DeserializeOwned, Serialize};
 
 use std::fmt::{self, Debug};
@@ -12,7 +12,7 @@ pin_project_lite::pin_project! {
     /// A streaming HTTP body.
     ///
     /// `Body` represents the HTTP body of both `Request` and `Response`. It's completely
-    /// streaming, and implements `AsyncBufRead` to make reading from it both convenient and
+    /// streaming, and implements `AsyncRead` to make reading from it both convenient and
     /// performant.
     ///
     /// Both `Request` and `Response` take `Body` by `Into<Body>`, which means that passing string
@@ -53,7 +53,7 @@ pin_project_lite::pin_project! {
     /// and not rely on the fallback mechanisms. However, they're still there if you need them.
     pub struct Body {
         #[pin]
-        reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
+        reader: Box<dyn AsyncRead + Unpin + Send + Sync + 'static>,
         mime: Mime,
         length: Option<usize>,
         bytes_read: usize
@@ -103,7 +103,7 @@ impl Body {
     /// req.set_body(Body::from_reader(cursor, Some(len)));
     /// ```
     pub fn from_reader(
-        reader: impl AsyncBufRead + Unpin + Send + Sync + 'static,
+        reader: impl AsyncRead + Unpin + Send + Sync + 'static,
         len: Option<usize>,
     ) -> Self {
         Self {
@@ -127,7 +127,7 @@ impl Body {
     /// let body = Body::from_reader(cursor, None);
     /// let _ = body.into_reader();
     /// ```
-    pub fn into_reader(self) -> Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static> {
+    pub fn into_reader(self) -> Box<dyn AsyncRead + Unpin + Send + Sync + 'static> {
         self.reader
     }
 
@@ -383,7 +383,7 @@ impl Body {
         Ok(Self {
             mime,
             length: Some(len as usize),
-            reader: Box::new(io::BufReader::new(file)),
+            reader: Box::new(file),
             bytes_read: 0,
         })
     }
@@ -480,17 +480,6 @@ impl AsyncRead for Body {
         let bytes = ready!(Pin::new(&mut self.reader).poll_read(cx, &mut buf))?;
         self.bytes_read += bytes;
         Poll::Ready(Ok(bytes))
-    }
-}
-
-impl AsyncBufRead for Body {
-    #[allow(missing_doc_code_examples)]
-    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
-        self.project().reader.poll_fill_buf(cx)
-    }
-
-    fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.reader).consume(amt)
     }
 }
 
