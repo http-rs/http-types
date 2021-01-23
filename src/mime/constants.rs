@@ -1,5 +1,5 @@
-use super::ParamKind;
 use crate::mime::Mime;
+use std::borrow::Cow;
 
 macro_rules! utf8_mime_const {
     ($name:ident, $desc:expr, $base:expr, $sub:expr) => {
@@ -9,18 +9,18 @@ macro_rules! utf8_mime_const {
             $desc,
             $base,
             $sub,
-            Some(ParamKind::Utf8),
+            true,
             ";charset=utf-8"
         );
     };
 }
 macro_rules! mime_const {
     ($name:ident, $desc:expr, $base:expr, $sub:expr) => {
-        mime_const!(with_params, $name, $desc, $base, $sub, None, "");
+        mime_const!(with_params, $name, $desc, $base, $sub, false, "");
     };
 
-    (with_params, $name:ident, $desc:expr, $base:expr, $sub:expr, $params:expr, $doccomment:expr) => {
-        mime_const!(doc_expanded, $name, $desc, $base, $sub, $params,
+    (with_params, $name:ident, $desc:expr, $base:expr, $sub:expr, $is_utf8:expr, $doccomment:expr) => {
+        mime_const!(doc_expanded, $name, $desc, $base, $sub, $is_utf8,
              concat!(
                 "Content-Type for ",
                 $desc,
@@ -29,16 +29,14 @@ macro_rules! mime_const {
         );
     };
 
-    (doc_expanded, $name:ident, $desc:expr, $base:expr, $sub:expr, $params:expr, $doccomment:expr) => {
+    (doc_expanded, $name:ident, $desc:expr, $base:expr, $sub:expr, $is_utf8:expr, $doccomment:expr) => {
         #[doc = $doccomment]
         pub const $name: Mime = Mime {
-            essence: String::new(),
-            basetype: String::new(),
-            subtype: String::new(),
-            params: $params,
-            static_essence: Some(concat!($base, "/", $sub)),
-            static_basetype: Some($base),
-            static_subtype: Some($sub),
+            essence: Cow::Borrowed(concat!($base, "/", $sub)),
+            basetype: Cow::Borrowed($base),
+            subtype: Cow::Borrowed($sub),
+            is_utf8: $is_utf8,
+            params: vec![],
         };
     };
 }
