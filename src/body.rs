@@ -372,7 +372,30 @@ impl Body {
     {
         let path = path.as_ref();
         let file = async_std::fs::File::open(path).await?;
-        Self::from_file(file, path).await
+        Self::from_file_with_path(file, path).await
+    }
+
+    /// Create a `Body` from an already-open file.
+    ///
+    /// The Mime type is sniffed from the file contents if possible, otherwise
+    /// is set to `application/octet-stream`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
+    /// use http_types::{Body, Response, StatusCode};
+    ///
+    /// let mut res = Response::new(StatusCode::Ok);
+    /// let path = std::path::Path::new("/path/to/file");
+    /// let file = async_std::fs::File::open(path).await?;
+    /// res.set_body(Body::from_file(file).await?);
+    /// # Ok(()) }) }
+    /// ```
+    #[cfg(all(feature = "fs", not(target_os = "unknown")))]
+    #[inline]
+    pub async fn from_file(file: async_std::fs::File) -> io::Result<Self> {
+        Self::from_file_with_path(file, std::path::Path::new("")).await
     }
 
     /// Create a `Body` from an already-open file.
@@ -393,11 +416,11 @@ impl Body {
     /// let mut res = Response::new(StatusCode::Ok);
     /// let path = std::path::Path::new("/path/to/file");
     /// let file = async_std::fs::File::open(path).await?;
-    /// res.set_body(Body::from_file(file, path).await?);
+    /// res.set_body(Body::from_file_with_path(file, path).await?);
     /// # Ok(()) }) }
     /// ```
     #[cfg(all(feature = "fs", not(target_os = "unknown")))]
-    pub async fn from_file(
+    pub async fn from_file_with_path(
         mut file: async_std::fs::File,
         path: &std::path::Path,
     ) -> io::Result<Self> {
