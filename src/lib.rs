@@ -8,9 +8,9 @@
 //! ```
 //! # fn main() -> Result<(), http_types::url::ParseError> {
 //! #
-//! use http_types::{Method, Request, Response, StatusCode};
+//! use http_types::{Url, Method, Request, Response, StatusCode};
 //!
-//! let mut req = Request::new(Method::Get, "https://example.com");
+//! let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
 //! req.set_body("Hello, Nori!");
 //!
 //! let mut res = Response::new(StatusCode::Ok);
@@ -102,7 +102,6 @@
 #![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
 
 /// HTTP cookies.
-#[cfg(feature = "cookies")]
 pub mod cookies {
     pub use cookie::*;
 }
@@ -163,6 +162,9 @@ pub use headers::Headers;
 
 #[doc(inline)]
 pub use crate::url::Url;
+
+#[doc(inline)]
+pub use crate::cookies::Cookie;
 
 pub mod security;
 

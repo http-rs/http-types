@@ -135,7 +135,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(clippy::eq_op)]
     fn test_header_name_static_non_static() {
         let static_header = HeaderName::from_lowercase_str("hello");
         let non_static_header = HeaderName::from_str("hello").unwrap();

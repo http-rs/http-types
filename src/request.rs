@@ -21,9 +21,9 @@ pin_project_lite::pin_project! {
     /// # Examples
     ///
     /// ```
-    /// use http_types::Request;
+    /// use http_types::{Url, Method, Request};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
     /// ```
     #[derive(Debug)]
@@ -157,8 +157,8 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// use http_types::{Request, Response, StatusCode};
-    /// let mut req = Request::get("https://example.com");
+    /// use http_types::{Method, Request, Response, StatusCode, Url};
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// assert_eq!(req.url().scheme(), "https");
     /// #
     /// # Ok(()) }
@@ -175,7 +175,7 @@ impl Request {
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
     /// use http_types::{Method, Request, Response, StatusCode, Url};
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.url_mut().set_scheme("http");
     /// assert_eq!(req.url().scheme(), "http");
     /// #
@@ -190,9 +190,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
     /// ```
     pub fn set_body(&mut self, body: impl Into<Body>) {
@@ -208,9 +208,9 @@ impl Request {
     /// # use async_std::io::prelude::*;
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Method, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
     /// let mut body: Body = req.replace_body("Hello, Chashu!");
     ///
@@ -234,9 +234,9 @@ impl Request {
     /// # use async_std::io::prelude::*;
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
     /// let mut body = "Hello, Chashu!".into();
     /// req.swap_body(&mut body);
@@ -260,9 +260,9 @@ impl Request {
     /// # use async_std::io::prelude::*;
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// #
-    /// use http_types::{Body, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
     /// let mut body: Body = req.take_body();
     ///
@@ -293,9 +293,9 @@ impl Request {
     /// # use std::io::prelude::*;
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use async_std::io::Cursor;
-    /// use http_types::{Body, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     ///
     /// let cursor = Cursor::new("Hello Nori");
     /// let body = Body::from_reader(cursor, None);
@@ -319,10 +319,10 @@ impl Request {
     ///
     /// ```
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
-    /// use http_types::{Body, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// let bytes = vec![1, 2, 3];
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body(Body::from_bytes(bytes));
     ///
     /// let bytes = req.body_bytes().await?;
@@ -346,7 +346,7 @@ impl Request {
     /// ```
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
-    /// use http_types::{Body, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
     /// struct Cat {
@@ -356,7 +356,7 @@ impl Request {
     /// let cat = Cat {
     ///     name: String::from("chashu"),
     /// };
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body(Body::from_json(&cat)?);
     ///
     /// let cat: Cat = req.body_json().await?;
@@ -380,7 +380,7 @@ impl Request {
     /// ```
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// use http_types::convert::{Deserialize, Serialize};
-    /// use http_types::{Body, Request};
+    /// use http_types::{Body, Method, Request, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
     /// struct Cat {
@@ -390,7 +390,7 @@ impl Request {
     /// let cat = Cat {
     ///     name: String::from("chashu"),
     /// };
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
     /// req.set_body(Body::from_form(&cat)?);
     ///
     /// let cat: Cat = req.body_form().await?;
@@ -424,9 +424,9 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #
-    /// use http_types::Request;
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.insert_header("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
@@ -450,9 +450,9 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #
-    /// use http_types::Request;
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.append_header("Content-Type", "text/plain");
     /// #
     /// # Ok(()) }
@@ -503,11 +503,11 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Request, Version};
+    /// use http_types::{Method, Request, Url, Version};
     ///
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// assert_eq!(req.version(), None);
     ///
     /// req.set_version(Some(Version::Http2_0));
@@ -524,11 +524,11 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Request, Version};
+    /// use http_types::{Method, Request, Url, Version};
     ///
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.set_version(Some(Version::Http2_0));
     /// #
     /// # Ok(()) }
@@ -594,9 +594,9 @@ impl Request {
     /// ```
     /// # fn main() -> Result<(), http_types::Error> {
     /// #
-    /// use http_types::{Request, Version};
+    /// use http_types::{Method, Request, Url, Version};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com")?);
     /// req.ext_mut().insert("hello from the extension");
     /// assert_eq!(req.ext().get(), Some(&"hello from the extension"));
     /// #
@@ -612,7 +612,7 @@ impl Request {
     ///
     /// ```
     /// use http_types::convert::Deserialize;
-    /// use http_types::Request;
+    /// use http_types::{Method, Request, Url};
     /// use std::collections::HashMap;
     ///
     /// #[derive(Deserialize)]
@@ -621,7 +621,10 @@ impl Request {
     ///     selections: HashMap<String, String>,
     /// }
     ///
-    /// let mut req = Request::get("https://httpbin.org/get?page=2&selections[width]=narrow&selections[height]=tall");
+    /// let req = Request::new(
+    ///     Method::Get,
+    ///     Url::parse("https://httpbin.org/get?page=2&selections[width]=narrow&selections[height]=tall").unwrap(),
+    /// );
     /// let Index { page, selections } = req.query().unwrap();
     /// assert_eq!(page, 2);
     /// assert_eq!(selections["width"], "narrow");
@@ -645,7 +648,7 @@ impl Request {
     ///
     /// ```
     /// use http_types::convert::Serialize;
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     /// use std::collections::HashMap;
     ///
     /// #[derive(Serialize)]
@@ -655,7 +658,10 @@ impl Request {
     /// }
     ///
     /// let query = Index { page: 2, topics: vec!["rust", "crabs", "crustaceans"] };
-    /// let mut req = Request::get("https://httpbin.org/get");
+    /// let mut req = Request::new(
+    ///     Method::Get,
+    ///     Url::parse("https://httpbin.org/get").unwrap(),
+    /// );
     /// req.set_query(&query).unwrap();
     /// assert_eq!(req.url().query(), Some("page=2&topics[0]=rust&topics[1]=crabs&topics[2]=crustaceans"));
     /// ```
@@ -674,9 +680,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::get("https://example.com");
+    /// let mut req = Request::get(Url::parse("https://example.com").unwrap());
     /// req.set_body("Hello, Nori!");
     /// assert_eq!(req.method(), Method::Get);
     /// ```
@@ -696,9 +702,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::head("https://example.com");
+    /// let mut req = Request::head(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Head);
     /// ```
     pub fn head<U>(url: U) -> Self
@@ -717,9 +723,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::post("https://example.com");
+    /// let mut req = Request::post(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Post);
     /// ```
     pub fn post<U>(url: U) -> Self
@@ -738,9 +744,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::put("https://example.com");
+    /// let mut req = Request::put(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Put);
     /// ```
     pub fn put<U>(url: U) -> Self
@@ -758,9 +764,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::delete("https://example.com");
+    /// let mut req = Request::delete(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Delete);
     /// ```
     pub fn delete<U>(url: U) -> Self
@@ -779,9 +785,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::connect("https://example.com");
+    /// let mut req = Request::connect(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Connect);
     /// ```
     pub fn connect<U>(url: U) -> Self
@@ -800,9 +806,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::options("https://example.com");
+    /// let mut req = Request::options(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Options);
     /// ```
     pub fn options<U>(url: U) -> Self
@@ -821,9 +827,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::trace("https://example.com");
+    /// let mut req = Request::trace(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Trace);
     /// ```
     pub fn trace<U>(url: U) -> Self
@@ -841,9 +847,9 @@ impl Request {
     /// # Examples
     ///
     /// ```
-    /// use http_types::{Method, Request};
+    /// use http_types::{Method, Request, Url};
     ///
-    /// let mut req = Request::patch("https://example.com");
+    /// let mut req = Request::patch(Url::parse("https://example.com").unwrap());
     /// assert_eq!(req.method(), Method::Patch);
     /// ```
     pub fn patch<U>(url: U) -> Self

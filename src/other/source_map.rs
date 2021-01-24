@@ -59,7 +59,7 @@ impl SourceMap {
         let url = match Url::parse(header_value.as_str()) {
             Ok(url) => url,
             Err(_) => match base_url.try_into() {
-                Ok(base_url) => base_url.join(header_value.as_str().trim()).status(500)?,
+                Ok(base_url) => base_url.join(header_value.as_str().trim()).status(400)?,
                 Err(_) => bail!(500, "Invalid base url provided"),
             },
         };
@@ -128,7 +128,7 @@ mod test {
         headers.insert(SOURCE_MAP, "htt://<nori ate the tag. yum.>");
         let err = SourceMap::from_headers(Url::parse("https://example.net").unwrap(), headers)
             .unwrap_err();
-        assert_eq!(err.status(), 500);
+        assert_eq!(err.status(), 400);
         Ok(())
     }
 

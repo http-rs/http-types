@@ -28,15 +28,15 @@ use infer::Infer;
 /// ```
 // NOTE: we cannot statically initialize Strings with values yet, so we keep dedicated static
 // fields for the static strings.
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone)]
 pub struct Mime {
-    pub(crate) essence: Cow<'static, str>,
-    pub(crate) basetype: Cow<'static, str>,
-    pub(crate) subtype: Cow<'static, str>,
-    // NOTE(yosh): this is a hack because we can't populate vecs in const yet.
-    // This enables us to encode media types as utf-8 at compilation.
-    pub(crate) is_utf8: bool,
-    pub(crate) params: Vec<(ParamName, ParamValue)>,
+    pub(crate) essence: String,
+    pub(crate) basetype: String,
+    pub(crate) subtype: String,
+    pub(crate) static_essence: Option<&'static str>,
+    pub(crate) static_basetype: Option<&'static str>,
+    pub(crate) static_subtype: Option<&'static str>,
+    pub(crate) params: Option<ParamKind>,
 }
 
 impl Mime {
@@ -68,40 +68,87 @@ impl Mime {
     /// According to the spec this method should be named `type`, but that's a reserved keyword in
     /// Rust so hence prefix with `base` instead.
     pub fn basetype(&self) -> &str {
-        &self.basetype
+        if let Some(basetype) = self.static_basetype {
+            &basetype
+        } else {
+            &self.basetype
+        }
     }
 
     /// Access the Mime's `subtype` value.
     pub fn subtype(&self) -> &str {
-        &self.subtype
+        if let Some(subtype) = self.static_subtype {
+            &subtype
+        } else {
+            &self.subtype
+        }
     }
 
     /// Access the Mime's `essence` value.
     pub fn essence(&self) -> &str {
-        &self.essence
+        if let Some(essence) = self.static_essence {
+            &essence
+        } else {
+            &self.essence
+        }
     }
 
     /// Get a reference to a param.
     pub fn param(&self, name: impl Into<ParamName>) -> Option<&ParamValue> {
         let name: ParamName = name.into();
-        if name.as_str() == "charset" && self.is_utf8 {
-            return Some(&ParamValue(Cow::Borrowed("utf-8")));
-        }
-
-        self.params.iter().find(|(k, _)| k == &name).map(|(_, v)| v)
+        self.params
+            .as_ref()
+            .map(|inner| match inner {
+                ParamKind::Vec(v) => v
+                    .iter()
+                    .find_map(|(k, v)| if k == &name { Some(v) } else { None }),
+                ParamKind::Utf8 => match name {
+                    ParamName(Cow::Borrowed("charset")) => Some(&ParamValue(Cow::Borrowed("utf8"))),
+                    _ => None,
+                },
+            })
+            .flatten()
     }
 
     /// Remove a param from the set. Returns the `ParamValue` if it was contained within the set.
     pub fn remove_param(&mut self, name: impl Into<ParamName>) -> Option<ParamValue> {
         let name: ParamName = name.into();
-        if name.as_str() == "charset" && self.is_utf8 {
-            self.is_utf8 = false;
-            return Some(ParamValue(Cow::Borrowed("utf-8")));
+        let mut unset_params = false;
+        let ret = self
+            .params
+            .as_mut()
+            .map(|inner| match inner {
+                ParamKind::Vec(v) => match v.iter().position(|(k, _)| k == &name) {
+                    Some(index) => Some(v.remove(index).1),
+                    None => None,
+                },
+                ParamKind::Utf8 => match name {
+                    ParamName(Cow::Borrowed("charset")) => {
+                        unset_params = true;
+                        Some(ParamValue(Cow::Borrowed("utf8")))
+                    }
+                    _ => None,
+                },
+            })
+            .flatten();
+        if unset_params {
+            self.params = None;
         }
-        self.params
-            .iter()
-            .position(|(k, _)| k == &name)
-            .map(|pos| self.params.remove(pos).1)
+        ret
+    }
+}
+
+impl PartialEq<Mime> for Mime {
+    fn eq(&self, other: &Mime) -> bool {
+        let left = match self.static_essence {
+            Some(essence) => essence,
+            None => &self.essence,
+        };
+        let right = match other.static_essence {
+            Some(essence) => essence,
+            None => &other.essence,
+        };
+        left == right
     }
 }
 
@@ -111,11 +158,15 @@ impl Display for Mime {
     }
 }
 
-// impl Debug for Mime {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         Debug::fmt(&self.essence, f)
-//     }
-// }
+impl Debug for Mime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(essence) = self.static_essence {
+            Debug::fmt(essence, f)
+        } else {
+            Debug::fmt(&self.essence, f)
+        }
+    }
+}
 
 impl FromStr for Mime {
     type Err = crate::Error;
@@ -145,7 +196,6 @@ impl ToHeaderValues for Mime {
         Ok(header.to_header_values().unwrap())
     }
 }
-
 /// A parameter name.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ParamName(Cow<'static, str>);
@@ -208,4 +258,12 @@ impl PartialEq<str> for ParamValue {
     fn eq(&self, other: &str) -> bool {
         self.0 == other
     }
+}
+
+/// This is a hack that allows us to mark a trait as utf8 during compilation. We
+/// can remove this once we can construct HashMap during compilation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum ParamKind {
+    Utf8,
+    Vec(Vec<(ParamName, ParamValue)>),
 }
