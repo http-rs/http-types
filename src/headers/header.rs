@@ -17,14 +17,27 @@ pub trait Header {
     }
 }
 
-impl<'a, 'b> Header for (&'a str, &'b str) {
+impl Header for (&'static str, &'static str) {
     fn header_name(&self) -> HeaderName {
-        HeaderName::from(self.0)
+        if self.0.chars().all(|c| c.is_ascii_lowercase()) {
+            HeaderName::from_lowercase_str(self.0)
+        } else {
+            HeaderName::from(self.0)
+        }
     }
 
     fn header_value(&self) -> HeaderValue {
-        HeaderValue::from_bytes(self.1.to_owned().into_bytes())
-            .expect("String slice should be valid ASCII")
+        HeaderValue::from_static_str(self.1)
+    }
+}
+
+impl Header for (String, String) {
+    fn header_name(&self) -> HeaderName {
+        self.0.parse().expect("Header name should be valid ASCII")
+    }
+
+    fn header_value(&self) -> HeaderValue {
+        self.1.parse().expect("Header value should be valid ASCII")
     }
 }
 
