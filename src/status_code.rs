@@ -434,7 +434,7 @@ impl StatusCode {
     /// continuing process.
     pub fn is_informational(&self) -> bool {
         let num: u16 = self.clone().into();
-        num >= 100 && num < 200
+        (100..200).contains(&num)
     }
 
     /// Returns `true` if the status code is the `2xx` range.
@@ -443,7 +443,7 @@ impl StatusCode {
     /// received, understood, and accepted.
     pub fn is_success(&self) -> bool {
         let num: u16 = self.clone().into();
-        num >= 200 && num < 300
+        (200..300).contains(&num)
     }
 
     /// Returns `true` if the status code is the `3xx` range.
@@ -452,7 +452,7 @@ impl StatusCode {
     /// taken in order to complete the request.
     pub fn is_redirection(&self) -> bool {
         let num: u16 = self.clone().into();
-        num >= 300 && num < 400
+        (300..400).contains(&num)
     }
 
     /// Returns `true` if the status code is the `4xx` range.
@@ -461,7 +461,7 @@ impl StatusCode {
     /// or cannot be fulfilled.
     pub fn is_client_error(&self) -> bool {
         let num: u16 = self.clone().into();
-        num >= 400 && num < 500
+        (400..500).contains(&num)
     }
 
     /// Returns `true` if the status code is the `5xx` range.
@@ -470,7 +470,7 @@ impl StatusCode {
     /// apparently valid request.
     pub fn is_server_error(&self) -> bool {
         let num: u16 = self.clone().into();
-        num >= 500 && num < 600
+        (500..600).contains(&num)
     }
 
     /// The canonical reason for a given status code

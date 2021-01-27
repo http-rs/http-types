@@ -56,6 +56,7 @@ impl From<Mime> for HeaderValue {
     }
 }
 
+#[cfg(feature = "cookies")]
 impl From<Cookie<'_>> for HeaderValue {
     fn from(cookie: Cookie<'_>) -> Self {
         HeaderValue {
