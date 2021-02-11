@@ -6,7 +6,7 @@ use std::ops::Index;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use crate::convert::{DeserializeOwned, Serialize};
+use crate::convert::{Deserialize, DeserializeOwned, Serialize};
 use crate::headers::{
     self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
     CONTENT_TYPE,
@@ -615,6 +615,8 @@ impl Request {
     /// use http_types::Request;
     /// use std::collections::HashMap;
     ///
+    /// // An owned structure:
+    ///
     /// #[derive(Deserialize)]
     /// struct Index {
     ///     page: u32,
@@ -626,8 +628,19 @@ impl Request {
     /// assert_eq!(page, 2);
     /// assert_eq!(selections["width"], "narrow");
     /// assert_eq!(selections["height"], "tall");
+    ///
+    /// // Using borrows:
+    ///
+    /// #[derive(Deserialize)]
+    /// struct Query<'q> {
+    ///     format: &'q str,
+    /// }
+    ///
+    /// let mut req = Request::get("https://httpbin.org/get?format=bananna");
+    /// let Query { format } = req.query().unwrap();
+    /// assert_eq!(format, "bananna");
     /// ```
-    pub fn query<T: serde::de::DeserializeOwned>(&self) -> crate::Result<T> {
+    pub fn query<'de, T: Deserialize<'de>>(&'de self) -> crate::Result<T> {
         // Default to an empty query string if no query parameter has been specified.
         // This allows successful deserialisation of structs where all fields are optional
         // when none of those fields has actually been passed by the caller.
