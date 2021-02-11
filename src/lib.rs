@@ -164,9 +164,10 @@ mod hyperium_http;
 #[doc(inline)]
 pub use crate::extensions::Extensions;
 
+#[cfg(feature = "serde")]
 /// Traits for conversions between types.
 pub mod convert {
-    pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
+    pub use serde_crate::{de::DeserializeOwned, Deserialize, Serialize};
     #[doc(inline)]
     pub use serde_json::json;
 }

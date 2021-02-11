@@ -1,5 +1,3 @@
-use serde::de::{Error as DeError, Unexpected, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{self, Debug, Display};
 
 /// HTTP response status codes.
@@ -538,82 +536,90 @@ impl StatusCode {
         }
     }
 }
+#[cfg(feature = "serde")]
 
-impl Serialize for StatusCode {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let value: u16 = *self as u16;
-        serializer.serialize_u16(value)
-    }
-}
+mod serde {
+    use super::StatusCode;
+    use serde_crate::de::{Error as DeError, Unexpected, Visitor};
+    use serde_crate::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::fmt;
 
-struct StatusCodeU16Visitor;
-
-impl<'de> Visitor<'de> for StatusCodeU16Visitor {
-    type Value = StatusCode;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "a u16 representing the status code")
-    }
-
-    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
-    where
-        E: DeError,
-    {
-        self.visit_u16(v as u16)
-    }
-
-    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
-    where
-        E: DeError,
-    {
-        self.visit_u16(v as u16)
-    }
-
-    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
-    where
-        E: DeError,
-    {
-        self.visit_u16(v as u16)
-    }
-
-    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
-    where
-        E: DeError,
-    {
-        use std::convert::TryFrom;
-        match StatusCode::try_from(v) {
-            Ok(status_code) => Ok(status_code),
-            Err(_) => Err(DeError::invalid_value(
-                Unexpected::Unsigned(v as u64),
-                &self,
-            )),
+    impl Serialize for StatusCode {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let value: u16 = *self as u16;
+            serializer.serialize_u16(value)
         }
     }
 
-    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
-    where
-        E: DeError,
-    {
-        self.visit_u16(v as u16)
+    struct StatusCodeU16Visitor;
+
+    impl<'de> Visitor<'de> for StatusCodeU16Visitor {
+        type Value = StatusCode;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            write!(formatter, "a u16 representing the status code")
+        }
+
+        fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
+        where
+            E: DeError,
+        {
+            self.visit_u16(v as u16)
+        }
+
+        fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
+        where
+            E: DeError,
+        {
+            self.visit_u16(v as u16)
+        }
+
+        fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+        where
+            E: DeError,
+        {
+            self.visit_u16(v as u16)
+        }
+
+        fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
+        where
+            E: DeError,
+        {
+            use std::convert::TryFrom;
+            match StatusCode::try_from(v) {
+                Ok(status_code) => Ok(status_code),
+                Err(_) => Err(DeError::invalid_value(
+                    Unexpected::Unsigned(v as u64),
+                    &self,
+                )),
+            }
+        }
+
+        fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
+        where
+            E: DeError,
+        {
+            self.visit_u16(v as u16)
+        }
+
+        fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+        where
+            E: DeError,
+        {
+            self.visit_u16(v as u16)
+        }
     }
 
-    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
-    where
-        E: DeError,
-    {
-        self.visit_u16(v as u16)
-    }
-}
-
-impl<'de> Deserialize<'de> for StatusCode {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_any(StatusCodeU16Visitor)
+    impl<'de> Deserialize<'de> for StatusCode {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserializer.deserialize_any(StatusCodeU16Visitor)
+        }
     }
 }
 

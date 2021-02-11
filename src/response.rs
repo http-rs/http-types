@@ -7,6 +7,7 @@ use std::ops::Index;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+#[cfg(feature = "serde")]
 use crate::convert::DeserializeOwned;
 use crate::headers::{
     self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
@@ -313,6 +314,7 @@ impl Response {
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Cat {
     ///     name: String,
     /// }
@@ -327,6 +329,8 @@ impl Response {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
+
+    #[cfg(feature = "serde")]
     pub async fn body_json<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
         let body = self.take_body();
         body.into_json().await
@@ -347,6 +351,7 @@ impl Response {
     /// use http_types::{Body, Method, Response, StatusCode, Url};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Cat {
     ///     name: String,
     /// }
@@ -361,6 +366,7 @@ impl Response {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
+    #[cfg(feature = "serde")]
     pub async fn body_form<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
         let body = self.take_body();
         body.into_form().await
