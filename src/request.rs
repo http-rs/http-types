@@ -12,7 +12,7 @@ use crate::headers::{
     CONTENT_TYPE,
 };
 use crate::mime::Mime;
-use crate::trailers::{self, Trailers};
+use crate::transfer::{trailers, Trailers};
 use crate::{Body, Extensions, Method, StatusCode, Url, Version};
 
 pin_project_lite::pin_project! {
