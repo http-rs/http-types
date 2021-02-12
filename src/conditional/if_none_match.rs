@@ -140,6 +140,15 @@ impl IfNoneMatch {
     }
 }
 
+impl crate::headers::Header for IfNoneMatch {
+    fn header_name(&self) -> HeaderName {
+        IF_NONE_MATCH
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for IfNoneMatch {
     type Item = ETag;
     type IntoIter = IntoIter;

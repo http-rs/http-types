@@ -93,6 +93,15 @@ impl ToHeaderValues for IfModifiedSince {
     }
 }
 
+impl crate::headers::Header for IfModifiedSince {
+    fn header_name(&self) -> HeaderName {
+        IF_MODIFIED_SINCE
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

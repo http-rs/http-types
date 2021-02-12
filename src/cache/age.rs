@@ -95,6 +95,16 @@ impl ToHeaderValues for Age {
     }
 }
 
+impl crate::headers::Header for Age {
+    fn header_name(&self) -> HeaderName {
+        AGE
+    }
+
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

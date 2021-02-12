@@ -1,6 +1,6 @@
 use crate::auth::AuthenticationScheme;
 use crate::bail_status as bail;
-use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, AUTHORIZATION};
 
 /// Credentials to authenticate a user agent with a server.
 ///
@@ -78,7 +78,7 @@ impl Authorization {
 
     /// Get the `HeaderName`.
     pub fn name(&self) -> HeaderName {
-        AUTHORIZATION
+        self.header_name()
     }
 
     /// Get the `HeaderValue`.
@@ -107,6 +107,16 @@ impl Authorization {
     /// Set the authorization credentials.
     pub fn set_credentials(&mut self, credentials: String) {
         self.credentials = credentials;
+    }
+}
+
+impl Header for Authorization {
+    fn header_name(&self) -> HeaderName {
+        AUTHORIZATION
+    }
+
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 

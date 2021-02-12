@@ -408,6 +408,18 @@ impl<'a> Forwarded<'a> {
     }
 }
 
+impl<'a> crate::headers::Header for Forwarded<'a> {
+    fn header_name(&self) -> HeaderName {
+        FORWARDED
+    }
+    fn header_value(&self) -> HeaderValue {
+        // NOTE(yosh): This will never panic because we always write into a string.
+        let output = self.value().unwrap();
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+    }
+}
+
 fn parse_value(input: &str) -> (Option<Cow<'_, str>>, &str) {
     match parse_token(input) {
         (Some(token), rest) => (Some(Cow::Borrowed(token)), rest),

@@ -80,6 +80,15 @@ impl ContentEncoding {
     }
 }
 
+impl crate::headers::Header for ContentEncoding {
+    fn header_name(&self) -> HeaderName {
+        CONTENT_ENCODING
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl ToHeaderValues for ContentEncoding {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {

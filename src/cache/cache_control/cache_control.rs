@@ -104,6 +104,15 @@ impl CacheControl {
     }
 }
 
+impl crate::headers::Header for CacheControl {
+    fn header_name(&self) -> HeaderName {
+        CACHE_CONTROL
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for CacheControl {
     type Item = CacheDirective;
     type IntoIter = IntoIter;

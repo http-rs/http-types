@@ -108,6 +108,15 @@ impl Allow {
     }
 }
 
+impl crate::headers::Header for Allow {
+    fn header_name(&self) -> HeaderName {
+        ALLOW
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for Allow {
     type Item = Method;
     type IntoIter = IntoIter;

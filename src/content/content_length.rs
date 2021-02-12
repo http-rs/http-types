@@ -80,6 +80,15 @@ impl ContentLength {
     }
 }
 
+impl crate::headers::Header for ContentLength {
+    fn header_name(&self) -> HeaderName {
+        CONTENT_LENGTH
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

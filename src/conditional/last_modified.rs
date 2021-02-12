@@ -84,6 +84,15 @@ impl LastModified {
     }
 }
 
+impl crate::headers::Header for LastModified {
+    fn header_name(&self) -> HeaderName {
+        LAST_MODIFIED
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl ToHeaderValues for LastModified {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {

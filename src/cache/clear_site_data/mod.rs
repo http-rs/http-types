@@ -249,6 +249,15 @@ impl Debug for ClearSiteData {
     }
 }
 
+impl crate::headers::Header for ClearSiteData {
+    fn header_name(&self) -> HeaderName {
+        CLEAR_SITE_DATA
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::cache::{ClearDirective, ClearSiteData};

@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CONTENT_ENCODING};
+use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, TRANSFER_ENCODING};
 use crate::transfer::{Encoding, EncodingProposal};
 
 use std::fmt::{self, Debug};
@@ -42,7 +42,7 @@ impl TransferEncoding {
 
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(CONTENT_ENCODING) {
+        let headers = match headers.as_ref().get(TRANSFER_ENCODING) {
             Some(headers) => headers,
             None => return Ok(None),
         };
@@ -61,12 +61,12 @@ impl TransferEncoding {
 
     /// Sets the `Content-Encoding` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(CONTENT_ENCODING, self.value());
+        headers.as_mut().insert(TRANSFER_ENCODING, self.value());
     }
 
     /// Get the `HeaderName`.
     pub fn name(&self) -> HeaderName {
-        CONTENT_ENCODING
+        TRANSFER_ENCODING
     }
 
     /// Get the `HeaderValue`.
@@ -77,6 +77,15 @@ impl TransferEncoding {
     /// Access the encoding kind.
     pub fn encoding(&self) -> Encoding {
         self.inner
+    }
+}
+
+impl crate::headers::Header for TransferEncoding {
+    fn header_name(&self) -> HeaderName {
+        TRANSFER_ENCODING
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
     }
 }
 

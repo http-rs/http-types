@@ -140,6 +140,15 @@ impl Vary {
     }
 }
 
+impl crate::headers::Header for Vary {
+    fn header_name(&self) -> HeaderName {
+        VARY
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for Vary {
     type Item = HeaderName;
     type IntoIter = IntoIter;

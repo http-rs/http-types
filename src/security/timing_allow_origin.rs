@@ -162,6 +162,15 @@ impl TimingAllowOrigin {
     }
 }
 
+impl crate::headers::Header for TimingAllowOrigin {
+    fn header_name(&self) -> HeaderName {
+        TIMING_ALLOW_ORIGIN
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for TimingAllowOrigin {
     type Item = Url;
     type IntoIter = IntoIter;

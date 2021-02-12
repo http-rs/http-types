@@ -190,6 +190,15 @@ impl Accept {
     }
 }
 
+impl crate::headers::Header for Accept {
+    fn header_name(&self) -> HeaderName {
+        ACCEPT
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for Accept {
     type Item = MediaTypeProposal;
     type IntoIter = IntoIter;

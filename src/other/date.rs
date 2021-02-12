@@ -92,6 +92,15 @@ impl Date {
     }
 }
 
+impl crate::headers::Header for Date {
+    fn header_name(&self) -> HeaderName {
+        DATE
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl From<Date> for SystemTime {
     fn from(date: Date) -> Self {
         date.at

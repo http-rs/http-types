@@ -101,6 +101,15 @@ impl SourceMap {
     }
 }
 
+impl crate::headers::Header for SourceMap {
+    fn header_name(&self) -> HeaderName {
+        SOURCE_MAP
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

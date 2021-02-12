@@ -182,6 +182,15 @@ impl AcceptEncoding {
     }
 }
 
+impl crate::headers::Header for AcceptEncoding {
+    fn header_name(&self) -> HeaderName {
+        ACCEPT_ENCODING
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 impl IntoIterator for AcceptEncoding {
     type Item = EncodingProposal;
     type IntoIter = IntoIter;

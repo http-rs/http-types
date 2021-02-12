@@ -113,6 +113,16 @@ impl BasicAuth {
     }
 }
 
+impl crate::headers::Header for BasicAuth {
+    fn header_name(&self) -> HeaderName {
+        AUTHORIZATION
+    }
+
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

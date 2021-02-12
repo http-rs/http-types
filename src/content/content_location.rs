@@ -99,6 +99,15 @@ impl ContentLocation {
     }
 }
 
+impl crate::headers::Header for ContentLocation {
+    fn header_name(&self) -> HeaderName {
+        CONTENT_LOCATION
+    }
+    fn header_value(&self) -> HeaderValue {
+        self.value()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
