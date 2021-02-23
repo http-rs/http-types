@@ -271,11 +271,10 @@ mod test {
     }
 
     #[test]
-    fn bad_request_on_parse_error() -> crate::Result<()> {
+    fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
         headers.insert(SERVER_TIMING, "server; <nori ate your param omnom>");
         let err = ServerTiming::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
-        Ok(())
     }
 }

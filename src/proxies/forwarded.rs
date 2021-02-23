@@ -562,7 +562,7 @@ mod tests {
     }
 
     #[test]
-    fn bad_parse() -> Result<()> {
+    fn bad_parse() {
         let err = Forwarded::parse("by=proxy.com;for=client;host=example.com;host").unwrap_err();
         assert_eq!(
             err.to_string(),
@@ -592,7 +592,6 @@ mod tests {
             err.to_string(),
             "unable to parse forwarded header: for= without valid value"
         );
-        Ok(())
     }
 
     #[test]
@@ -623,7 +622,7 @@ mod tests {
     }
 
     #[test]
-    fn formatting_edge_cases() -> Result<()> {
+    fn formatting_edge_cases() {
         let mut forwarded = Forwarded::new();
         forwarded.add_for(r#"quote: " backslash: \"#);
         forwarded.add_for(";proto=https");
@@ -631,7 +630,6 @@ mod tests {
             forwarded.to_string(),
             r#"for="quote: \" backslash: \\", for=";proto=https""#
         );
-        Ok(())
     }
 
     #[test]
