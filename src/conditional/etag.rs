@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ETAG};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, ETAG};
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Display};
@@ -24,7 +24,7 @@ use std::option;
 /// let etag = ETag::new("0xcafebeef".to_string());
 ///
 /// let mut res = Response::new(200);
-/// etag.apply(&mut res);
+/// etag.apply_header(&mut res);
 ///
 /// let etag = ETag::from_headers(res)?.unwrap();
 /// assert_eq!(etag, ETag::Strong(String::from("0xcafebeef")));
@@ -65,23 +65,6 @@ impl ETag {
         // If a header is returned we can assume at least one exists.
         let s = headers.iter().last().unwrap().as_str();
         Self::from_str(s).map(Some)
-    }
-
-    /// Sets the `ETag` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(ETAG, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        ETAG
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let s = self.to_string();
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(s.into()) }
     }
 
     /// Returns `true` if the ETag is a `Strong` value.
@@ -130,12 +113,14 @@ impl ETag {
     }
 }
 
-impl crate::headers::Header for ETag {
+impl Header for ETag {
     fn header_name(&self) -> HeaderName {
         ETAG
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let s = self.to_string();
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(s.into()) }
     }
 }
 
@@ -152,7 +137,7 @@ impl ToHeaderValues for ETag {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -166,7 +151,7 @@ mod test {
         let etag = ETag::new("0xcafebeef".to_string());
 
         let mut headers = Headers::new();
-        etag.apply(&mut headers);
+        etag.apply_header(&mut headers);
 
         let etag = ETag::from_headers(headers)?.unwrap();
         assert_eq!(etag, ETag::Strong(String::from("0xcafebeef")));
@@ -178,7 +163,7 @@ mod test {
         let etag = ETag::new_weak("0xcafebeef".to_string());
 
         let mut headers = Headers::new();
-        etag.apply(&mut headers);
+        etag.apply_header(&mut headers);
 
         let etag = ETag::from_headers(headers)?.unwrap();
         assert_eq!(etag, ETag::Weak(String::from("0xcafebeef")));

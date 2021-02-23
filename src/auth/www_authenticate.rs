@@ -1,6 +1,6 @@
-use crate::auth::AuthenticationScheme;
 use crate::bail_status as bail;
 use crate::headers::{HeaderName, HeaderValue, Headers, WWW_AUTHENTICATE};
+use crate::{auth::AuthenticationScheme, headers::Header};
 
 /// Define the authentication method that should be used to gain access to a
 /// resource.
@@ -27,7 +27,7 @@ use crate::headers::{HeaderName, HeaderValue, Headers, WWW_AUTHENTICATE};
 /// let authz = WwwAuthenticate::new(scheme, realm.into());
 ///
 /// let mut res = Response::new(200);
-/// authz.apply(&mut res);
+/// authz.apply_header(&mut res);
 ///
 /// let authz = WwwAuthenticate::from_headers(res)?.unwrap();
 ///
@@ -93,24 +93,6 @@ impl WwwAuthenticate {
         Ok(Some(Self { scheme, realm }))
     }
 
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        WWW_AUTHENTICATE
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = format!(r#"{} realm="{}", charset="UTF-8""#, self.scheme, self.realm);
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Get the authorization scheme.
     pub fn scheme(&self) -> AuthenticationScheme {
         self.scheme
@@ -132,13 +114,16 @@ impl WwwAuthenticate {
     }
 }
 
-impl crate::headers::Header for WwwAuthenticate {
+impl Header for WwwAuthenticate {
     fn header_name(&self) -> HeaderName {
         WWW_AUTHENTICATE
     }
 
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let output = format!(r#"{} realm="{}", charset="UTF-8""#, self.scheme, self.realm);
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -154,7 +139,7 @@ mod test {
         let authz = WwwAuthenticate::new(scheme, realm.into());
 
         let mut headers = Headers::new();
-        authz.apply(&mut headers);
+        authz.apply_header(&mut headers);
 
         assert_eq!(
             headers["WWW-Authenticate"],

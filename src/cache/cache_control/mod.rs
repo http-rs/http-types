@@ -16,7 +16,7 @@ pub use cache_directive::CacheDirective;
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::{Headers, CACHE_CONTROL};
+    use crate::headers::{Header, Headers, CACHE_CONTROL};
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -25,7 +25,7 @@ mod test {
         entries.push(CacheDirective::NoStore);
 
         let mut headers = Headers::new();
-        entries.apply(&mut headers);
+        entries.apply_header(&mut headers);
 
         let entries = CacheControl::from_headers(headers)?.unwrap();
         let mut entries = entries.iter();

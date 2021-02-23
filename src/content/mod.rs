@@ -24,7 +24,7 @@
 //!
 //! let mut res = Response::new(200);
 //! let content_type = accept.negotiate(&[mime::XML])?;
-//! content_type.apply(&mut res);
+//! content_type.apply_header(&mut res);
 //!
 //! assert_eq!(res["Content-Type"], "application/xml;charset=utf-8");
 //! #

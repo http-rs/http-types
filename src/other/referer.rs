@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, REFERER};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, REFERER};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -25,7 +25,7 @@ use std::convert::TryInto;
 /// let referer = Referer::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
-/// referer.apply(&mut res);
+/// referer.apply_header(&mut res);
 ///
 /// let base_url = Url::parse("https://example.net/")?;
 /// let referer = Referer::from_headers(base_url, res)?.unwrap();
@@ -72,7 +72,7 @@ impl Referer {
 
     /// Sets the header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
+        headers.as_mut().insert(self.name(), self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -104,12 +104,12 @@ impl Referer {
     }
 }
 
-impl crate::headers::Header for Referer {
+impl Header for Referer {
     fn header_name(&self) -> HeaderName {
         REFERER
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -123,7 +123,7 @@ mod test {
         let referer = Referer::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
-        referer.apply(&mut headers);
+        referer.apply_header(&mut headers);
 
         let base_url = Url::parse("https://example.net/")?;
         let referer = Referer::from_headers(base_url, headers)?.unwrap();

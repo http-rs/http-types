@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime, SystemTimeError};
 
-use crate::headers::{HeaderName, HeaderValue, Headers, RETRY_AFTER};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, RETRY_AFTER};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 /// Indicate how long the user agent should wait before making a follow-up request.
@@ -24,7 +24,7 @@ use crate::utils::{fmt_http_date, parse_http_date};
 /// let retry = RetryAfter::new(Duration::from_secs(10));
 ///
 /// let mut headers = Response::new(429);
-/// retry.apply(&mut headers);
+/// retry.apply_header(&mut headers);
 ///
 /// // Sleep for the duration, then try the task again.
 /// let retry = RetryAfter::from_headers(headers)?.unwrap();
@@ -87,19 +87,14 @@ impl RetryAfter {
 
         at.duration_since(earlier)
     }
+}
 
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
+impl Header for RetryAfter {
+    fn header_name(&self) -> HeaderName {
         RETRY_AFTER
     }
 
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
+    fn header_value(&self) -> HeaderValue {
         let output = match self.inner {
             RetryDirective::Duration(dur) => format!("{}", dur.as_secs()),
             RetryDirective::SystemTime(at) => fmt_http_date(at),
@@ -138,7 +133,7 @@ mod test {
         let retry = RetryAfter::new(Duration::from_secs(10));
 
         let mut headers = Headers::new();
-        retry.apply(&mut headers);
+        retry.apply_header(&mut headers);
 
         // `SystemTime::now` uses sub-second precision which means there's some
         // offset that's not encoded.
@@ -157,7 +152,7 @@ mod test {
         let retry = RetryAfter::new_at(now + Duration::from_secs(10));
 
         let mut headers = Headers::new();
-        retry.apply(&mut headers);
+        retry.apply_header(&mut headers);
 
         // `SystemTime::now` uses sub-second precision which means there's some
         // offset that's not encoded.

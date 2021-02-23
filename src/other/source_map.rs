@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, SOURCE_MAP};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, SOURCE_MAP};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -22,7 +22,7 @@ use std::convert::TryInto;
 /// let source_map = SourceMap::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
-/// source_map.apply(&mut res);
+/// source_map.apply_header(&mut res);
 ///
 /// let base_url = Url::parse("https://example.net/")?;
 /// let source_map = SourceMap::from_headers(base_url, res)?.unwrap();
@@ -69,7 +69,7 @@ impl SourceMap {
 
     /// Sets the header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
+        headers.as_mut().insert(self.name(), self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -101,12 +101,12 @@ impl SourceMap {
     }
 }
 
-impl crate::headers::Header for SourceMap {
+impl Header for SourceMap {
     fn header_name(&self) -> HeaderName {
         SOURCE_MAP
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -120,7 +120,7 @@ mod test {
         let source_map = SourceMap::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
-        source_map.apply(&mut headers);
+        source_map.apply_header(&mut headers);
 
         let base_url = Url::parse("https://example.net/")?;
         let source_map = SourceMap::from_headers(base_url, headers)?.unwrap();

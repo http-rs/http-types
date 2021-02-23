@@ -1,4 +1,6 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_UNMODIFIED_SINCE};
+use crate::headers::{
+    Header, HeaderName, HeaderValue, Headers, ToHeaderValues, IF_UNMODIFIED_SINCE,
+};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
@@ -25,7 +27,7 @@ use std::time::SystemTime;
 /// let expires = IfUnmodifiedSince::new(time);
 ///
 /// let mut res = Response::new(200);
-/// expires.apply(&mut res);
+/// expires.apply_header(&mut res);
 ///
 /// let expires = IfUnmodifiedSince::from_headers(res)?.unwrap();
 ///
@@ -65,19 +67,13 @@ impl IfUnmodifiedSince {
         let instant = parse_http_date(header.as_str())?;
         Ok(Some(Self { instant }))
     }
+}
 
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(IF_UNMODIFIED_SINCE, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
+impl Header for IfUnmodifiedSince {
+    fn header_name(&self) -> HeaderName {
         IF_UNMODIFIED_SINCE
     }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
+    fn header_value(&self) -> HeaderValue {
         let output = fmt_http_date(self.instant);
 
         // SAFETY: the internal string is validated to be ASCII.
@@ -85,20 +81,11 @@ impl IfUnmodifiedSince {
     }
 }
 
-impl crate::headers::Header for IfUnmodifiedSince {
-    fn header_name(&self) -> HeaderName {
-        IF_UNMODIFIED_SINCE
-    }
-    fn header_value(&self) -> HeaderValue {
-        self.value()
-    }
-}
-
 impl ToHeaderValues for IfUnmodifiedSince {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -114,7 +101,7 @@ mod test {
         let expires = IfUnmodifiedSince::new(time);
 
         let mut headers = Headers::new();
-        expires.apply(&mut headers);
+        expires.apply_header(&mut headers);
 
         let expires = IfUnmodifiedSince::from_headers(headers)?.unwrap();
 

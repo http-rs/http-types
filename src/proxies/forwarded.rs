@@ -1,5 +1,5 @@
 use crate::{
-    headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, FORWARDED},
+    headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, FORWARDED},
     parse_utils::{parse_quoted_string, parse_token},
 };
 use std::{borrow::Cow, convert::TryFrom, fmt::Write, net::IpAddr};
@@ -65,7 +65,7 @@ impl<'a> Forwarded<'a> {
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
     /// assert_eq!(forwarded.proto(), Some("https"));
     /// assert_eq!(
-    ///     forwarded.value()?,
+    ///     forwarded.header_value()?,
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
     /// );
     /// # Ok(()) }
@@ -188,7 +188,7 @@ impl<'a> Forwarded<'a> {
     /// )?;
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
     /// assert_eq!(
-    ///     forwarded.value()?,
+    ///     forwarded.header_value()?,
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
     /// );
     /// # Ok(()) }
@@ -301,67 +301,6 @@ impl<'a> Forwarded<'a> {
         }
     }
 
-    /// Insert a header that represents this Forwarded.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// let mut response = http_types::Response::new(200);
-    /// let mut forwarded = http_types::proxies::Forwarded::new();
-    /// forwarded.add_for("192.0.2.43");
-    /// forwarded.add_for("[2001:db8:cafe::17]");
-    /// forwarded.set_proto("https");
-    /// forwarded.apply(&mut response);
-    /// assert_eq!(response["Forwarded"], r#"for=192.0.2.43, for="[2001:db8:cafe::17]";proto=https"#);
-    /// ```
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(FORWARDED, self);
-    }
-
-    /// Builds a Forwarded header as a String.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// # fn main() -> http_types::Result<()> {
-    /// let mut forwarded = http_types::proxies::Forwarded::new();
-    /// forwarded.add_for("_haproxy");
-    /// forwarded.add_for("[2001:db8:cafe::17]");
-    /// forwarded.set_proto("https");
-    /// assert_eq!(forwarded.value()?, r#"for=_haproxy, for="[2001:db8:cafe::17]";proto=https"#);
-    /// # Ok(()) }
-    /// ```
-    pub fn value(&self) -> Result<String, std::fmt::Error> {
-        let mut buf = String::new();
-        if let Some(by) = self.by() {
-            write!(&mut buf, "by={};", by)?;
-        }
-
-        buf.push_str(
-            &self
-                .forwarded_for
-                .iter()
-                .map(|f| format!("for={}", format_value(f)))
-                .collect::<Vec<_>>()
-                .join(", "),
-        );
-
-        buf.push(';');
-
-        if let Some(host) = self.host() {
-            write!(&mut buf, "host={};", host)?;
-        }
-
-        if let Some(proto) = self.proto() {
-            write!(&mut buf, "proto={};", proto)?;
-        }
-
-        // remove a trailing semicolon
-        buf.pop();
-
-        Ok(buf)
-    }
-
     /// Builds a new empty Forwarded
     pub fn new() -> Self {
         Self::default()
@@ -408,13 +347,38 @@ impl<'a> Forwarded<'a> {
     }
 }
 
-impl<'a> crate::headers::Header for Forwarded<'a> {
+impl<'a> Header for Forwarded<'a> {
     fn header_name(&self) -> HeaderName {
         FORWARDED
     }
     fn header_value(&self) -> HeaderValue {
-        // NOTE(yosh): This will never panic because we always write into a string.
-        let output = self.value().unwrap();
+        let mut output = String::new();
+        if let Some(by) = self.by() {
+            write!(&mut output, "by={};", by).unwrap();
+        }
+
+        output.push_str(
+            &self
+                .forwarded_for
+                .iter()
+                .map(|f| format!("for={}", format_value(f)))
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
+
+        output.push(';');
+
+        if let Some(host) = self.host() {
+            write!(&mut output, "host={};", host).unwrap();
+        }
+
+        if let Some(proto) = self.proto() {
+            write!(&mut output, "proto={};", proto).unwrap();
+        }
+
+        // remove a trailing semicolon
+        output.pop();
+
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
@@ -460,21 +424,21 @@ fn starts_with_ignore_case(start: &'static str, input: &str) -> bool {
 
 impl std::fmt::Display for Forwarded<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.value()?)
+        f.write_str(&self.header_value().as_str())
     }
 }
 
 impl ToHeaderValues for Forwarded<'_> {
     type Iter = std::option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        Ok(self.value()?.to_header_values()?)
+        Ok(self.header_value().to_header_values()?)
     }
 }
 
 impl ToHeaderValues for &Forwarded<'_> {
     type Iter = std::option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        Ok(self.value()?.to_header_values()?)
+        Ok(self.header_value().to_header_values()?)
     }
 }
 

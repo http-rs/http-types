@@ -1,7 +1,7 @@
 use rand::Rng;
 use std::fmt;
 
-use crate::headers::{HeaderName, HeaderValue, Headers, TRACEPARENT};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, TRACEPARENT};
 use crate::Status;
 
 /// Extract and apply [Trace-Context](https://w3c.github.io/trace-context/) headers.
@@ -140,7 +140,7 @@ impl TraceContext {
     /// let parent = TraceContext::from_headers(&req)?.unwrap();
     ///
     /// let mut res = Response::new(200);
-    /// parent.apply(&mut res);
+    /// parent.apply_header(&mut res);
     ///
     /// let child = TraceContext::from_headers(&res)?.unwrap();
     ///
@@ -152,7 +152,7 @@ impl TraceContext {
     /// ```
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
         let headers = headers.as_mut();
-        headers.insert(TRACEPARENT, self.value());
+        headers.insert(TRACEPARENT, self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -246,12 +246,12 @@ impl TraceContext {
     }
 }
 
-impl crate::headers::Header for TraceContext {
+impl Header for TraceContext {
     fn header_name(&self) -> HeaderName {
         TRACEPARENT
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 

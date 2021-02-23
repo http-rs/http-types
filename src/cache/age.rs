@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, AGE};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, AGE};
 use crate::Status;
 
 use std::fmt::Debug;
@@ -22,7 +22,7 @@ use std::time::Duration;
 /// let age = Age::from_secs(12);
 ///
 /// let mut res = Response::new(200);
-/// age.apply(&mut res);
+/// age.apply_header(&mut res);
 ///
 /// let age = Age::from_headers(res)?.unwrap();
 /// assert_eq!(age, Age::from_secs(12));
@@ -67,41 +67,26 @@ impl Age {
 
         Ok(Some(Self { dur }))
     }
-
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(AGE, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        AGE
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = self.dur.as_secs().to_string();
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
 }
 
 impl ToHeaderValues for Age {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
-impl crate::headers::Header for Age {
+impl Header for Age {
     fn header_name(&self) -> HeaderName {
         AGE
     }
 
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let output = self.dur.as_secs().to_string();
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -115,7 +100,7 @@ mod test {
         let age = Age::new(Duration::from_secs(12));
 
         let mut headers = Headers::new();
-        age.apply(&mut headers);
+        age.apply_header(&mut headers);
 
         let age = Age::from_headers(headers)?.unwrap();
         assert_eq!(age, Age::new(Duration::from_secs(12)));

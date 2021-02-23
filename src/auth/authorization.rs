@@ -21,7 +21,7 @@ use crate::headers::{Header, HeaderName, HeaderValue, Headers, AUTHORIZATION};
 /// let authz = Authorization::new(scheme, credentials.into());
 ///
 /// let mut res = Response::new(200);
-/// authz.apply(&mut res);
+/// authz.apply_header(&mut res);
 ///
 /// let authz = Authorization::from_headers(res)?.unwrap();
 ///
@@ -71,24 +71,6 @@ impl Authorization {
         }))
     }
 
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        self.header_name()
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = format!("{} {}", self.scheme, self.credentials);
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Get the authorization scheme.
     pub fn scheme(&self) -> AuthenticationScheme {
         self.scheme
@@ -116,7 +98,10 @@ impl Header for Authorization {
     }
 
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let output = format!("{} {}", self.scheme, self.credentials);
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -132,7 +117,7 @@ mod test {
         let authz = Authorization::new(scheme, credentials.into());
 
         let mut headers = Headers::new();
-        authz.apply(&mut headers);
+        authz.apply_header(&mut headers);
 
         let authz = Authorization::from_headers(headers)?.unwrap();
 

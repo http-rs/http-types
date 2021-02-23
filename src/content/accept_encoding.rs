@@ -1,8 +1,11 @@
 //! Client header advertising available compression algorithms.
 
-use crate::content::{ContentEncoding, Encoding, EncodingProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT_ENCODING};
 use crate::utils::sort_by_weight;
+use crate::{
+    content::{ContentEncoding, Encoding, EncodingProposal},
+    headers::Header,
+};
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
@@ -30,7 +33,7 @@ use std::slice;
 ///
 /// let mut res = Response::new(200);
 /// let encoding = accept.negotiate(&[Encoding::Brotli, Encoding::Gzip])?;
-/// encoding.apply(&mut res);
+/// encoding.apply_header(&mut res);
 ///
 /// assert_eq!(res["Content-Encoding"], "br");
 /// #
@@ -137,7 +140,9 @@ impl AcceptEncoding {
 
     /// Sets the `Accept-Encoding` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(ACCEPT_ENCODING, self.value());
+        headers
+            .as_mut()
+            .insert(ACCEPT_ENCODING, self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -182,12 +187,12 @@ impl AcceptEncoding {
     }
 }
 
-impl crate::headers::Header for AcceptEncoding {
+impl Header for AcceptEncoding {
     fn header_name(&self) -> HeaderName {
         ACCEPT_ENCODING
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -284,7 +289,7 @@ impl ToHeaderValues for AcceptEncoding {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -310,7 +315,7 @@ mod test {
         accept.push(Encoding::Gzip);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = AcceptEncoding::from_headers(headers)?.unwrap();
         assert_eq!(accept.iter().next().unwrap(), Encoding::Gzip);
@@ -323,7 +328,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = AcceptEncoding::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -337,7 +342,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = AcceptEncoding::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -352,7 +357,7 @@ mod test {
         accept.push(Encoding::Brotli);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = AcceptEncoding::from_headers(headers)?.unwrap();
         let mut accept = accept.iter();
@@ -369,7 +374,7 @@ mod test {
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let mut accept = AcceptEncoding::from_headers(headers)?.unwrap();
         accept.sort();
@@ -388,7 +393,7 @@ mod test {
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
         let mut res = Response::new(200);
-        accept.apply(&mut res);
+        accept.apply_header(&mut res);
 
         let mut accept = AcceptEncoding::from_headers(res)?.unwrap();
         accept.sort();

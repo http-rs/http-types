@@ -1,5 +1,5 @@
-use crate::ensure_eq_status;
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, EXPECT};
+use crate::{ensure_eq_status, headers::Header};
 
 use std::fmt::Debug;
 use std::option;
@@ -23,7 +23,7 @@ use std::option;
 /// let expect = Expect::new();
 ///
 /// let mut res = Response::new(200);
-/// expect.apply(&mut res);
+/// expect.apply_header(&mut res);
 ///
 /// let expect = Expect::from_headers(res)?.unwrap();
 /// assert_eq!(expect, Expect::new());
@@ -58,7 +58,7 @@ impl Expect {
 
     /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(EXPECT, self.value());
+        headers.as_mut().insert(EXPECT, self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -74,12 +74,12 @@ impl Expect {
     }
 }
 
-impl crate::headers::Header for Expect {
+impl Header for Expect {
     fn header_name(&self) -> HeaderName {
         EXPECT
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -87,7 +87,7 @@ impl ToHeaderValues for Expect {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -101,7 +101,7 @@ mod test {
         let expect = Expect::new();
 
         let mut headers = Headers::new();
-        expect.apply(&mut headers);
+        expect.apply_header(&mut headers);
 
         let expect = Expect::from_headers(headers)?.unwrap();
         assert_eq!(expect, Expect::new());

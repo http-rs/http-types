@@ -1,6 +1,6 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, VARY};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, VARY};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -27,7 +27,7 @@ use std::str::FromStr;
 /// entries.push("Accept-Encoding")?;
 ///
 /// let mut res = Response::new(200);
-/// entries.apply(&mut res);
+/// entries.apply_header(&mut res);
 ///
 /// let entries = Vary::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -76,7 +76,7 @@ impl Vary {
 
     /// Sets the `If-Match` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(VARY, self.value());
+        headers.as_mut().insert(VARY, self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -140,12 +140,12 @@ impl Vary {
     }
 }
 
-impl crate::headers::Header for Vary {
+impl Header for Vary {
     fn header_name(&self) -> HeaderName {
         VARY
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -242,7 +242,7 @@ impl ToHeaderValues for Vary {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -258,6 +258,7 @@ impl Debug for Vary {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::conditional::Vary;
     use crate::Response;
 
@@ -268,7 +269,7 @@ mod test {
         entries.push("Accept-Encoding")?;
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = Vary::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
@@ -284,7 +285,7 @@ mod test {
         entries.set_wildcard(true);
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = Vary::from_headers(res)?.unwrap();
         assert_eq!(entries.wildcard(), true);

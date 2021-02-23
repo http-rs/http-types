@@ -13,7 +13,7 @@
 //! let authz = BasicAuth::new(username, password);
 //!
 //! let mut res = Response::new(200);
-//! authz.apply(&mut res);
+//! authz.apply_header(&mut res);
 //!
 //! let authz = BasicAuth::from_headers(res)?.unwrap();
 //!

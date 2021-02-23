@@ -1,7 +1,7 @@
 //! Clear browsing data (cookies, storage, cache) associated with the
 //! requesting website
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CLEAR_SITE_DATA};
+use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues, CLEAR_SITE_DATA};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -12,6 +12,7 @@ use std::str::FromStr;
 mod directive;
 
 pub use directive::ClearDirective;
+use headers::Header;
 
 /// Clear browsing data (cookies, storage, cache) associated with the
 /// requesting website.
@@ -35,7 +36,7 @@ pub use directive::ClearDirective;
 /// entries.push(ClearDirective::Cookies);
 ///
 /// let mut res = Response::new(200);
-/// entries.apply(&mut res);
+/// entries.apply_header(&mut res);
 ///
 /// let entries = ClearSiteData::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -79,37 +80,6 @@ impl ClearSiteData {
         }
 
         Ok(Some(Self { entries, wildcard }))
-    }
-
-    /// Sets the `If-Match` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(CLEAR_SITE_DATA, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        CLEAR_SITE_DATA
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, etag) in self.entries.iter().enumerate() {
-            match n {
-                0 => write!(output, "{}", etag.to_string()).unwrap(),
-                _ => write!(output, ", {}", etag.to_string()).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, r#""*""#).unwrap(),
-                _ => write!(output, r#", "*""#).unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 
     /// Push a directive into the list of entries.
@@ -235,7 +205,7 @@ impl ToHeaderValues for ClearSiteData {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -249,17 +219,35 @@ impl Debug for ClearSiteData {
     }
 }
 
-impl crate::headers::Header for ClearSiteData {
+impl Header for ClearSiteData {
     fn header_name(&self) -> HeaderName {
         CLEAR_SITE_DATA
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, etag) in self.entries.iter().enumerate() {
+            match n {
+                0 => write!(output, "{}", etag.to_string()).unwrap(),
+                _ => write!(output, ", {}", etag.to_string()).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, r#""*""#).unwrap(),
+                _ => write!(output, r#", "*""#).unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::cache::{ClearDirective, ClearSiteData};
     use crate::Response;
 
@@ -270,7 +258,7 @@ mod test {
         entries.push(ClearDirective::Cookies);
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
@@ -286,7 +274,7 @@ mod test {
         entries.set_wildcard(true);
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
         assert_eq!(entries.wildcard(), true);

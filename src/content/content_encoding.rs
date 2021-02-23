@@ -1,7 +1,10 @@
 //! Specify the compression algorithm.
 
-use crate::content::{Encoding, EncodingProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CONTENT_ENCODING};
+use crate::{
+    content::{Encoding, EncodingProposal},
+    headers::Header,
+};
 
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};
@@ -23,7 +26,7 @@ use std::option;
 /// let mut encoding = ContentEncoding::new(Encoding::Gzip);
 ///
 /// let mut res = Response::new(200);
-/// encoding.apply(&mut res);
+/// encoding.apply_header(&mut res);
 ///
 /// let encoding = ContentEncoding::from_headers(res)?.unwrap();
 /// assert_eq!(encoding, &Encoding::Gzip);
@@ -61,7 +64,9 @@ impl ContentEncoding {
 
     /// Sets the `Content-Encoding` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(CONTENT_ENCODING, self.value());
+        headers
+            .as_mut()
+            .insert(CONTENT_ENCODING, self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -80,12 +85,12 @@ impl ContentEncoding {
     }
 }
 
-impl crate::headers::Header for ContentEncoding {
+impl Header for ContentEncoding {
     fn header_name(&self) -> HeaderName {
         CONTENT_ENCODING
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -93,7 +98,7 @@ impl ToHeaderValues for ContentEncoding {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

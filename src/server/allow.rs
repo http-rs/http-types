@@ -1,6 +1,6 @@
 //! List the set of methods supported by a resource.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ALLOW};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, ALLOW};
 use crate::Method;
 
 use std::collections::{hash_set, HashSet};
@@ -28,7 +28,7 @@ use std::str::FromStr;
 /// allow.insert(Method::Post);
 ///
 /// let mut res = Response::new(200);
-/// allow.apply(&mut res);
+/// allow.apply_header(&mut res);
 ///
 /// let allow = Allow::from_headers(res)?.unwrap();
 /// assert!(allow.contains(Method::Put));
@@ -68,7 +68,7 @@ impl Allow {
 
     /// Sets the `Allow` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(ALLOW, self.value());
+        headers.as_mut().insert(ALLOW, self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -108,12 +108,12 @@ impl Allow {
     }
 }
 
-impl crate::headers::Header for Allow {
+impl Header for Allow {
     fn header_name(&self) -> HeaderName {
         ALLOW
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -181,7 +181,7 @@ impl ToHeaderValues for Allow {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -207,7 +207,7 @@ mod test {
         allow.insert(Method::Post);
 
         let mut headers = Headers::new();
-        allow.apply(&mut headers);
+        allow.apply_header(&mut headers);
 
         let allow = Allow::from_headers(headers)?.unwrap();
         assert!(allow.contains(Method::Put));

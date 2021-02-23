@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_LENGTH};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_LENGTH};
 use crate::Status;
 
 /// The size of the entity-body, in bytes, sent to the recipient.
@@ -18,7 +18,7 @@ use crate::Status;
 /// let content_len = ContentLength::new(12);
 ///
 /// let mut res = Response::new(200);
-/// content_len.apply(&mut res);
+/// content_len.apply_header(&mut res);
 ///
 /// let content_len = ContentLength::from_headers(res)?.unwrap();
 /// assert_eq!(content_len.len(), 12);
@@ -53,7 +53,7 @@ impl ContentLength {
 
     /// Sets the header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
+        headers.as_mut().insert(self.name(), self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -80,12 +80,12 @@ impl ContentLength {
     }
 }
 
-impl crate::headers::Header for ContentLength {
+impl Header for ContentLength {
     fn header_name(&self) -> HeaderName {
         CONTENT_LENGTH
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -99,7 +99,7 @@ mod test {
         let content_len = ContentLength::new(12);
 
         let mut headers = Headers::new();
-        content_len.apply(&mut headers);
+        content_len.apply_header(&mut headers);
 
         let content_len = ContentLength::from_headers(headers)?.unwrap();
         assert_eq!(content_len.len(), 12);

@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_LOCATION};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_LOCATION};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -22,7 +22,7 @@ use std::convert::TryInto;
 /// let content_location = ContentLocation::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
-/// content_location.apply(&mut res);
+/// content_location.apply_header(&mut res);
 ///
 /// let url = Url::parse("https://example.net/")?;
 /// let content_location = ContentLocation::from_headers(url, res)?.unwrap();
@@ -66,7 +66,7 @@ impl ContentLocation {
 
     /// Sets the header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
+        headers.as_mut().insert(self.name(), self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -99,12 +99,12 @@ impl ContentLocation {
     }
 }
 
-impl crate::headers::Header for ContentLocation {
+impl Header for ContentLocation {
     fn header_name(&self) -> HeaderName {
         CONTENT_LOCATION
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -118,7 +118,7 @@ mod test {
         let content_location = ContentLocation::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
-        content_location.apply(&mut headers);
+        content_location.apply_header(&mut headers);
 
         let content_location =
             ContentLocation::from_headers(Url::parse("https://example.net/").unwrap(), headers)?

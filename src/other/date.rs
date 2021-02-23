@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, DATE};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, DATE};
 use crate::utils::HttpDate;
 
 use std::time::SystemTime;
@@ -23,7 +23,7 @@ use std::time::SystemTime;
 /// let date = Date::new(now);
 ///
 /// let mut res = Response::new(200);
-/// date.apply(&mut res);
+/// date.apply_header(&mut res);
 ///
 /// let date = Date::from_headers(res)?.unwrap();
 ///
@@ -74,7 +74,7 @@ impl Date {
 
     /// Sets the header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
+        headers.as_mut().insert(self.name(), self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -92,12 +92,12 @@ impl Date {
     }
 }
 
-impl crate::headers::Header for Date {
+impl Header for Date {
     fn header_name(&self) -> HeaderName {
         DATE
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -131,7 +131,7 @@ mod test {
         let date = Date::new(now);
 
         let mut headers = Headers::new();
-        date.apply(&mut headers);
+        date.apply_header(&mut headers);
 
         let date = Date::from_headers(headers)?.unwrap();
 

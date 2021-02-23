@@ -1,9 +1,12 @@
 //! Client header advertising which media types the client is able to understand.
 
-use crate::content::{ContentType, MediaTypeProposal};
 use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT};
 use crate::mime::Mime;
 use crate::utils::sort_by_weight;
+use crate::{
+    content::{ContentType, MediaTypeProposal},
+    headers::Header,
+};
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
@@ -39,7 +42,7 @@ use std::slice;
 ///
 /// let mut res = Response::new(200);
 /// let content_type = accept.negotiate(&[mime::XML])?;
-/// content_type.apply(&mut res);
+/// content_type.apply_header(&mut res);
 ///
 /// assert_eq!(res["Content-Type"], "application/xml;charset=utf-8");
 /// #
@@ -145,7 +148,7 @@ impl Accept {
 
     /// Sets the `Accept-Encoding` header.
     pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(ACCEPT, self.value());
+        headers.as_mut().insert(ACCEPT, self.header_value());
     }
 
     /// Get the `HeaderName`.
@@ -190,12 +193,12 @@ impl Accept {
     }
 }
 
-impl crate::headers::Header for Accept {
+impl Header for Accept {
     fn header_name(&self) -> HeaderName {
         ACCEPT
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        self.header_value()
     }
 }
 
@@ -292,7 +295,7 @@ impl ToHeaderValues for Accept {
     type Iter = option::IntoIter<HeaderValue>;
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 
@@ -318,7 +321,7 @@ mod test {
         accept.push(mime::HTML);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         assert_eq!(accept.iter().next().unwrap(), mime::HTML);
@@ -331,7 +334,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -345,7 +348,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -360,7 +363,7 @@ mod test {
         accept.push(mime::XML);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         let mut accept = accept.iter();
@@ -377,7 +380,7 @@ mod test {
         accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let mut accept = Accept::from_headers(headers)?.unwrap();
         accept.sort();
@@ -396,7 +399,7 @@ mod test {
         accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
 
         let mut res = Response::new(200);
-        accept.apply(&mut res);
+        accept.apply_header(&mut res);
 
         let mut accept = Accept::from_headers(res)?.unwrap();
         accept.sort();
