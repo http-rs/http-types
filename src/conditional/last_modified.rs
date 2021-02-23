@@ -16,7 +16,7 @@ use std::time::SystemTime;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response};
+/// use http_types::Response;
 /// use http_types::conditional::LastModified;
 /// use std::time::{SystemTime, Duration};
 ///
@@ -24,7 +24,7 @@ use std::time::SystemTime;
 /// let last_modified = LastModified::new(time);
 ///
 /// let mut res = Response::new(200);
-/// last_modified.apply_header(&mut res);
+/// res.insert_header(&last_modified, &last_modified);
 ///
 /// let last_modified = LastModified::from_headers(res)?.unwrap();
 ///

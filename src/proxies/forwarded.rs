@@ -43,7 +43,7 @@ impl<'a> Forwarded<'a> {
     /// # Examples
     /// ```rust
     /// # fn main() -> http_types::Result<()> {
-    /// use http_types::{headers::Header, Request};
+    /// use http_types::{Request};
     /// use http_types::proxies::Forwarded;
     ///
     /// let mut request = Request::get("http://_/");

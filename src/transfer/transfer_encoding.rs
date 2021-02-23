@@ -18,7 +18,7 @@ use std::option;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response};
+/// use http_types::Response;
 /// use http_types::transfer::{TransferEncoding, Encoding};
 /// let mut encoding = TransferEncoding::new(Encoding::Chunked);
 ///

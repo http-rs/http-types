@@ -5,7 +5,7 @@
 //! ```
 //! # fn main() -> http_types::Result<()> {
 //! #
-//! use http_types::{headers::Header, Response};
+//! use http_types::Response;
 //! use http_types::auth::{AuthenticationScheme, BasicAuth};
 //!
 //! let username = "nori";
@@ -13,7 +13,7 @@
 //! let authz = BasicAuth::new(username, password);
 //!
 //! let mut res = Response::new(200);
-//! authz.apply_header(&mut res);
+//! res.insert_header(&authz, &authz);
 //!
 //! let authz = BasicAuth::from_headers(res)?.unwrap();
 //!

@@ -44,7 +44,7 @@ use std::slice;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response, Url};
+/// use http_types::{Response, Url};
 /// use http_types::security::TimingAllowOrigin;
 ///
 /// let mut origins = TimingAllowOrigin::new();

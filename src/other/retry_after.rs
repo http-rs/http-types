@@ -17,7 +17,7 @@ use crate::utils::{fmt_http_date, parse_http_date};
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::other::RetryAfter;
-/// use http_types::{headers::Header, Response};
+/// use http_types::Response;
 /// use std::time::{SystemTime, Duration};
 /// use async_std::task;
 ///

@@ -28,7 +28,7 @@ use headers::Header;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response};
+/// use http_types::Response;
 /// use http_types::cache::{ClearSiteData, ClearDirective};
 ///
 /// let mut entries = ClearSiteData::new();

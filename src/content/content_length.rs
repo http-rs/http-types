@@ -12,13 +12,13 @@ use crate::Status;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response};
+/// use http_types::Response;
 /// use http_types::content::{ContentLength};
 ///
 /// let content_len = ContentLength::new(12);
 ///
 /// let mut res = Response::new(200);
-/// content_len.apply_header(&mut res);
+/// res.insert_header(&content_len, &content_len);
 ///
 /// let content_len = ContentLength::from_headers(res)?.unwrap();
 /// assert_eq!(content_len.len(), 12);

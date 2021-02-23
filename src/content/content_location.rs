@@ -16,13 +16,13 @@ use std::convert::TryInto;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response, Url};
+/// use http_types::{Response, Url};
 /// use http_types::content::ContentLocation;
 ///
 /// let content_location = ContentLocation::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
-/// content_location.apply_header(&mut res);
+/// res.insert_header(&content_location, &content_location);
 ///
 /// let url = Url::parse("https://example.net/")?;
 /// let content_location = ContentLocation::from_headers(url, res)?.unwrap();

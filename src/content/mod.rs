@@ -15,7 +15,7 @@
 //! # fn main() -> http_types::Result<()> {
 //! #
 //! use http_types::content::{Accept, MediaTypeProposal};
-//! use http_types::{headers::Header, mime, Response};
+//! use http_types::{mime, Response};
 //!
 //! let mut accept = Accept::new();
 //! accept.push(MediaTypeProposal::new(mime::HTML, Some(0.8))?);
@@ -24,7 +24,7 @@
 //!
 //! let mut res = Response::new(200);
 //! let content_type = accept.negotiate(&[mime::XML])?;
-//! content_type.apply_header(&mut res);
+//! res.insert_header(&content_type, &content_type);
 //!
 //! assert_eq!(res["Content-Type"], "application/xml;charset=utf-8");
 //! #

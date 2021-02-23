@@ -16,13 +16,13 @@ use std::convert::TryInto;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response, Url};
+/// use http_types::{Response, Url};
 /// use http_types::other::SourceMap;
 ///
 /// let source_map = SourceMap::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
-/// source_map.apply_header(&mut res);
+/// res.insert_header(&source_map, &source_map);
 ///
 /// let base_url = Url::parse("https://example.net/")?;
 /// let source_map = SourceMap::from_headers(base_url, res)?.unwrap();

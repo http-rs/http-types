@@ -25,7 +25,7 @@ use crate::mime::Mime;
 /// let content_type = ContentType::new("text/*");
 ///
 /// let mut res = Response::new(200);
-/// content_type.apply_header(&mut res);
+/// res.insert_header(&content_type, &content_type);
 ///
 /// let content_type = ContentType::from_headers(res)?.unwrap();
 /// assert_eq!(content_type.header_value(), format!("{}", Mime::from_str("text/*")?).as_str());

@@ -5,14 +5,14 @@
 //! ```
 //! # fn main() -> http_types::Result<()> {
 //! #
-//! use http_types::{headers::Header, Response};
+//! use http_types::Response;
 //! use http_types::trace::{ServerTiming, Metric};
 //!
 //! let mut timings = ServerTiming::new();
 //! timings.push(Metric::new("server".to_owned(), None, None)?);
 //!
 //! let mut res = Response::new(200);
-//! timings.apply_header(&mut res);
+//! res.insert_header(&timings, &timings);
 //!
 //! let timings = ServerTiming::from_headers(res)?.unwrap();
 //! let entry = timings.iter().next().unwrap();
@@ -45,7 +45,7 @@ use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, S
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{headers::Header, Response};
+/// use http_types::Response;
 /// use http_types::trace::{ServerTiming, Metric};
 ///
 /// let mut timings = ServerTiming::new();

@@ -22,7 +22,7 @@ use std::slice;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::transfer::{TE, TransferEncoding, Encoding, EncodingProposal};
-/// use http_types::{headers::Header, Response};
+/// use http_types::Response;
 ///
 /// let mut te = TE::new();
 /// te.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
