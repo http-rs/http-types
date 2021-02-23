@@ -11,6 +11,7 @@ use std::str::FromStr;
 /// [Mozilla docs]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 /// [RFC7231, Section 4]: https://tools.ietf.org/html/rfc7231#section-4
 /// [HTTP Method Registry]: https://www.iana.org/assignments/http-methods/http-methods.xhtml
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Method {
     /// The ACL method modifies the access control list (which can be read via the DAV:acl
