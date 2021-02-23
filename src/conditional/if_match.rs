@@ -27,7 +27,7 @@ use std::slice;
 /// entries.push(ETag::new("0xbeefcafe".to_string()));
 ///
 /// let mut res = Response::new(200);
-/// entries.apply_header(&mut res);
+/// res.insert_header(&entries, &entries);
 ///
 /// let entries = IfMatch::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -214,14 +214,6 @@ impl<'a> Iterator for IterMut<'a> {
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
-    }
-}
-
-impl ToHeaderValues for IfMatch {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

@@ -27,7 +27,7 @@ use crate::{auth::AuthenticationScheme, headers::Header};
 /// let authz = WwwAuthenticate::new(scheme, realm.into());
 ///
 /// let mut res = Response::new(200);
-/// authz.apply_header(&mut res);
+/// res.insert_header(&authz, &authz);
 ///
 /// let authz = WwwAuthenticate::from_headers(res)?.unwrap();
 ///

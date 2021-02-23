@@ -28,7 +28,7 @@ use std::str::FromStr;
 /// allow.insert(Method::Post);
 ///
 /// let mut res = Response::new(200);
-/// allow.apply_header(&mut res);
+/// res.insert_header(&allow, &allow);
 ///
 /// let allow = Allow::from_headers(res)?.unwrap();
 /// assert!(allow.contains(Method::Put));
@@ -159,14 +159,6 @@ impl<'a> Iterator for Iter<'a> {
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
-    }
-}
-
-impl ToHeaderValues for Allow {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

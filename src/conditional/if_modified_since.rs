@@ -25,7 +25,7 @@ use std::time::SystemTime;
 /// let expires = IfModifiedSince::new(time);
 ///
 /// let mut res = Response::new(200);
-/// expires.apply_header(&mut res);
+/// res.insert_header(&expires, &expires);
 ///
 /// let expires = IfModifiedSince::from_headers(res)?.unwrap();
 ///
@@ -64,14 +64,6 @@ impl IfModifiedSince {
 
         let instant = parse_http_date(header.as_str())?;
         Ok(Some(Self { instant }))
-    }
-}
-
-impl ToHeaderValues for IfModifiedSince {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

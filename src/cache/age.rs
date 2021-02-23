@@ -22,7 +22,7 @@ use std::time::Duration;
 /// let age = Age::from_secs(12);
 ///
 /// let mut res = Response::new(200);
-/// age.apply_header(&mut res);
+/// res.insert_header(&age, &age);
 ///
 /// let age = Age::from_headers(res)?.unwrap();
 /// assert_eq!(age, Age::from_secs(12));
@@ -66,14 +66,6 @@ impl Age {
         let dur = Duration::from_secs_f64(num as f64);
 
         Ok(Some(Self { dur }))
-    }
-}
-
-impl ToHeaderValues for Age {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

@@ -23,7 +23,7 @@ use std::option;
 /// let mut encoding = TransferEncoding::new(Encoding::Chunked);
 ///
 /// let mut res = Response::new(200);
-/// encoding.apply_header(&mut res);
+/// res.insert_header(&encoding, &encoding);
 ///
 /// let encoding = TransferEncoding::from_headers(res)?.unwrap();
 /// assert_eq!(encoding, &Encoding::Chunked);
@@ -71,14 +71,6 @@ impl Header for TransferEncoding {
     }
     fn header_value(&self) -> HeaderValue {
         self.inner.into()
-    }
-}
-
-impl ToHeaderValues for TransferEncoding {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

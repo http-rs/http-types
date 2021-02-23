@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::headers::{HeaderName, HeaderValue, Headers};
 
 /// A trait representing a [`HeaderName`] and [`HeaderValue`] pair.
@@ -25,6 +27,16 @@ impl<'a, 'b> Header for (&'a str, &'b str) {
     fn header_value(&self) -> HeaderValue {
         HeaderValue::from_bytes(self.1.to_owned().into_bytes())
             .expect("String slice should be valid ASCII")
+    }
+}
+
+impl<'a, T: Header> Header for &'a T {
+    fn header_name(&self) -> HeaderName {
+        self.deref().header_name()
+    }
+
+    fn header_value(&self) -> HeaderValue {
+        self.deref().header_value()
     }
 }
 

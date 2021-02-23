@@ -51,7 +51,7 @@ use std::slice;
 /// origins.push(Url::parse("https://example.com")?);
 ///
 /// let mut res = Response::new(200);
-/// origins.apply_header(&mut res);
+/// res.insert_header(&origins, &origins);
 ///
 /// let origins = TimingAllowOrigin::from_headers(res)?.unwrap();
 /// let origin = origins.iter().next().unwrap();
@@ -244,14 +244,6 @@ impl<'a> Iterator for IterMut<'a> {
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
-    }
-}
-
-// Conversion from `AllowOrigin` -> `HeaderValue`.
-impl ToHeaderValues for TimingAllowOrigin {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

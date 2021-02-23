@@ -27,7 +27,7 @@ use std::time::SystemTime;
 /// let expires = IfUnmodifiedSince::new(time);
 ///
 /// let mut res = Response::new(200);
-/// expires.apply_header(&mut res);
+/// res.insert_header(&expires, &expires);
 ///
 /// let expires = IfUnmodifiedSince::from_headers(res)?.unwrap();
 ///
@@ -78,14 +78,6 @@ impl Header for IfUnmodifiedSince {
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-}
-
-impl ToHeaderValues for IfUnmodifiedSince {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

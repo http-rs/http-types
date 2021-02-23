@@ -21,7 +21,7 @@ use crate::headers::{Header, HeaderName, HeaderValue, Headers, AUTHORIZATION};
 /// let authz = Authorization::new(scheme, credentials.into());
 ///
 /// let mut res = Response::new(200);
-/// authz.apply_header(&mut res);
+/// res.insert_header(&authz, &authz);
 ///
 /// let authz = Authorization::from_headers(res)?.unwrap();
 ///

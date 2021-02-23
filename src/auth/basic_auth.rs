@@ -25,7 +25,7 @@ use crate::{bail_status as bail, ensure_status as ensure};
 /// let authz = BasicAuth::new(username, password);
 ///
 /// let mut res = Response::new(200);
-/// authz.apply_header(&mut res);
+/// res.insert_header(&authz, &authz);
 ///
 /// let authz = BasicAuth::from_headers(res)?.unwrap();
 ///

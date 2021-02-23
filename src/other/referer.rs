@@ -25,7 +25,7 @@ use std::convert::TryInto;
 /// let referer = Referer::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
-/// referer.apply_header(&mut res);
+/// res.insert_header(&referer, &referer);
 ///
 /// let base_url = Url::parse("https://example.net/")?;
 /// let referer = Referer::from_headers(base_url, res)?.unwrap();

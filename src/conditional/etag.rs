@@ -24,7 +24,7 @@ use std::option;
 /// let etag = ETag::new("0xcafebeef".to_string());
 ///
 /// let mut res = Response::new(200);
-/// etag.apply_header(&mut res);
+/// res.insert_header(&etag, &etag);
 ///
 /// let etag = ETag::from_headers(res)?.unwrap();
 /// assert_eq!(etag, ETag::Strong(String::from("0xcafebeef")));
@@ -130,14 +130,6 @@ impl Display for ETag {
             Self::Strong(s) => write!(f, r#""{}""#, s),
             Self::Weak(s) => write!(f, r#"W/"{}""#, s),
         }
-    }
-}
-
-impl ToHeaderValues for ETag {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

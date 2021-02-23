@@ -52,7 +52,7 @@ use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, S
 /// timings.push(Metric::new("server".to_owned(), None, None)?);
 ///
 /// let mut res = Response::new(200);
-/// timings.apply_header(&mut res);
+/// res.insert_header(&timings, &timings);
 ///
 /// let timings = ServerTiming::from_headers(res)?.unwrap();
 /// let entry = timings.iter().next().unwrap();
@@ -211,14 +211,6 @@ impl<'a> Iterator for IterMut<'a> {
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
-    }
-}
-
-impl ToHeaderValues for ServerTiming {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

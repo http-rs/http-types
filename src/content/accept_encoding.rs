@@ -33,7 +33,7 @@ use std::slice;
 ///
 /// let mut res = Response::new(200);
 /// let encoding = accept.negotiate(&[Encoding::Brotli, Encoding::Gzip])?;
-/// encoding.apply_header(&mut res);
+/// res.insert_header(&encoding, &encoding);
 ///
 /// assert_eq!(res["Content-Encoding"], "br");
 /// #
@@ -266,14 +266,6 @@ impl<'a> Iterator for IterMut<'a> {
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
-    }
-}
-
-impl ToHeaderValues for AcceptEncoding {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

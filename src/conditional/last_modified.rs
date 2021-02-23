@@ -78,14 +78,6 @@ impl Header for LastModified {
     }
 }
 
-impl ToHeaderValues for LastModified {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;

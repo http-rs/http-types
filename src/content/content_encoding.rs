@@ -26,7 +26,7 @@ use std::option;
 /// let mut encoding = ContentEncoding::new(Encoding::Gzip);
 ///
 /// let mut res = Response::new(200);
-/// encoding.apply_header(&mut res);
+/// res.insert_header(&encoding, &encoding);
 ///
 /// let encoding = ContentEncoding::from_headers(res)?.unwrap();
 /// assert_eq!(encoding, &Encoding::Gzip);
@@ -74,14 +74,6 @@ impl Header for ContentEncoding {
     }
     fn header_value(&self) -> HeaderValue {
         self.inner.into()
-    }
-}
-
-impl ToHeaderValues for ContentEncoding {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

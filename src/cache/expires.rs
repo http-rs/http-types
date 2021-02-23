@@ -1,8 +1,7 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, EXPIRES};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, EXPIRES};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
-use std::option;
 use std::time::{Duration, SystemTime};
 
 /// HTTP `Expires` header
@@ -24,7 +23,7 @@ use std::time::{Duration, SystemTime};
 /// let expires = Expires::new_at(time);
 ///
 /// let mut res = Response::new(200);
-/// expires.apply_header(&mut res);
+/// res.insert_header(&expires, &expires);
 ///
 /// let expires = Expires::from_headers(res)?.unwrap();
 ///
@@ -81,14 +80,6 @@ impl Header for Expires {
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-}
-
-impl ToHeaderValues for Expires {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

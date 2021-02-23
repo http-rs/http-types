@@ -434,20 +434,6 @@ impl std::fmt::Display for Forwarded<'_> {
     }
 }
 
-impl ToHeaderValues for Forwarded<'_> {
-    type Iter = std::option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        Ok(self.header_value().to_header_values()?)
-    }
-}
-
-impl ToHeaderValues for &Forwarded<'_> {
-    type Iter = std::option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        Ok(self.header_value().to_header_values()?)
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct ParseError(&'static str);
 impl ParseError {

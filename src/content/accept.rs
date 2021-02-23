@@ -276,14 +276,6 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl ToHeaderValues for Accept {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
-    }
-}
-
 impl Debug for Accept {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();

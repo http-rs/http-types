@@ -24,7 +24,7 @@ use crate::utils::{fmt_http_date, parse_http_date};
 /// let retry = RetryAfter::new(Duration::from_secs(10));
 ///
 /// let mut headers = Response::new(429);
-/// retry.apply_header(&mut headers);
+/// headers.insert_header(&retry, &retry);
 ///
 /// // Sleep for the duration, then try the task again.
 /// let retry = RetryAfter::from_headers(headers)?.unwrap();

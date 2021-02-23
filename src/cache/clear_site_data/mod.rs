@@ -36,7 +36,7 @@ use headers::Header;
 /// entries.push(ClearDirective::Cookies);
 ///
 /// let mut res = Response::new(200);
-/// entries.apply_header(&mut res);
+/// res.insert_header(&entries, &entries);
 ///
 /// let entries = ClearSiteData::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -198,14 +198,6 @@ impl<'a> Iterator for IterMut<'a> {
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
-    }
-}
-
-impl ToHeaderValues for ClearSiteData {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.header_value().to_header_values().unwrap())
     }
 }
 

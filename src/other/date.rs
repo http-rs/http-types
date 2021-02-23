@@ -23,7 +23,7 @@ use std::time::SystemTime;
 /// let date = Date::new(now);
 ///
 /// let mut res = Response::new(200);
-/// date.apply_header(&mut res);
+/// res.insert_header(&date, &date);
 ///
 /// let date = Date::from_headers(res)?.unwrap();
 ///

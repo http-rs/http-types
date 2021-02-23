@@ -4,6 +4,8 @@ use std::str::FromStr;
 
 use crate::Error;
 
+use super::Header;
+
 /// A header name.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct HeaderName(Cow<'static, str>);
@@ -85,6 +87,12 @@ impl FromStr for HeaderName {
 impl From<&HeaderName> for HeaderName {
     fn from(value: &HeaderName) -> HeaderName {
         value.clone()
+    }
+}
+
+impl<T: Header> From<T> for HeaderName {
+    fn from(header: T) -> HeaderName {
+        header.header_name()
     }
 }
 
