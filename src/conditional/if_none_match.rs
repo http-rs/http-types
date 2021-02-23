@@ -3,12 +3,12 @@
 //! This is used to update caches or to prevent uploading a new resource when
 //! one already exists.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_NONE_MATCH};
+use crate::headers::{HeaderName, HeaderValue, Headers, IF_NONE_MATCH};
 use crate::{conditional::ETag, headers::Header};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
 /// Apply the HTTP method if the ETags do not match.

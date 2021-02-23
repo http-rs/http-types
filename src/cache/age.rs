@@ -1,8 +1,8 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, AGE};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, AGE};
 use crate::Status;
 
 use std::fmt::Debug;
-use std::option;
+
 use std::time::Duration;
 
 /// HTTP `Age` header

@@ -1,6 +1,6 @@
 //! Specify the compression algorithm.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CONTENT_ENCODING};
+use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_ENCODING};
 use crate::{
     content::{Encoding, EncodingProposal},
     headers::Header,
@@ -8,7 +8,7 @@ use crate::{
 
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};
-use std::option;
+
 
 /// Specify the compression algorithm.
 ///

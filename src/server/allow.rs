@@ -1,12 +1,12 @@
 //! List the set of methods supported by a resource.
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, ALLOW};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, ALLOW};
 use crate::Method;
 
 use std::collections::{hash_set, HashSet};
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::str::FromStr;
 
 /// List the set of methods supported by a resource.

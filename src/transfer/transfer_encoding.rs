@@ -1,9 +1,9 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, TRANSFER_ENCODING};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, TRANSFER_ENCODING};
 use crate::transfer::{Encoding, EncodingProposal};
 
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};
-use std::option;
+
 
 /// The form of encoding used to safely transfer the payload body to the user.
 ///

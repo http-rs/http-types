@@ -1,8 +1,8 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, ETAG};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, ETAG};
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Display};
-use std::option;
+
 
 /// HTTP Entity Tags.
 ///

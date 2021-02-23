@@ -1,8 +1,8 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, EXPECT};
+use crate::headers::{HeaderName, HeaderValue, Headers, EXPECT};
 use crate::{ensure_eq_status, headers::Header};
 
 use std::fmt::Debug;
-use std::option;
+
 
 /// HTTP `Expect` header
 ///

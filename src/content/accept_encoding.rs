@@ -1,6 +1,6 @@
 //! Client header advertising available compression algorithms.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT_ENCODING};
+use crate::headers::{HeaderName, HeaderValue, Headers, ACCEPT_ENCODING};
 use crate::utils::sort_by_weight;
 use crate::{
     content::{ContentEncoding, Encoding, EncodingProposal},
@@ -9,7 +9,7 @@ use crate::{
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
-use std::option;
+
 use std::slice;
 
 /// Client header advertising available compression algorithms.

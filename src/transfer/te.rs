@@ -1,10 +1,10 @@
-use crate::headers::{self, Header, HeaderName, HeaderValue, Headers, ToHeaderValues};
+use crate::headers::{self, Header, HeaderName, HeaderValue, Headers};
 use crate::transfer::{Encoding, EncodingProposal, TransferEncoding};
 use crate::utils::sort_by_weight;
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
-use std::option;
+
 use std::slice;
 
 /// Client header advertising the transfer encodings the user agent is willing to

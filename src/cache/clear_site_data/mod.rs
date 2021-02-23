@@ -1,11 +1,11 @@
 //! Clear browsing data (cookies, storage, cache) associated with the
 //! requesting website
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues, CLEAR_SITE_DATA};
+use crate::headers::{self, HeaderName, HeaderValue, Headers, CLEAR_SITE_DATA};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 use std::str::FromStr;
 

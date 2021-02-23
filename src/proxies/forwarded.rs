@@ -1,5 +1,5 @@
 use crate::{
-    headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, FORWARDED},
+    headers::{Header, HeaderName, HeaderValue, Headers, FORWARDED},
     parse_utils::{parse_quoted_string, parse_token},
 };
 use std::{borrow::Cow, convert::TryFrom, fmt::Write, net::IpAddr};

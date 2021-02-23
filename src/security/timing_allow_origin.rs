@@ -27,14 +27,14 @@
 //! ```
 
 use crate::headers::{
-    Header, HeaderName, HeaderValue, Headers, ToHeaderValues, TIMING_ALLOW_ORIGIN,
+    Header, HeaderName, HeaderValue, Headers, TIMING_ALLOW_ORIGIN,
 };
 use crate::{Status, Url};
 
 use std::fmt::Write;
 use std::fmt::{self, Debug};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
 /// Specify origins that are allowed to see values via the Resource Timing API.

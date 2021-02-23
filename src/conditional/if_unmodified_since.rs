@@ -1,10 +1,10 @@
 use crate::headers::{
-    Header, HeaderName, HeaderValue, Headers, ToHeaderValues, IF_UNMODIFIED_SINCE,
+    Header, HeaderName, HeaderValue, Headers, IF_UNMODIFIED_SINCE,
 };
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
-use std::option;
+
 use std::time::SystemTime;
 
 /// Apply the HTTP method if the entity has not been modified after the

@@ -29,10 +29,10 @@ use parse::parse_header;
 
 use std::fmt::Write;
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, SERVER_TIMING};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, SERVER_TIMING};
 
 /// Metrics and descriptions for the given request-response cycle.
 ///

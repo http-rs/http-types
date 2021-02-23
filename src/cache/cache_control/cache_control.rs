@@ -1,11 +1,11 @@
 use headers::Header;
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CACHE_CONTROL};
+use crate::headers::{HeaderName, HeaderValue, Headers, CACHE_CONTROL};
 use crate::{cache::CacheDirective, headers};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
 /// A Cache-Control header.

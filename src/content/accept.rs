@@ -1,6 +1,6 @@
 //! Client header advertising which media types the client is able to understand.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ACCEPT};
+use crate::headers::{HeaderName, HeaderValue, Headers, ACCEPT};
 use crate::mime::Mime;
 use crate::utils::sort_by_weight;
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
-use std::option;
+
 use std::slice;
 
 /// Client header advertising which media types the client is able to understand.

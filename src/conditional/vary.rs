@@ -1,10 +1,10 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, VARY};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, VARY};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 use std::str::FromStr;
 
