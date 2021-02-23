@@ -9,7 +9,6 @@ use crate::{
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};
 
-
 /// Specify the compression algorithm.
 ///
 /// # Specifications

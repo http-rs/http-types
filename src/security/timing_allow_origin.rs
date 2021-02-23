@@ -26,9 +26,7 @@
 //! # Ok(()) }
 //! ```
 
-use crate::headers::{
-    Header, HeaderName, HeaderValue, Headers, TIMING_ALLOW_ORIGIN,
-};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, TIMING_ALLOW_ORIGIN};
 use crate::{Status, Url};
 
 use std::fmt::Write;

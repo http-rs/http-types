@@ -4,7 +4,6 @@ use crate::transfer::{Encoding, EncodingProposal};
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};
 
-
 /// The form of encoding used to safely transfer the payload body to the user.
 ///
 /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding)

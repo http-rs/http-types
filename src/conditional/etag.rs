@@ -3,7 +3,6 @@ use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Display};
 
-
 /// HTTP Entity Tags.
 ///
 /// ETags provide an ID for a particular resource, enabling clients and servers

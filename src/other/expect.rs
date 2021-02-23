@@ -3,7 +3,6 @@ use crate::{ensure_eq_status, headers::Header};
 
 use std::fmt::Debug;
 
-
 /// HTTP `Expect` header
 ///
 /// [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect)

@@ -1,6 +1,4 @@
-use crate::headers::{
-    Header, HeaderName, HeaderValue, Headers, IF_UNMODIFIED_SINCE,
-};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, IF_UNMODIFIED_SINCE};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
