@@ -536,8 +536,8 @@ impl StatusCode {
         }
     }
 }
-#[cfg(feature = "serde")]
 
+#[cfg(feature = "serde")]
 mod serde {
     use super::StatusCode;
     use serde_crate::de::{Error as DeError, Unexpected, Visitor};
