@@ -19,7 +19,7 @@ use std::slice;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::Response;
+/// use http_types::{headers::Header, Response};
 /// use http_types::conditional::{IfMatch, ETag};
 ///
 /// let mut entries = IfMatch::new();

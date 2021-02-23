@@ -16,7 +16,7 @@ use std::time::Duration;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::Response;
+/// use http_types::{headers::Header, Response};
 /// use http_types::cache::Age;
 ///
 /// let age = Age::from_secs(12);

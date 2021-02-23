@@ -28,7 +28,7 @@ pub use timing_allow_origin::TimingAllowOrigin;
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// http_types::security::default(&mut headers);
@@ -50,7 +50,7 @@ pub fn default(mut headers: impl AsMut<Headers>) {
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// http_types::security::dns_prefetch_control(&mut headers);
@@ -76,7 +76,7 @@ pub enum FrameOptions {
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// http_types::security::frameguard(&mut headers, None);
@@ -98,7 +98,7 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// headers.as_mut().insert("X-Powered-By", "Tide/Rust".parse());
@@ -127,7 +127,7 @@ pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<HeaderValue>) 
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// http_types::security::hsts(&mut headers);
@@ -147,7 +147,7 @@ pub fn hsts(mut headers: impl AsMut<Headers>) {
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// http_types::security::nosniff(&mut headers);
@@ -164,7 +164,7 @@ pub fn nosniff(mut headers: impl AsMut<Headers>) {
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// http_types::security::xss_filter(&mut headers);
@@ -205,7 +205,7 @@ pub enum ReferrerOptions {
 ///
 // /// ## Examples
 // /// ```
-// /// use http_types::Response;
+// /// use http_types::{headers::Header, Response};
 // ///
 // /// let mut res = Response::new(StatusCode::Ok);
 // /// http_types::security::referrer_policy(&mut headers, Some(http_types::security::ReferrerOptions::UnsafeUrl));

@@ -18,7 +18,7 @@ use crate::mime::Mime;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::content::ContentType;
-/// use http_types::Response;
+/// use http_types::{headers::Header, Response};
 /// use http_types::mime::Mime;
 /// use std::str::FromStr;
 ///

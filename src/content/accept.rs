@@ -33,7 +33,7 @@ use std::slice;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::content::{Accept, MediaTypeProposal};
-/// use http_types::{mime, Response};
+/// use http_types::{headers::Header, mime, Response};
 ///
 /// let mut accept = Accept::new();
 /// accept.push(MediaTypeProposal::new(mime::HTML, Some(0.8))?);

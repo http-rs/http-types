@@ -17,7 +17,7 @@ use crate::{bail_status as bail, ensure_status as ensure};
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::Response;
+/// use http_types::{headers::Header, Response};
 /// use http_types::auth::{AuthenticationScheme, BasicAuth};
 ///
 /// let username = "nori";

@@ -119,7 +119,7 @@ pub struct ReportToEndpoint {
 /// res.set_body("Hello, Chashu!");
 ///
 /// security::default(&mut res);
-/// policy.apply_header(&mut res);
+/// policy.apply(&mut res);
 ///
 /// assert_eq!(res["content-security-policy"], "base-uri 'none'; default-src 'self' areweasyncyet.rs; object-src 'none'; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests");
 /// ```

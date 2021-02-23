@@ -20,7 +20,7 @@ use std::str::FromStr;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{Method, Response};
+/// use http_types::{headers::Header, Method, Response};
 /// use http_types::server::Allow;
 ///
 /// let mut allow = Allow::new();

@@ -19,7 +19,7 @@ use crate::{auth::AuthenticationScheme, headers::Header};
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::Response;
+/// use http_types::{headers::Header, Response};
 /// use http_types::auth::{AuthenticationScheme, WwwAuthenticate};
 ///
 /// let scheme = AuthenticationScheme::Basic;

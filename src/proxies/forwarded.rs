@@ -42,9 +42,11 @@ impl<'a> Forwarded<'a> {
     ///
     /// # Examples
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
-    /// # fn main() -> Result<()> {
-    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
+    /// # fn main() -> http_types::Result<()> {
+    /// use http_types::{headers::Header, Request};
+    /// use http_types::proxies::Forwarded;
+    ///
+    /// let mut request = Request::get("http://_/");
     /// request.insert_header(
     ///     "Forwarded",
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
@@ -56,16 +58,18 @@ impl<'a> Forwarded<'a> {
     /// ```
     ///
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
-    /// # fn main() -> Result<()> {
-    /// let mut request = Request::new(Get, Url::parse("http://_/")?);
+    /// # fn main() -> http_types::Result<()> {
+    /// use http_types::{headers::Header, Request};
+    /// use http_types::proxies::Forwarded;
+    ///
+    /// let mut request = Request::get("http://_/");
     /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17, unknown");
     /// request.insert_header("X-Forwarded-Proto", "https");
     /// let forwarded = Forwarded::from_headers(&request)?.unwrap();
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
     /// assert_eq!(forwarded.proto(), Some("https"));
     /// assert_eq!(
-    ///     forwarded.header_value()?,
+    ///     forwarded.header_value(),
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
     /// );
     /// # Ok(()) }
@@ -181,14 +185,16 @@ impl<'a> Forwarded<'a> {
     ///
     /// # Examples
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
-    /// # fn main() -> Result<()> {
+    /// # fn main() -> http_types::Result<()> {
+    /// use http_types::headers::Header;
+    /// use http_types::proxies::Forwarded;
+    ///
     /// let forwarded = Forwarded::parse(
     ///     r#"for=192.0.2.43,         for="[2001:db8:cafe::17]", FOR=unknown;proto=https"#
     /// )?;
     /// assert_eq!(forwarded.forwarded_for(), vec!["192.0.2.43", "[2001:db8:cafe::17]", "unknown"]);
     /// assert_eq!(
-    ///     forwarded.header_value()?,
+    ///     forwarded.header_value(),
     ///     r#"for=192.0.2.43, for="[2001:db8:cafe::17]", for=unknown;proto=https"#
     /// );
     /// # Ok(()) }

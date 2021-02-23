@@ -170,7 +170,7 @@ impl TraceContext {
     /// # fn main() -> http_types::Result<()> {
     /// #
     /// use http_types::trace::TraceContext;
-    /// use http_types::Response;
+    /// use http_types::{headers::Header, Response};
     ///
     /// let mut res = Response::new(200);
     /// res.insert_header("traceparent", "00-00000000000000000000000000000001-0000000000000002-01");

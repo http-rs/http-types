@@ -19,7 +19,7 @@ use std::convert::TryInto;
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::{Response, Url};
+/// use http_types::{headers::Header, Response, Url};
 /// use http_types::other::Referer;
 ///
 /// let referer = Referer::new(Url::parse("https://example.net/")?);

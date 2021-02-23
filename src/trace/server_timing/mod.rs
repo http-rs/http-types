@@ -5,7 +5,7 @@
 //! ```
 //! # fn main() -> http_types::Result<()> {
 //! #
-//! use http_types::Response;
+//! use http_types::{headers::Header, Response};
 //! use http_types::trace::{ServerTiming, Metric};
 //!
 //! let mut timings = ServerTiming::new();
@@ -45,7 +45,7 @@ use crate::headers::{Header, HeaderName, HeaderValue, Headers, ToHeaderValues, S
 /// ```
 /// # fn main() -> http_types::Result<()> {
 /// #
-/// use http_types::Response;
+/// use http_types::{headers::Header, Response};
 /// use http_types::trace::{ServerTiming, Metric};
 ///
 /// let mut timings = ServerTiming::new();
