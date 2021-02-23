@@ -1,12 +1,14 @@
 use http_types::{url::Url, Method};
-use serde::Deserialize;
+use serde_crate::Deserialize;
 
 #[derive(Deserialize)]
+#[serde(crate = "serde_crate")]
 struct Params {
     msg: String,
 }
 
 #[derive(Deserialize)]
+#[serde(crate = "serde_crate")]
 struct OptionalParams {
     _msg: Option<String>,
     _time: Option<u64>,

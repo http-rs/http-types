@@ -1,5 +1,3 @@
-use serde::de::{Error as DeError, Unexpected};
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
@@ -357,41 +355,50 @@ impl Method {
     }
 }
 
-struct MethodVisitor;
+#[cfg(feature = "serde")]
+mod serde {
+    use super::Method;
+    use serde_crate::de::{Error as DeError, Unexpected, Visitor};
+    use serde_crate::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::fmt;
+    use std::str::FromStr;
 
-impl<'de> Visitor<'de> for MethodVisitor {
-    type Value = Method;
+    struct MethodVisitor;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "a HTTP method &str")
-    }
+    impl<'de> Visitor<'de> for MethodVisitor {
+        type Value = Method;
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: DeError,
-    {
-        match Method::from_str(v) {
-            Ok(method) => Ok(method),
-            Err(_) => Err(DeError::invalid_value(Unexpected::Str(v), &self)),
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            write!(formatter, "a HTTP method &str")
+        }
+
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: DeError,
+        {
+            match Method::from_str(v) {
+                Ok(method) => Ok(method),
+                Err(_) => Err(DeError::invalid_value(Unexpected::Str(v), &self)),
+            }
         }
     }
-}
 
-impl<'de> Deserialize<'de> for Method {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_str(MethodVisitor)
+    impl<'de> Deserialize<'de> for Method {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserializer.deserialize_str(MethodVisitor)
+        }
     }
-}
 
-impl Serialize for Method {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
+    impl Serialize for Method {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            serializer.serialize_str(&self.to_string())
+        }
     }
 }
 

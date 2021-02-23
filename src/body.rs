@@ -1,5 +1,6 @@
 use futures_lite::{io, prelude::*, ready};
-use serde::{de::DeserializeOwned, Serialize};
+#[cfg(feature = "serde")]
+use serde_crate::{de::DeserializeOwned, Serialize};
 
 use std::convert::TryFrom;
 use std::fmt::{self, Debug};
@@ -246,6 +247,7 @@ impl Body {
     /// let body = Body::from_json(&json!({ "name": "Chashu" }));
     /// # drop(body);
     /// ```
+    #[cfg(feature = "serde")]
     pub fn from_json(json: &impl Serialize) -> crate::Result<Self> {
         let bytes = serde_json::to_vec(&json)?;
         let body = Self {
@@ -267,6 +269,7 @@ impl Body {
     /// use http_types::convert::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Cat { name: String }
     ///
     /// let cat = Cat { name: String::from("chashu") };
@@ -276,6 +279,7 @@ impl Body {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
+    #[cfg(feature = "serde")]
     pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
         let mut buf = Vec::with_capacity(1024);
         self.read_to_end(&mut buf).await?;
@@ -300,6 +304,7 @@ impl Body {
     /// use http_types::convert::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Cat { name: String }
     ///
     /// let cat = Cat { name: String::from("chashu") };
@@ -309,6 +314,7 @@ impl Body {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
+    #[cfg(feature = "serde")]
     pub fn from_form(form: &impl Serialize) -> crate::Result<Self> {
         let query = serde_urlencoded::to_string(form)?;
         let bytes = query.into_bytes();
@@ -337,6 +343,7 @@ impl Body {
     /// use http_types::convert::{Serialize, Deserialize};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Cat { name: String }
     ///
     /// let cat = Cat { name: String::from("chashu") };
@@ -346,6 +353,7 @@ impl Body {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
+    #[cfg(feature = "serde")]
     pub async fn into_form<T: DeserializeOwned>(self) -> crate::Result<T> {
         let s = self.into_string().await?;
         Ok(serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)?)
@@ -486,6 +494,7 @@ impl Debug for Body {
     }
 }
 
+#[cfg(feature = "serde")]
 impl From<serde_json::Value> for Body {
     fn from(json_value: serde_json::Value) -> Self {
         Self::from_json(&json_value).unwrap()
@@ -577,11 +586,12 @@ fn guess_ext(path: &std::path::Path) -> Option<Mime> {
 mod test {
     use super::*;
     use async_std::io::Cursor;
-    use serde::Deserialize;
+    use serde_crate::Deserialize;
 
     #[async_std::test]
     async fn json_status() {
         #[derive(Debug, Deserialize)]
+        #[serde(crate = "serde_crate")]
         struct Foo {
             inner: String,
         }
@@ -593,6 +603,7 @@ mod test {
     #[async_std::test]
     async fn form_status() {
         #[derive(Debug, Deserialize)]
+        #[serde(crate = "serde_crate")]
         struct Foo {
             inner: String,
         }

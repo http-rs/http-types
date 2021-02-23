@@ -1,7 +1,9 @@
 use crate::headers::Headers;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
+
+#[cfg(feature = "serde")]
+use serde_crate::{Deserialize, Serialize};
 
 /// Define source value
 ///
@@ -75,7 +77,9 @@ impl AsRef<str> for Source {
 /// Define `report-to` directive value
 ///
 /// [MDN | report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to)
+#[cfg(feature = "serde")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(crate = "serde_crate")]
 pub struct ReportTo {
     #[serde(skip_serializing_if = "Option::is_none")]
     group: Option<String>,
@@ -88,7 +92,9 @@ pub struct ReportTo {
 /// Define `endpoints` for `report-to` directive value
 ///
 /// [MDN | report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to)
+#[cfg(feature = "serde")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(crate = "serde_crate")]
 pub struct ReportToEndpoint {
     url: String,
 }
@@ -275,6 +281,7 @@ impl ContentSecurityPolicy {
     /// Defines the Content-Security-Policy `report-to` directive
     ///
     /// [MDN | report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to)
+    #[cfg(feature = "serde")]
     pub fn report_to(&mut self, endpoints: Vec<ReportTo>) -> &mut Self {
         for endpoint in endpoints.iter() {
             match serde_json::to_string(&endpoint) {

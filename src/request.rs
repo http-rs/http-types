@@ -6,6 +6,7 @@ use std::ops::Index;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+#[cfg(feature = "serde")]
 use crate::convert::{DeserializeOwned, Serialize};
 use crate::headers::{
     self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
@@ -13,7 +14,7 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
-use crate::{Body, Extensions, Method, StatusCode, Url, Version};
+use crate::{Body, Extensions, Method, Url, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -349,6 +350,7 @@ impl Request {
     /// use http_types::{Body, Request};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Cat {
     ///     name: String,
     /// }
@@ -363,6 +365,7 @@ impl Request {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
+    #[cfg(feature = "serde")]
     pub async fn body_json<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
         let body = self.take_body();
         body.into_json().await
@@ -383,6 +386,7 @@ impl Request {
     /// use http_types::{Body, Request};
     ///
     /// #[derive(Debug, Serialize, Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Cat {
     ///     name: String,
     /// }
@@ -397,6 +401,7 @@ impl Request {
     /// assert_eq!(&cat.name, "chashu");
     /// # Ok(()) }) }
     /// ```
+    #[cfg(feature = "serde")]
     pub async fn body_form<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
         let body = self.take_body();
         body.into_form().await
@@ -616,6 +621,7 @@ impl Request {
     /// use std::collections::HashMap;
     ///
     /// #[derive(Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Index {
     ///     page: u32,
     ///     selections: HashMap<String, String>,
@@ -627,7 +633,8 @@ impl Request {
     /// assert_eq!(selections["width"], "narrow");
     /// assert_eq!(selections["height"], "tall");
     /// ```
-    pub fn query<T: serde::de::DeserializeOwned>(&self) -> crate::Result<T> {
+    #[cfg(feature = "serde")]
+    pub fn query<T: serde_crate::de::DeserializeOwned>(&self) -> crate::Result<T> {
         // Default to an empty query string if no query parameter has been specified.
         // This allows successful deserialisation of structs where all fields are optional
         // when none of those fields has actually been passed by the caller.
@@ -635,7 +642,7 @@ impl Request {
         serde_qs::from_str(query).map_err(|e| {
             // Return the displayable version of the deserialisation error to the caller
             // for easier debugging.
-            crate::Error::from_str(StatusCode::BadRequest, format!("{}", e))
+            crate::Error::from_str(crate::StatusCode::BadRequest, format!("{}", e))
         })
     }
 
@@ -649,6 +656,7 @@ impl Request {
     /// use std::collections::HashMap;
     ///
     /// #[derive(Serialize)]
+    /// # #[serde(crate = "serde_crate")]
     /// struct Index {
     ///     page: u32,
     ///     topics: Vec<&'static str>,
@@ -659,9 +667,10 @@ impl Request {
     /// req.set_query(&query).unwrap();
     /// assert_eq!(req.url().query(), Some("page=2&topics[0]=rust&topics[1]=crabs&topics[2]=crustaceans"));
     /// ```
+    #[cfg(feature = "serde")]
     pub fn set_query(&mut self, query: &impl Serialize) -> crate::Result<()> {
         let query = serde_qs::to_string(query)
-            .map_err(|e| crate::Error::from_str(StatusCode::BadRequest, format!("{}", e)))?;
+            .map_err(|e| crate::Error::from_str(crate::StatusCode::BadRequest, format!("{}", e)))?;
         self.url.set_query(Some(&query));
         Ok(())
     }

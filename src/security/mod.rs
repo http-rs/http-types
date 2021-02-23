@@ -20,7 +20,11 @@ use crate::headers::{HeaderName, HeaderValue, Headers};
 mod csp;
 mod timing_allow_origin;
 
-pub use csp::{ContentSecurityPolicy, ReportTo, ReportToEndpoint, Source};
+pub use csp::{ContentSecurityPolicy, Source};
+
+#[cfg(feature = "serde")]
+pub use csp::{ReportTo, ReportToEndpoint};
+
 #[doc(inline)]
 pub use timing_allow_origin::TimingAllowOrigin;
 
