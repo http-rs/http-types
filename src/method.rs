@@ -160,8 +160,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn serde_fail() -> Result<(), serde_json::Error> {
+    fn serde_fail() {
         serde_json::from_str::<Method>("\"ABC\"").expect_err("Did deserialize from invalid string");
-        Ok(())
     }
 }
