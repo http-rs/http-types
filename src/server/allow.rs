@@ -66,30 +66,6 @@ impl Allow {
         Ok(Some(Self { entries }))
     }
 
-    /// Sets the `Allow` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(ALLOW, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        ALLOW
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, method) in self.entries.iter().enumerate() {
-            match n {
-                0 => write!(output, "{}", method).unwrap(),
-                _ => write!(output, ", {}", method).unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Push a method into the set of methods.
     pub fn insert(&mut self, method: Method) {
         self.entries.insert(method);
@@ -113,7 +89,16 @@ impl Header for Allow {
         ALLOW
     }
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let mut output = String::new();
+        for (n, method) in self.entries.iter().enumerate() {
+            match n {
+                0 => write!(output, "{}", method).unwrap(),
+                _ => write!(output, ", {}", method).unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

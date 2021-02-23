@@ -136,38 +136,6 @@ impl TE {
         Err(err)
     }
 
-    /// Sets the `Accept-Encoding` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(headers::TE, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        headers::TE
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
-            match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
-            }
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// An iterator visiting all entries.
     pub fn iter(&self) -> Iter<'_> {
         Iter {
@@ -187,8 +155,26 @@ impl Header for TE {
     fn header_name(&self) -> HeaderName {
         headers::TE
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let mut output = String::new();
+        for (n, directive) in self.entries.iter().enumerate() {
+            let directive: HeaderValue = directive.clone().into();
+            match n {
+                0 => write!(output, "{}", directive).unwrap(),
+                _ => write!(output, ", {}", directive).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            }
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

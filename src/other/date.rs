@@ -71,33 +71,19 @@ impl Date {
         let at = date.into();
         Ok(Some(Self { at }))
     }
-
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        DATE
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let date: HttpDate = self.at.into();
-        let output = format!("{}", date);
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
 }
 
 impl Header for Date {
     fn header_name(&self) -> HeaderName {
         DATE
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let date: HttpDate = self.at.into();
+        let output = format!("{}", date);
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

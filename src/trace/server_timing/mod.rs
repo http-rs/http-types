@@ -27,7 +27,6 @@ mod parse;
 pub use metric::Metric;
 use parse::parse_header;
 
-use std::convert::AsMut;
 use std::fmt::Write;
 use std::iter::Iterator;
 use std::option;
@@ -86,31 +85,6 @@ impl ServerTiming {
         Ok(Some(Self { timings }))
     }
 
-    /// Sets the `Server-Timing` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(SERVER_TIMING, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        SERVER_TIMING
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, timing) in self.timings.iter().enumerate() {
-            let timing: HeaderValue = timing.clone().into();
-            match n {
-                0 => write!(output, "{}", timing).unwrap(),
-                _ => write!(output, ", {}", timing).unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Push an entry into the list of entries.
     pub fn push(&mut self, entry: Metric) {
         self.timings.push(entry);
@@ -135,8 +109,19 @@ impl Header for ServerTiming {
     fn header_name(&self) -> HeaderName {
         SERVER_TIMING
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let mut output = String::new();
+        for (n, timing) in self.timings.iter().enumerate() {
+            let timing: HeaderValue = timing.clone().into();
+            match n {
+                0 => write!(output, "{}", timing).unwrap(),
+                _ => write!(output, ", {}", timing).unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

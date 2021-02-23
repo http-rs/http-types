@@ -74,16 +74,6 @@ impl Vary {
         Ok(Some(Self { entries, wildcard }))
     }
 
-    /// Sets the `If-Match` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(VARY, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        VARY
-    }
-
     /// Returns `true` if a wildcard directive was set.
     pub fn wildcard(&self) -> bool {
         self.wildcard
@@ -92,31 +82,6 @@ impl Vary {
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
         self.wildcard = wildcard
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, name) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = name
-                .as_str()
-                .parse()
-                .expect("Could not convert a HeaderName into a HeaderValue");
-            match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 
     /// Push a directive into the list of entries.
@@ -144,8 +109,29 @@ impl Header for Vary {
     fn header_name(&self) -> HeaderName {
         VARY
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let mut output = String::new();
+        for (n, name) in self.entries.iter().enumerate() {
+            let directive: HeaderValue = name
+                .as_str()
+                .parse()
+                .expect("Could not convert a HeaderName into a HeaderValue");
+            match n {
+                0 => write!(output, "{}", directive).unwrap(),
+                _ => write!(output, ", {}", directive).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

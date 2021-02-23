@@ -67,24 +67,6 @@ impl SourceMap {
         Ok(Some(Self { location: url }))
     }
 
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        SOURCE_MAP
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = self.location.to_string();
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Get the url.
     pub fn location(&self) -> &Url {
         &self.location
@@ -105,8 +87,12 @@ impl Header for SourceMap {
     fn header_name(&self) -> HeaderName {
         SOURCE_MAP
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let output = self.location.to_string();
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

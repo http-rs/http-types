@@ -108,39 +108,6 @@ impl TimingAllowOrigin {
         self.origins.push(origin.into());
     }
 
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers
-            .as_mut()
-            .insert(TIMING_ALLOW_ORIGIN, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        TIMING_ALLOW_ORIGIN
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, origin) in self.origins.iter().enumerate() {
-            match n {
-                0 => write!(output, "{}", origin).unwrap(),
-                _ => write!(output, ", {}", origin).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Returns `true` if a wildcard directive was set.
     pub fn wildcard(&self) -> bool {
         self.wildcard
@@ -171,7 +138,23 @@ impl Header for TimingAllowOrigin {
         TIMING_ALLOW_ORIGIN
     }
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let mut output = String::new();
+        for (n, origin) in self.origins.iter().enumerate() {
+            match n {
+                0 => write!(output, "{}", origin).unwrap(),
+                _ => write!(output, ", {}", origin).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

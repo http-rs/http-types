@@ -59,23 +59,6 @@ impl TransferEncoding {
         Ok(Some(Self { inner }))
     }
 
-    /// Sets the `Content-Encoding` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers
-            .as_mut()
-            .insert(TRANSFER_ENCODING, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        TRANSFER_ENCODING
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        self.inner.into()
-    }
-
     /// Access the encoding kind.
     pub fn encoding(&self) -> Encoding {
         self.inner
@@ -87,7 +70,7 @@ impl Header for TransferEncoding {
         TRANSFER_ENCODING
     }
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        self.inner.into()
     }
 }
 

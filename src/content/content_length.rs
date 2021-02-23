@@ -51,24 +51,6 @@ impl ContentLength {
         Ok(Some(Self { length }))
     }
 
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        CONTENT_LENGTH
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = format!("{}", self.length);
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Get the content length.
     pub fn len(&self) -> u64 {
         self.length
@@ -85,7 +67,10 @@ impl Header for ContentLength {
         CONTENT_LENGTH
     }
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let output = format!("{}", self.length);
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

@@ -121,51 +121,6 @@ impl TraceContext {
         }))
     }
 
-    /// Add the traceparent header to the http headers
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # fn main() -> http_types::Result<()> {
-    /// #
-    /// use http_types::trace::TraceContext;
-    /// use http_types::{Request, Response, Url, Method};
-    ///
-    /// let mut req = Request::new(Method::Get, Url::parse("https://example.com").unwrap());
-    /// req.insert_header(
-    ///   "traceparent",
-    ///   "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
-    /// );
-    ///
-    /// let parent = TraceContext::from_headers(&req)?.unwrap();
-    ///
-    /// let mut res = Response::new(200);
-    /// parent.apply_header(&mut res);
-    ///
-    /// let child = TraceContext::from_headers(&res)?.unwrap();
-    ///
-    /// assert_eq!(child.version(), parent.version());
-    /// assert_eq!(child.trace_id(), parent.trace_id());
-    /// assert_eq!(child.parent_id(), Some(parent.id()));
-    /// #
-    /// # Ok(()) }
-    /// ```
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        let headers = headers.as_mut();
-        headers.insert(TRACEPARENT, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        TRACEPARENT
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = format!("{}", self);
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Generate a child of the current TraceContext and return it.
     ///
     /// The child will have a new randomly genrated `id` and its `parent_id` will be set to the
@@ -250,8 +205,10 @@ impl Header for TraceContext {
     fn header_name(&self) -> HeaderName {
         TRACEPARENT
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let output = format!("{}", self);
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 

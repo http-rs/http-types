@@ -55,23 +55,6 @@ impl Expect {
 
         Ok(Some(Self { _priv: () }))
     }
-
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(EXPECT, self.header_value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        EXPECT
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let value = "100-continue";
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(value.into()) }
-    }
 }
 
 impl Header for Expect {
@@ -79,7 +62,9 @@ impl Header for Expect {
         EXPECT
     }
     fn header_value(&self) -> HeaderValue {
-        self.header_value()
+        let value = "100-continue";
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(value.into()) }
     }
 }
 
