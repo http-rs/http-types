@@ -149,38 +149,32 @@ pub enum StatusCode {
     /// 400 Bad Request
     ///
     /// The server could not understand the request due to invalid syntax.
+    BadRequest = 400,
+
+    /// 401 Unauthorized
     ///
     /// Although the HTTP standard specifies "unauthorized", semantically this
     /// response means "unauthenticated". That is, the client must
     /// authenticate itself to get the requested response.
-    BadRequest = 400,
+    Unauthorized = 401,
 
-    /// 401 Unauthorized
+    /// 402 Payment Required
     ///
     /// This response code is reserved for future use. The initial aim for
     /// creating this code was using it for digital payment systems, however
     /// this status code is used very rarely and no standard convention
     /// exists.
-    Unauthorized = 401,
-
-    /// 402 Payment Required
-    ///
-    /// The client does not have access rights to the content; that is, it is
-    /// unauthorized, so the server is refusing to give the requested
-    /// resource. Unlike 401, the client's identity is known to the server.
     PaymentRequired = 402,
 
     /// 403 Forbidden
     ///
-    /// The server can not find requested resource. In the browser, this means
-    /// the URL is not recognized. In an API, this can also mean that the
-    /// endpoint is valid but the resource itself does not exist. Servers
-    /// may also send this response instead of 403 to hide the existence of
-    /// a resource from an unauthorized client. This response code is probably
-    /// the most famous one due to its frequent occurrence on the web.
+    /// The client does not have access rights to the content; that is, it is
+    /// unauthorized, so the server is refusing to give the requested
+    /// resource. Unlike 401, the client's identity is known to the server.
     Forbidden = 403,
 
     /// 404 Not Found
+    ///
     /// The server can not find requested resource. In the browser, this means
     /// the URL is not recognized. In an API, this can also mean that the
     /// endpoint is valid but the resource itself does not exist. Servers
