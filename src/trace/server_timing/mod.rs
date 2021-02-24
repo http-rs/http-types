@@ -12,7 +12,7 @@
 //! timings.push(Metric::new("server".to_owned(), None, None)?);
 //!
 //! let mut res = Response::new(200);
-//! timings.apply(&mut res);
+//! res.insert_header(&timings, &timings);
 //!
 //! let timings = ServerTiming::from_headers(res)?.unwrap();
 //! let entry = timings.iter().next().unwrap();
@@ -27,13 +27,12 @@ mod parse;
 pub use metric::Metric;
 use parse::parse_header;
 
-use std::convert::AsMut;
 use std::fmt::Write;
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, SERVER_TIMING};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, SERVER_TIMING};
 
 /// Metrics and descriptions for the given request-response cycle.
 ///
@@ -53,7 +52,7 @@ use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, SERVER_TI
 /// timings.push(Metric::new("server".to_owned(), None, None)?);
 ///
 /// let mut res = Response::new(200);
-/// timings.apply(&mut res);
+/// res.insert_header(&timings, &timings);
 ///
 /// let timings = ServerTiming::from_headers(res)?.unwrap();
 /// let entry = timings.iter().next().unwrap();
@@ -86,31 +85,6 @@ impl ServerTiming {
         Ok(Some(Self { timings }))
     }
 
-    /// Sets the `Server-Timing` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(SERVER_TIMING, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        SERVER_TIMING
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, timing) in self.timings.iter().enumerate() {
-            let timing: HeaderValue = timing.clone().into();
-            match n {
-                0 => write!(output, "{}", timing).unwrap(),
-                _ => write!(output, ", {}", timing).unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Push an entry into the list of entries.
     pub fn push(&mut self, entry: Metric) {
         self.timings.push(entry);
@@ -131,12 +105,23 @@ impl ServerTiming {
     }
 }
 
-impl crate::headers::Header for ServerTiming {
+impl Header for ServerTiming {
     fn header_name(&self) -> HeaderName {
         SERVER_TIMING
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, timing) in self.timings.iter().enumerate() {
+            let timing: HeaderValue = timing.clone().into();
+            match n {
+                0 => write!(output, "{}", timing).unwrap(),
+                _ => write!(output, ", {}", timing).unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -229,14 +214,6 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl ToHeaderValues for ServerTiming {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -248,7 +225,7 @@ mod test {
         timings.push(Metric::new("server".to_owned(), None, None)?);
 
         let mut headers = Headers::new();
-        timings.apply(&mut headers);
+        timings.apply_header(&mut headers);
 
         let timings = ServerTiming::from_headers(headers)?.unwrap();
         let entry = timings.iter().next().unwrap();
@@ -262,7 +239,7 @@ mod test {
         timings.push(Metric::new("server".to_owned(), None, None)?);
 
         let mut headers = Headers::new();
-        timings.apply(&mut headers);
+        timings.apply_header(&mut headers);
 
         let timings = ServerTiming::from_headers(headers)?.unwrap();
         let entry = timings.iter().next().unwrap();

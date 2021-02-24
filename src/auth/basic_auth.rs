@@ -1,6 +1,9 @@
-use crate::auth::{AuthenticationScheme, Authorization};
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 use crate::Status;
+use crate::{
+    auth::{AuthenticationScheme, Authorization},
+    headers::Header,
+};
 use crate::{bail_status as bail, ensure_status as ensure};
 
 /// HTTP Basic authorization.
@@ -22,7 +25,7 @@ use crate::{bail_status as bail, ensure_status as ensure};
 /// let authz = BasicAuth::new(username, password);
 ///
 /// let mut res = Response::new(200);
-/// authz.apply(&mut res);
+/// res.insert_header(&authz, &authz);
 ///
 /// let authz = BasicAuth::from_headers(res)?.unwrap();
 ///
@@ -84,24 +87,6 @@ impl BasicAuth {
         Ok(Self { username, password })
     }
 
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        AUTHORIZATION
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let scheme = AuthenticationScheme::Basic;
-        let credentials = base64::encode(format!("{}:{}", self.username, self.password));
-        let auth = Authorization::new(scheme, credentials);
-        auth.value()
-    }
-
     /// Get the username.
     pub fn username(&self) -> &str {
         self.username.as_str()
@@ -113,13 +98,16 @@ impl BasicAuth {
     }
 }
 
-impl crate::headers::Header for BasicAuth {
+impl Header for BasicAuth {
     fn header_name(&self) -> HeaderName {
         AUTHORIZATION
     }
 
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let scheme = AuthenticationScheme::Basic;
+        let credentials = base64::encode(format!("{}:{}", self.username, self.password));
+        let auth = Authorization::new(scheme, credentials);
+        auth.header_value()
     }
 }
 
@@ -135,7 +123,7 @@ mod test {
         let authz = BasicAuth::new(username, password);
 
         let mut headers = Headers::new();
-        authz.apply(&mut headers);
+        authz.apply_header(&mut headers);
 
         let authz = BasicAuth::from_headers(headers)?.unwrap();
 

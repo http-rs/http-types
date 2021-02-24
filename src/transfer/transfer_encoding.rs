@@ -1,9 +1,8 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, TRANSFER_ENCODING};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, TRANSFER_ENCODING};
 use crate::transfer::{Encoding, EncodingProposal};
 
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};
-use std::option;
 
 /// The form of encoding used to safely transfer the payload body to the user.
 ///
@@ -23,7 +22,7 @@ use std::option;
 /// let mut encoding = TransferEncoding::new(Encoding::Chunked);
 ///
 /// let mut res = Response::new(200);
-/// encoding.apply(&mut res);
+/// res.insert_header(&encoding, &encoding);
 ///
 /// let encoding = TransferEncoding::from_headers(res)?.unwrap();
 /// assert_eq!(encoding, &Encoding::Chunked);
@@ -59,41 +58,18 @@ impl TransferEncoding {
         Ok(Some(Self { inner }))
     }
 
-    /// Sets the `Content-Encoding` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(TRANSFER_ENCODING, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        TRANSFER_ENCODING
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        self.inner.into()
-    }
-
     /// Access the encoding kind.
     pub fn encoding(&self) -> Encoding {
         self.inner
     }
 }
 
-impl crate::headers::Header for TransferEncoding {
+impl Header for TransferEncoding {
     fn header_name(&self) -> HeaderName {
         TRANSFER_ENCODING
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
-    }
-}
-
-impl ToHeaderValues for TransferEncoding {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        self.inner.into()
     }
 }
 

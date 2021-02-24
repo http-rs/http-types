@@ -1,12 +1,12 @@
 //! List the set of methods supported by a resource.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, ALLOW};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, ALLOW};
 use crate::Method;
 
 use std::collections::{hash_set, HashSet};
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::str::FromStr;
 
 /// List the set of methods supported by a resource.
@@ -28,7 +28,7 @@ use std::str::FromStr;
 /// allow.insert(Method::Post);
 ///
 /// let mut res = Response::new(200);
-/// allow.apply(&mut res);
+/// res.insert_header(&allow, &allow);
 ///
 /// let allow = Allow::from_headers(res)?.unwrap();
 /// assert!(allow.contains(Method::Put));
@@ -66,30 +66,6 @@ impl Allow {
         Ok(Some(Self { entries }))
     }
 
-    /// Sets the `Allow` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(ALLOW, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        ALLOW
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, method) in self.entries.iter().enumerate() {
-            match n {
-                0 => write!(output, "{}", method).unwrap(),
-                _ => write!(output, ", {}", method).unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Push a method into the set of methods.
     pub fn insert(&mut self, method: Method) {
         self.entries.insert(method);
@@ -108,12 +84,21 @@ impl Allow {
     }
 }
 
-impl crate::headers::Header for Allow {
+impl Header for Allow {
     fn header_name(&self) -> HeaderName {
         ALLOW
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, method) in self.entries.iter().enumerate() {
+            match n {
+                0 => write!(output, "{}", method).unwrap(),
+                _ => write!(output, ", {}", method).unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -177,14 +162,6 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
-impl ToHeaderValues for Allow {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
 impl Debug for Allow {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
@@ -207,7 +184,7 @@ mod test {
         allow.insert(Method::Post);
 
         let mut headers = Headers::new();
-        allow.apply(&mut headers);
+        allow.apply_header(&mut headers);
 
         let allow = Allow::from_headers(headers)?.unwrap();
         assert!(allow.contains(Method::Put));

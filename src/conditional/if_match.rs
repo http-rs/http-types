@@ -1,11 +1,11 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::conditional::ETag;
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MATCH};
+use crate::headers::{HeaderName, HeaderValue, Headers, IF_MATCH};
+use crate::{conditional::ETag, headers::Header};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
 /// Apply the HTTP method if the ETag matches.
@@ -27,7 +27,7 @@ use std::slice;
 /// entries.push(ETag::new("0xbeefcafe".to_string()));
 ///
 /// let mut res = Response::new(200);
-/// entries.apply(&mut res);
+/// res.insert_header(&entries, &entries);
 ///
 /// let entries = IfMatch::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -73,37 +73,6 @@ impl IfMatch {
         Ok(Some(Self { entries, wildcard }))
     }
 
-    /// Sets the `If-Match` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(IF_MATCH, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        IF_MATCH
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, etag) in self.entries.iter().enumerate() {
-            match n {
-                0 => write!(output, "{}", etag.to_string()).unwrap(),
-                _ => write!(output, ", {}", etag.to_string()).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Push a directive into the list of entries.
     pub fn push(&mut self, directive: impl Into<ETag>) {
         self.entries.push(directive.into());
@@ -134,12 +103,28 @@ impl IfMatch {
     }
 }
 
-impl crate::headers::Header for IfMatch {
+impl Header for IfMatch {
     fn header_name(&self) -> HeaderName {
         IF_MATCH
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, etag) in self.entries.iter().enumerate() {
+            match n {
+                0 => write!(output, "{}", etag.to_string()).unwrap(),
+                _ => write!(output, ", {}", etag.to_string()).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -232,14 +217,6 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl ToHeaderValues for IfMatch {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
 impl Debug for IfMatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
@@ -252,6 +229,7 @@ impl Debug for IfMatch {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::conditional::{ETag, IfMatch};
     use crate::Response;
 
@@ -262,7 +240,7 @@ mod test {
         entries.push(ETag::new("0xbeefcafe".to_string()));
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = IfMatch::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
@@ -284,7 +262,7 @@ mod test {
         entries.set_wildcard(true);
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = IfMatch::from_headers(res)?.unwrap();
         assert_eq!(entries.wildcard(), true);

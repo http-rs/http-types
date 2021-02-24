@@ -1,8 +1,7 @@
-use crate::ensure_eq_status;
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, EXPECT};
+use crate::headers::{HeaderName, HeaderValue, Headers, EXPECT};
+use crate::{ensure_eq_status, headers::Header};
 
 use std::fmt::Debug;
-use std::option;
 
 /// HTTP `Expect` header
 ///
@@ -23,7 +22,7 @@ use std::option;
 /// let expect = Expect::new();
 ///
 /// let mut res = Response::new(200);
-/// expect.apply(&mut res);
+/// res.insert_header(&expect, &expect);
 ///
 /// let expect = Expect::from_headers(res)?.unwrap();
 /// assert_eq!(expect, Expect::new());
@@ -55,39 +54,16 @@ impl Expect {
 
         Ok(Some(Self { _priv: () }))
     }
-
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(EXPECT, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        EXPECT
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let value = "100-continue";
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(value.into()) }
-    }
 }
 
-impl crate::headers::Header for Expect {
+impl Header for Expect {
     fn header_name(&self) -> HeaderName {
         EXPECT
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
-    }
-}
-
-impl ToHeaderValues for Expect {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
+        let value = "100-continue";
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(value.into()) }
     }
 }
 
@@ -101,7 +77,7 @@ mod test {
         let expect = Expect::new();
 
         let mut headers = Headers::new();
-        expect.apply(&mut headers);
+        expect.apply_header(&mut headers);
 
         let expect = Expect::from_headers(headers)?.unwrap();
         assert_eq!(expect, Expect::new());

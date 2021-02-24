@@ -1,9 +1,11 @@
-use crate::cache::CacheDirective;
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, CACHE_CONTROL};
+use headers::Header;
+
+use crate::headers::{HeaderName, HeaderValue, Headers, CACHE_CONTROL};
+use crate::{cache::CacheDirective, headers};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
 /// A Cache-Control header.
@@ -20,7 +22,7 @@ use std::slice;
 /// entries.push(CacheDirective::NoStore);
 ///
 /// let mut res = Response::new(200);
-/// entries.apply(&mut res);
+/// res.insert_header(&entries, &entries);
 ///
 /// let entries = CacheControl::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -59,31 +61,6 @@ impl CacheControl {
 
         Ok(Some(Self { entries }))
     }
-
-    /// Sets the `Server-Timing` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(CACHE_CONTROL, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        CACHE_CONTROL
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
-            match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
     /// Push a directive into the list of entries.
     pub fn push(&mut self, directive: CacheDirective) {
         self.entries.push(directive);
@@ -104,12 +81,22 @@ impl CacheControl {
     }
 }
 
-impl crate::headers::Header for CacheControl {
+impl Header for CacheControl {
     fn header_name(&self) -> HeaderName {
         CACHE_CONTROL
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, directive) in self.entries.iter().enumerate() {
+            let directive: HeaderValue = directive.clone().into();
+            match n {
+                0 => write!(output, "{}", directive).unwrap(),
+                _ => write!(output, ", {}", directive).unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -199,14 +186,6 @@ impl<'a> Iterator for IterMut<'a> {
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
-    }
-}
-
-impl ToHeaderValues for CacheControl {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
     }
 }
 

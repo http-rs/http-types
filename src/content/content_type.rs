@@ -1,6 +1,6 @@
 use std::{convert::TryInto, str::FromStr};
 
-use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_TYPE};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_TYPE};
 use crate::mime::Mime;
 
 /// Indicate the media type of a resource's content.
@@ -18,17 +18,17 @@ use crate::mime::Mime;
 /// # fn main() -> http_types::Result<()> {
 /// #
 /// use http_types::content::ContentType;
-/// use http_types::Response;
+/// use http_types::{headers::Header, Response};
 /// use http_types::mime::Mime;
 /// use std::str::FromStr;
 ///
 /// let content_type = ContentType::new("text/*");
 ///
 /// let mut res = Response::new(200);
-/// content_type.apply(&mut res);
+/// res.insert_header(&content_type, &content_type);
 ///
 /// let content_type = ContentType::from_headers(res)?.unwrap();
-/// assert_eq!(content_type.value(), format!("{}", Mime::from_str("text/*")?).as_str());
+/// assert_eq!(content_type.header_value(), format!("{}", Mime::from_str("text/*")?).as_str());
 /// #
 /// # Ok(()) }
 /// ```
@@ -73,31 +73,16 @@ impl ContentType {
         })?;
         Ok(Some(Self { media_type }))
     }
-
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        CONTENT_TYPE
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = format!("{}", self.media_type);
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
 }
 
-impl crate::headers::Header for ContentType {
+impl Header for ContentType {
     fn header_name(&self) -> HeaderName {
         CONTENT_TYPE
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let output = format!("{}", self.media_type);
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -129,11 +114,11 @@ mod test {
         let ct = ContentType::new(Mime::from_str("text/*")?);
 
         let mut headers = Headers::new();
-        ct.apply(&mut headers);
+        ct.apply_header(&mut headers);
 
         let ct = ContentType::from_headers(headers)?.unwrap();
         assert_eq!(
-            ct.value(),
+            ct.header_value(),
             format!("{}", Mime::from_str("text/*")?).as_str()
         );
         Ok(())

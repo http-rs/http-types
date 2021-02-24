@@ -1,10 +1,10 @@
-use crate::headers::{self, HeaderName, HeaderValue, Headers, ToHeaderValues};
+use crate::headers::{self, Header, HeaderName, HeaderValue, Headers};
 use crate::transfer::{Encoding, EncodingProposal, TransferEncoding};
 use crate::utils::sort_by_weight;
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
-use std::option;
+
 use std::slice;
 
 /// Client header advertising the transfer encodings the user agent is willing to
@@ -31,7 +31,7 @@ use std::slice;
 ///
 /// let mut res = Response::new(200);
 /// let encoding = te.negotiate(&[Encoding::Brotli, Encoding::Gzip])?;
-/// encoding.apply(&mut res);
+/// res.insert_header(&encoding, &encoding);
 ///
 /// assert_eq!(res["Transfer-Encoding"], "br");
 /// #
@@ -136,18 +136,27 @@ impl TE {
         Err(err)
     }
 
-    /// Sets the `Accept-Encoding` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(headers::TE, self.value());
+    /// An iterator visiting all entries.
+    pub fn iter(&self) -> Iter<'_> {
+        Iter {
+            inner: self.entries.iter(),
+        }
     }
 
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
+    /// An iterator visiting all entries.
+    pub fn iter_mut(&mut self) -> IterMut<'_> {
+        IterMut {
+            inner: self.entries.iter_mut(),
+        }
+    }
+}
+
+impl Header for TE {
+    fn header_name(&self) -> HeaderName {
         headers::TE
     }
 
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
+    fn header_value(&self) -> HeaderValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
             let directive: HeaderValue = directive.clone().into();
@@ -166,29 +175,6 @@ impl TE {
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
-    /// An iterator visiting all entries.
-    pub fn iter(&self) -> Iter<'_> {
-        Iter {
-            inner: self.entries.iter(),
-        }
-    }
-
-    /// An iterator visiting all entries.
-    pub fn iter_mut(&mut self) -> IterMut<'_> {
-        IterMut {
-            inner: self.entries.iter_mut(),
-        }
-    }
-}
-
-impl crate::headers::Header for TE {
-    fn header_name(&self) -> HeaderName {
-        headers::TE
-    }
-    fn header_value(&self) -> HeaderValue {
-        self.value()
     }
 }
 
@@ -281,14 +267,6 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl ToHeaderValues for TE {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
 impl Debug for TE {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
@@ -311,7 +289,7 @@ mod test {
         accept.push(Encoding::Gzip);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = TE::from_headers(headers)?.unwrap();
         assert_eq!(accept.iter().next().unwrap(), Encoding::Gzip);
@@ -324,7 +302,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = TE::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -338,7 +316,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = TE::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -353,7 +331,7 @@ mod test {
         accept.push(Encoding::Brotli);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let accept = TE::from_headers(headers)?.unwrap();
         let mut accept = accept.iter();
@@ -370,7 +348,7 @@ mod test {
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
         let mut headers = Response::new(200);
-        accept.apply(&mut headers);
+        accept.apply_header(&mut headers);
 
         let mut accept = TE::from_headers(headers)?.unwrap();
         accept.sort();
@@ -389,7 +367,7 @@ mod test {
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
         let mut res = Response::new(200);
-        accept.apply(&mut res);
+        accept.apply_header(&mut res);
 
         let mut accept = TE::from_headers(res)?.unwrap();
         accept.sort();

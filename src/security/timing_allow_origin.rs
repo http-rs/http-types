@@ -10,14 +10,14 @@
 //! ```
 //! # fn main() -> http_types::Result<()> {
 //! #
-//! use http_types::{Response, Url};
+//! use http_types::{Response, Url, headers::Header};
 //! use http_types::security::TimingAllowOrigin;
 //!
 //! let mut origins = TimingAllowOrigin::new();
 //! origins.push(Url::parse("https://example.com")?);
 //!
 //! let mut res = Response::new(200);
-//! origins.apply(&mut res);
+//! origins.apply_header(&mut res);
 //!
 //! let origins = TimingAllowOrigin::from_headers(res)?.unwrap();
 //! let origin = origins.iter().next().unwrap();
@@ -26,13 +26,13 @@
 //! # Ok(()) }
 //! ```
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, TIMING_ALLOW_ORIGIN};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, TIMING_ALLOW_ORIGIN};
 use crate::{Status, Url};
 
 use std::fmt::Write;
 use std::fmt::{self, Debug};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
 /// Specify origins that are allowed to see values via the Resource Timing API.
@@ -49,7 +49,7 @@ use std::slice;
 /// origins.push(Url::parse("https://example.com")?);
 ///
 /// let mut res = Response::new(200);
-/// origins.apply(&mut res);
+/// res.insert_header(&origins, &origins);
 ///
 /// let origins = TimingAllowOrigin::from_headers(res)?.unwrap();
 /// let origin = origins.iter().next().unwrap();
@@ -106,37 +106,6 @@ impl TimingAllowOrigin {
         self.origins.push(origin.into());
     }
 
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(TIMING_ALLOW_ORIGIN, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        TIMING_ALLOW_ORIGIN
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, origin) in self.origins.iter().enumerate() {
-            match n {
-                0 => write!(output, "{}", origin).unwrap(),
-                _ => write!(output, ", {}", origin).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Returns `true` if a wildcard directive was set.
     pub fn wildcard(&self) -> bool {
         self.wildcard
@@ -162,12 +131,28 @@ impl TimingAllowOrigin {
     }
 }
 
-impl crate::headers::Header for TimingAllowOrigin {
+impl Header for TimingAllowOrigin {
     fn header_name(&self) -> HeaderName {
         TIMING_ALLOW_ORIGIN
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, origin) in self.origins.iter().enumerate() {
+            match n {
+                0 => write!(output, "{}", origin).unwrap(),
+                _ => write!(output, ", {}", origin).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -260,14 +245,6 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-// Conversion from `AllowOrigin` -> `HeaderValue`.
-impl ToHeaderValues for TimingAllowOrigin {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
 impl Debug for TimingAllowOrigin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
@@ -289,7 +266,7 @@ mod test {
         origins.push(Url::parse("https://example.com")?);
 
         let mut headers = Headers::new();
-        origins.apply(&mut headers);
+        origins.apply_header(&mut headers);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         let origin = origins.iter().next().unwrap();
@@ -304,7 +281,7 @@ mod test {
         origins.push(Url::parse("https://mozilla.org/")?);
 
         let mut headers = Headers::new();
-        origins.apply(&mut headers);
+        origins.apply_header(&mut headers);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         let mut origins = origins.iter();
@@ -331,7 +308,7 @@ mod test {
         origins.set_wildcard(true);
 
         let mut headers = Headers::new();
-        origins.apply(&mut headers);
+        origins.apply_header(&mut headers);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         assert_eq!(origins.wildcard(), true);

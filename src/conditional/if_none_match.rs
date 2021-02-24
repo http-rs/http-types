@@ -3,12 +3,12 @@
 //! This is used to update caches or to prevent uploading a new resource when
 //! one already exists.
 
-use crate::conditional::ETag;
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_NONE_MATCH};
+use crate::headers::{HeaderName, HeaderValue, Headers, IF_NONE_MATCH};
+use crate::{conditional::ETag, headers::Header};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 
 /// Apply the HTTP method if the ETags do not match.
@@ -33,7 +33,7 @@ use std::slice;
 /// entries.push(ETag::new("0xbeefcafe".to_string()));
 ///
 /// let mut res = Response::new(200);
-/// entries.apply(&mut res);
+/// res.insert_header(&entries, &entries);
 ///
 /// let entries = IfNoneMatch::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -79,37 +79,6 @@ impl IfNoneMatch {
         Ok(Some(Self { entries, wildcard }))
     }
 
-    /// Sets the `If-None-Match` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(IF_NONE_MATCH, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        IF_NONE_MATCH
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, etag) in self.entries.iter().enumerate() {
-            match n {
-                0 => write!(output, "{}", etag.to_string()).unwrap(),
-                _ => write!(output, ", {}", etag.to_string()).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Push a directive into the list of entries.
     pub fn push(&mut self, directive: impl Into<ETag>) {
         self.entries.push(directive.into());
@@ -140,12 +109,28 @@ impl IfNoneMatch {
     }
 }
 
-impl crate::headers::Header for IfNoneMatch {
+impl Header for IfNoneMatch {
     fn header_name(&self) -> HeaderName {
         IF_NONE_MATCH
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, etag) in self.entries.iter().enumerate() {
+            match n {
+                0 => write!(output, "{}", etag.to_string()).unwrap(),
+                _ => write!(output, ", {}", etag.to_string()).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -238,14 +223,6 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl ToHeaderValues for IfNoneMatch {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
 impl Debug for IfNoneMatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
@@ -258,6 +235,7 @@ impl Debug for IfNoneMatch {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::conditional::{ETag, IfNoneMatch};
     use crate::Response;
 
@@ -268,7 +246,7 @@ mod test {
         entries.push(ETag::new("0xbeefcafe".to_string()));
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = IfNoneMatch::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
@@ -290,7 +268,7 @@ mod test {
         entries.set_wildcard(true);
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = IfNoneMatch::from_headers(res)?.unwrap();
         assert_eq!(entries.wildcard(), true);

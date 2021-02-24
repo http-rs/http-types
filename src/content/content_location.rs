@@ -1,4 +1,4 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_LOCATION};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_LOCATION};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -22,7 +22,7 @@ use std::convert::TryInto;
 /// let content_location = ContentLocation::new(Url::parse("https://example.net/")?);
 ///
 /// let mut res = Response::new(200);
-/// content_location.apply(&mut res);
+/// res.insert_header(&content_location, &content_location);
 ///
 /// let url = Url::parse("https://example.net/")?;
 /// let content_location = ContentLocation::from_headers(url, res)?.unwrap();
@@ -64,24 +64,6 @@ impl ContentLocation {
         Ok(Some(Self { url }))
     }
 
-    /// Sets the header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(self.name(), self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        CONTENT_LOCATION
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = self.url.to_string();
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
-
     /// Get the url.
     pub fn location(&self) -> &Url {
         &self.url
@@ -99,12 +81,15 @@ impl ContentLocation {
     }
 }
 
-impl crate::headers::Header for ContentLocation {
+impl Header for ContentLocation {
     fn header_name(&self) -> HeaderName {
         CONTENT_LOCATION
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let output = self.url.to_string();
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -118,7 +103,7 @@ mod test {
         let content_location = ContentLocation::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
-        content_location.apply(&mut headers);
+        content_location.apply_header(&mut headers);
 
         let content_location =
             ContentLocation::from_headers(Url::parse("https://example.net/").unwrap(), headers)?

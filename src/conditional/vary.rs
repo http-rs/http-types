@@ -1,10 +1,10 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, VARY};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, VARY};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
-use std::option;
+
 use std::slice;
 use std::str::FromStr;
 
@@ -27,7 +27,7 @@ use std::str::FromStr;
 /// entries.push("Accept-Encoding")?;
 ///
 /// let mut res = Response::new(200);
-/// entries.apply(&mut res);
+/// res.insert_header(&entries, &entries);
 ///
 /// let entries = Vary::from_headers(res)?.unwrap();
 /// let mut entries = entries.iter();
@@ -74,16 +74,6 @@ impl Vary {
         Ok(Some(Self { entries, wildcard }))
     }
 
-    /// Sets the `If-Match` header.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(VARY, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        VARY
-    }
-
     /// Returns `true` if a wildcard directive was set.
     pub fn wildcard(&self) -> bool {
         self.wildcard
@@ -92,31 +82,6 @@ impl Vary {
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
         self.wildcard = wildcard
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let mut output = String::new();
-        for (n, name) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = name
-                .as_str()
-                .parse()
-                .expect("Could not convert a HeaderName into a HeaderValue");
-            match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
-            };
-        }
-
-        if self.wildcard {
-            match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
-            };
-        }
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 
     /// Push a directive into the list of entries.
@@ -140,12 +105,33 @@ impl Vary {
     }
 }
 
-impl crate::headers::Header for Vary {
+impl Header for Vary {
     fn header_name(&self) -> HeaderName {
         VARY
     }
+
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let mut output = String::new();
+        for (n, name) in self.entries.iter().enumerate() {
+            let directive: HeaderValue = name
+                .as_str()
+                .parse()
+                .expect("Could not convert a HeaderName into a HeaderValue");
+            match n {
+                0 => write!(output, "{}", directive).unwrap(),
+                _ => write!(output, ", {}", directive).unwrap(),
+            };
+        }
+
+        if self.wildcard {
+            match output.len() {
+                0 => write!(output, "*").unwrap(),
+                _ => write!(output, ", *").unwrap(),
+            };
+        }
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -238,14 +224,6 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl ToHeaderValues for Vary {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
 impl Debug for Vary {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
@@ -258,6 +236,7 @@ impl Debug for Vary {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::conditional::Vary;
     use crate::Response;
 
@@ -268,7 +247,7 @@ mod test {
         entries.push("Accept-Encoding")?;
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = Vary::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
@@ -284,7 +263,7 @@ mod test {
         entries.set_wildcard(true);
 
         let mut res = Response::new(200);
-        entries.apply(&mut res);
+        entries.apply_header(&mut res);
 
         let entries = Vary::from_headers(res)?.unwrap();
         assert_eq!(entries.wildcard(), true);

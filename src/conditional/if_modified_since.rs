@@ -1,8 +1,8 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, ToHeaderValues, IF_MODIFIED_SINCE};
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, IF_MODIFIED_SINCE};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
-use std::option;
+
 use std::time::SystemTime;
 
 /// Apply the HTTP method if the entity has been modified after the given
@@ -25,7 +25,7 @@ use std::time::SystemTime;
 /// let expires = IfModifiedSince::new(time);
 ///
 /// let mut res = Response::new(200);
-/// expires.apply(&mut res);
+/// res.insert_header(&expires, &expires);
 ///
 /// let expires = IfModifiedSince::from_headers(res)?.unwrap();
 ///
@@ -65,40 +65,17 @@ impl IfModifiedSince {
         let instant = parse_http_date(header.as_str())?;
         Ok(Some(Self { instant }))
     }
-
-    /// Insert a `HeaderName` + `HeaderValue` pair into a `Headers` instance.
-    pub fn apply(&self, mut headers: impl AsMut<Headers>) {
-        headers.as_mut().insert(IF_MODIFIED_SINCE, self.value());
-    }
-
-    /// Get the `HeaderName`.
-    pub fn name(&self) -> HeaderName {
-        IF_MODIFIED_SINCE
-    }
-
-    /// Get the `HeaderValue`.
-    pub fn value(&self) -> HeaderValue {
-        let output = fmt_http_date(self.instant);
-
-        // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
-    }
 }
 
-impl ToHeaderValues for IfModifiedSince {
-    type Iter = option::IntoIter<HeaderValue>;
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        // A HeaderValue will always convert into itself.
-        Ok(self.value().to_header_values().unwrap())
-    }
-}
-
-impl crate::headers::Header for IfModifiedSince {
+impl Header for IfModifiedSince {
     fn header_name(&self) -> HeaderName {
         IF_MODIFIED_SINCE
     }
     fn header_value(&self) -> HeaderValue {
-        self.value()
+        let output = fmt_http_date(self.instant);
+
+        // SAFETY: the internal string is validated to be ASCII.
+        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -114,7 +91,7 @@ mod test {
         let expires = IfModifiedSince::new(time);
 
         let mut headers = Headers::new();
-        expires.apply(&mut headers);
+        expires.apply_header(&mut headers);
 
         let expires = IfModifiedSince::from_headers(headers)?.unwrap();
 
