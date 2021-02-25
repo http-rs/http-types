@@ -771,4 +771,30 @@ mod test {
 
         Ok(())
     }
+
+    #[async_std::test]
+    async fn chain_skip_start() -> crate::Result<()> {
+        for buf_len in 1..26 {
+            let mut body1 = Body::from_reader(Cursor::new("1234 hello xyz"), Some(11));
+            let mut buf = vec![0; 5];
+            body1.read(&mut buf).await?;
+            assert_eq!(buf, b"1234 ");
+
+            let mut body2 = Body::from_reader(Cursor::new("321 world abc"), Some(9));
+            let mut buf = vec![0; 4];
+            body2.read(&mut buf).await?;
+            assert_eq!(buf, b"321 ");
+
+            let mut body = body1.chain(body2);
+            assert_eq!(body.len(), Some(11));
+            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
 }
