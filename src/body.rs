@@ -419,6 +419,46 @@ impl Body {
     pub fn set_mime(&mut self, mime: impl Into<Mime>) {
         self.mime = mime.into();
     }
+
+    /// Create a Body by chaining another Body after this one, consuming both.
+    ///
+    /// If both Body instances have a length, and their sum does not overflow,
+    /// the resulting Body will have a length.
+    ///
+    /// If both Body instances have the same fallback MIME type, the resulting
+    /// Body will have the same fallback MIME type; otherwise, the resulting
+    /// Body will have the fallback MIME type `application/octet-stream`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
+    /// use http_types::Body;
+    /// use async_std::io::Cursor;
+    ///
+    /// let cursor = Cursor::new("Hello ");
+    /// let body = Body::from_reader(cursor, None).chain(Body::from("Nori"));
+    /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
+    /// # Ok(()) }) }
+    /// ```
+    #[cfg(feature = "async-std")]
+    pub fn chain(self, other: Body) -> Self {
+        let mime = if self.mime == other.mime {
+            self.mime.clone()
+        } else {
+            mime::BYTE_STREAM
+        };
+        let length = match (self.length, other.length) {
+            (Some(l1), Some(l2)) => (l1 - self.bytes_read).checked_add(l2 - other.bytes_read),
+            _ => None,
+        };
+        Self {
+            mime,
+            length,
+            reader: Box::new(async_std::io::ReadExt::chain(self, other)),
+            bytes_read: 0,
+        }
+    }
 }
 
 impl Debug for Body {
@@ -604,6 +644,124 @@ mod test {
     async fn reading_in_various_buffer_lengths_when_there_is_no_length() -> crate::Result<()> {
         for buf_len in 1..13 {
             let mut body = Body::from_reader(Cursor::new("hello world"), None);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn chain_strings() -> crate::Result<()> {
+        for buf_len in 1..13 {
+            let mut body = Body::from("hello ").chain(Body::from("world"));
+            assert_eq!(body.len(), Some(11));
+            assert_eq!(body.mime(), &mime::PLAIN);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn chain_mixed_bytes_string() -> crate::Result<()> {
+        for buf_len in 1..13 {
+            let mut body = Body::from(&b"hello "[..]).chain(Body::from("world"));
+            assert_eq!(body.len(), Some(11));
+            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn chain_mixed_reader_string() -> crate::Result<()> {
+        for buf_len in 1..13 {
+            let mut body =
+                Body::from_reader(Cursor::new("hello "), Some(6)).chain(Body::from("world"));
+            assert_eq!(body.len(), Some(11));
+            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn chain_mixed_nolen_len() -> crate::Result<()> {
+        for buf_len in 1..13 {
+            let mut body =
+                Body::from_reader(Cursor::new("hello "), None).chain(Body::from("world"));
+            assert_eq!(body.len(), None);
+            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn chain_mixed_len_nolen() -> crate::Result<()> {
+        for buf_len in 1..13 {
+            let mut body =
+                Body::from("hello ").chain(Body::from_reader(Cursor::new("world"), None));
+            assert_eq!(body.len(), None);
+            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn chain_short() -> crate::Result<()> {
+        for buf_len in 1..26 {
+            let mut body = Body::from_reader(Cursor::new("hello xyz"), Some(6))
+                .chain(Body::from_reader(Cursor::new("world abc"), Some(5)));
+            assert_eq!(body.len(), Some(11));
+            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(
+                read_with_buffers_of_size(&mut body, buf_len).await?,
+                "hello world"
+            );
+            assert_eq!(body.bytes_read, 11);
+        }
+
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn chain_many() -> crate::Result<()> {
+        for buf_len in 1..13 {
+            let mut body = Body::from("hello")
+                .chain(Body::from(&b" "[..]))
+                .chain(Body::from("world"));
+            assert_eq!(body.len(), Some(11));
+            assert_eq!(body.mime(), &mime::BYTE_STREAM);
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
