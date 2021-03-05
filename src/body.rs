@@ -504,7 +504,6 @@ impl Body {
     /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
     /// # Ok(()) }) }
     /// ```
-    #[cfg(feature = "async-std")]
     pub fn chain(self, other: Body) -> Self {
         let mime = if self.mime == other.mime {
             self.mime.clone()
@@ -518,7 +517,7 @@ impl Body {
         Self {
             mime,
             length,
-            reader: Box::new(async_std::io::ReadExt::chain(self, other)),
+            reader: Box::new(futures_lite::io::AsyncReadExt::chain(self, other)),
             bytes_read: 0,
         }
     }
