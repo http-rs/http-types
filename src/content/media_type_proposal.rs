@@ -57,7 +57,7 @@ impl MediaTypeProposal {
             .remove_param("q")
             .map(|param| param.as_str().parse())
             .transpose()?;
-        Ok(Self::new(media_type, weight)?)
+        Self::new(media_type, weight)
     }
 }
 
