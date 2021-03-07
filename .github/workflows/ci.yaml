@@ -33,13 +33,13 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --workspace --benches --bins --examples --tests --features hyperium_http
+        args: --workspace --all-targets --features hyperium_http
 
     - name: check unstable
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --workspace --benches --bins --examples --tests --features "hyperium_http,unstable"
+        args: --workspace --all-targets --features "hyperium_http,unstable"
 
     - name: tests
       uses: actions-rs/cargo@v1
@@ -54,7 +54,7 @@ jobs:
     - uses: actions/checkout@master
 
     - name: clippy
-      run: cargo clippy --workspace --benches --bins --examples --tests --features "hyperium_http,unstable" -- -D warnings
+      run: cargo clippy --workspace --all-targets --features "hyperium_http,unstable" -- -D warnings
 
     - name: fmt
       run: cargo fmt --all -- --check
