@@ -8,9 +8,6 @@ on:
       - staging
       - trying
 
-env:
-  RUSTFLAGS: -Dwarnings
-
 jobs:
   build_and_test:
     name: Build and test
@@ -62,7 +59,7 @@ jobs:
         components: clippy, rustfmt
 
     - name: clippy
-      run: cargo clippy --workspace --all-targets --features "hyperium_http,unstable" -- -D warnings
+      run: cargo clippy --workspace --all-targets --features "hyperium_http,unstable"
 
     - name: fmt
       run: cargo fmt --all -- --check
