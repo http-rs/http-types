@@ -20,12 +20,23 @@ macro_rules! mime_const {
     };
 
     (with_params, $name:ident, $desc:expr, $base:expr, $sub:expr, $is_utf8:expr, $doccomment:expr) => {
-        mime_const!(doc_expanded, $name, $desc, $base, $sub, $is_utf8,
-             concat!(
+        mime_const!(
+            doc_expanded,
+            $name,
+            $desc,
+            $base,
+            $sub,
+            $is_utf8,
+            concat!(
                 "Content-Type for ",
                 $desc,
                 ".\n\n# Mime Type\n\n```text\n",
-                $base, "/", $sub, $doccomment, "\n```")
+                $base,
+                "/",
+                $sub,
+                $doccomment,
+                "\n```"
+            )
         );
     };
 

@@ -23,7 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - name: Install ${{ matrix.rust }}
+    - name: Install ${{ matrix.rust }} toolchain
       uses: actions-rs/toolchain@v1
       with:
         toolchain: ${{ matrix.rust }}
@@ -52,6 +52,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+
+    - name: Install nightly toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        override: true
+        components: clippy, rustfmt
 
     - name: clippy
       run: cargo clippy --workspace --all-targets --features "hyperium_http,unstable" -- -D warnings
