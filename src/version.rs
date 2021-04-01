@@ -68,21 +68,37 @@ impl<'de> Deserialize<'de> for Version {
     }
 }
 
-impl std::fmt::Display for Version {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
+impl AsRef<str> for Version {
+    fn as_ref(&self) -> &'static str {
+        match self {
             Version::Http0_9 => "HTTP/0.9",
             Version::Http1_0 => "HTTP/1.0",
             Version::Http1_1 => "HTTP/1.1",
             Version::Http2_0 => "HTTP/2",
             Version::Http3_0 => "HTTP/3",
-        })
+        }
+    }
+}
+
+impl std::fmt::Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_ref())
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn as_ref() {
+        assert_eq!(Version::Http0_9.as_ref(), "HTTP/0.9");
+        assert_eq!(Version::Http1_0.as_ref(), "HTTP/1.0");
+        assert_eq!(Version::Http1_1.as_ref(), "HTTP/1.1");
+        assert_eq!(Version::Http2_0.as_ref(), "HTTP/2");
+        assert_eq!(Version::Http3_0.as_ref(), "HTTP/3");
+    }
+
     #[test]
     fn to_string() {
         let output = format!(
