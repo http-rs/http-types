@@ -620,6 +620,8 @@ impl Request {
     /// use http_types::Request;
     /// use std::collections::HashMap;
     ///
+    /// // An owned structure:
+    ///
     /// #[derive(Deserialize)]
     /// # #[serde(crate = "serde_crate")]
     /// struct Index {
@@ -632,9 +634,21 @@ impl Request {
     /// assert_eq!(page, 2);
     /// assert_eq!(selections["width"], "narrow");
     /// assert_eq!(selections["height"], "tall");
+    ///
+    /// // Using borrows:
+    ///
+    /// #[derive(Deserialize)]
+    /// # #[serde(crate = "serde_crate")]
+    /// struct Query<'q> {
+    ///     format: &'q str,
+    /// }
+    ///
+    /// let mut req = Request::get("https://httpbin.org/get?format=bananna");
+    /// let Query { format } = req.query().unwrap();
+    /// assert_eq!(format, "bananna");
     /// ```
     #[cfg(feature = "serde")]
-    pub fn query<T: serde_crate::de::DeserializeOwned>(&self) -> crate::Result<T> {
+    pub fn query<'de, T: serde_crate::de::Deserialize<'de>>(&'de self) -> crate::Result<T> {
         // Default to an empty query string if no query parameter has been specified.
         // This allows successful deserialisation of structs where all fields are optional
         // when none of those fields has actually been passed by the caller.
