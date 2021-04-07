@@ -47,26 +47,29 @@ impl CacheDirective {
     /// Check whether this directive is valid in an HTTP request.
     pub fn valid_in_req(&self) -> bool {
         use CacheDirective::*;
-        matches!(self,
-            MaxAge(_) | MaxStale(_) | MinFresh(_) | NoCache | NoStore | NoTransform
-            | OnlyIfCached)
+        matches!(
+            self,
+            MaxAge(_) | MaxStale(_) | MinFresh(_) | NoCache | NoStore | NoTransform | OnlyIfCached
+        )
     }
 
     /// Check whether this directive is valid in an HTTP response.
     pub fn valid_in_res(&self) -> bool {
         use CacheDirective::*;
-        matches!(self,
+        matches!(
+            self,
             MustRevalidate
-            | NoCache
-            | NoStore
-            | NoTransform
-            | Public
-            | Private
-            | ProxyRevalidate
-            | MaxAge(_)
-            | SMaxAge(_)
-            | StaleIfError(_)
-            | StaleWhileRevalidate(_))
+                | NoCache
+                | NoStore
+                | NoTransform
+                | Public
+                | Private
+                | ProxyRevalidate
+                | MaxAge(_)
+                | SMaxAge(_)
+                | StaleIfError(_)
+                | StaleWhileRevalidate(_)
+        )
     }
 
     /// Create an instance from a string slice.
