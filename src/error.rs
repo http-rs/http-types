@@ -161,6 +161,28 @@ impl Error {
     pub fn type_name(&self) -> Option<&str> {
         self.type_name.as_deref()
     }
+
+    /// Converts anything which implements `Display` into an `http_types::Error`.
+    ///
+    /// This is handy for errors which are not `Send + Sync + 'static` because `std::error::Error` requires `Display`.
+    /// Note that any assiciated context not included in the `Display` output will be lost,
+    /// and so this may be lossy for some types which implement `std::error::Error`.
+    ///
+    /// **Note: Prefer `error.into()` via `From<Into<anyhow::Error>>` when possible!**
+    pub fn from_display<D: Display>(error: D) -> Self {
+        anyhow::Error::msg(error.to_string()).into()
+    }
+
+    /// Converts anything which implements `Debug` into an `http_types::Error`.
+    ///
+    /// This is handy for errors which are not `Send + Sync + 'static` because `std::error::Error` requires `Debug`.
+    /// Note that any assiciated context not included in the `Debug` output will be lost,
+    /// and so this may be lossy for some types which implement `std::error::Error`.
+    ///
+    /// **Note: Prefer `error.into()` via `From<Into<anyhow::Error>>` when possible!**
+    pub fn from_debug<D: Debug>(error: D) -> Self {
+        anyhow::Error::msg(format!("{:?}", error)).into()
+    }
 }
 
 impl Display for Error {
@@ -180,6 +202,7 @@ impl<E: Into<anyhow::Error>> From<E> for Error {
         Self::new(StatusCode::InternalServerError, error)
     }
 }
+
 impl AsRef<dyn StdError + Send + Sync> for Error {
     fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
         self.error.as_ref()
