@@ -123,13 +123,12 @@ mod test {
     }
 
     #[test]
-    fn bad_request_on_parse_error() -> crate::Result<()> {
+    fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
         headers.insert(SOURCE_MAP, "htt://<nori ate the tag. yum.>");
         let err = SourceMap::from_headers(Url::parse("https://example.net").unwrap(), headers)
             .unwrap_err();
         assert_eq!(err.status(), 500);
-        Ok(())
     }
 
     #[test]

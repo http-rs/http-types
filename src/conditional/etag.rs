@@ -177,21 +177,19 @@ mod test {
     }
 
     #[test]
-    fn bad_request_on_parse_error() -> crate::Result<()> {
+    fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
         headers.insert(ETAG, "<nori ate the tag. yum.>");
         let err = ETag::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
-        Ok(())
     }
 
     #[test]
-    fn validate_quotes() -> crate::Result<()> {
+    fn validate_quotes() {
         assert_entry_err(r#""hello"#, "Invalid ETag header");
         assert_entry_err(r#"hello""#, "Invalid ETag header");
         assert_entry_err(r#"/O"valid content""#, "Invalid ETag header");
         assert_entry_err(r#"/Wvalid content""#, "Invalid ETag header");
-        Ok(())
     }
 
     fn assert_entry_err(s: &str, msg: &str) {
@@ -202,9 +200,8 @@ mod test {
     }
 
     #[test]
-    fn validate_characters() -> crate::Result<()> {
+    fn validate_characters() {
         assert_entry_err(r#"""hello""#, "Invalid ETag header");
         assert_entry_err("\"hello\x7F\"", "Invalid ETag header");
-        Ok(())
     }
 }

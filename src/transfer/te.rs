@@ -37,6 +37,7 @@ use std::slice;
 /// #
 /// # Ok(()) }
 /// ```
+#[allow(clippy::upper_case_acronyms)]
 pub struct TE {
     wildcard: bool,
     entries: Vec<EncodingProposal>,

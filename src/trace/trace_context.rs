@@ -274,13 +274,12 @@ mod test {
     }
 
     #[test]
-    fn no_header() -> crate::Result<()> {
+    fn no_header() {
         let context = TraceContext::new();
         assert_eq!(context.version(), 0);
         assert_eq!(context.parent_id(), None);
         assert_eq!(context.flags, 1);
         assert_eq!(context.sampled(), true);
-        Ok(())
     }
 
     #[test]

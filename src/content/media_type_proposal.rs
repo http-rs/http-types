@@ -57,7 +57,7 @@ impl MediaTypeProposal {
             .remove_param("q")
             .map(|param| param.as_str().parse())
             .transpose()?;
-        Ok(Self::new(media_type, weight)?)
+        Self::new(media_type, weight)
     }
 }
 
@@ -135,15 +135,14 @@ mod test {
     use crate::mime;
 
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() {
         let _ = MediaTypeProposal::new(mime::JSON, Some(0.0)).unwrap();
         let _ = MediaTypeProposal::new(mime::XML, Some(0.5)).unwrap();
         let _ = MediaTypeProposal::new(mime::HTML, Some(1.0)).unwrap();
-        Ok(())
     }
 
     #[test]
-    fn error_code_500() -> crate::Result<()> {
+    fn error_code_500() {
         let err = MediaTypeProposal::new(mime::JSON, Some(1.1)).unwrap_err();
         assert_eq!(err.status(), 500);
 
@@ -152,6 +151,5 @@ mod test {
 
         let err = MediaTypeProposal::new(mime::HTML, Some(-0.0)).unwrap_err();
         assert_eq!(err.status(), 500);
-        Ok(())
     }
 }

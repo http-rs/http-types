@@ -123,15 +123,14 @@ mod test {
     use super::*;
 
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() {
         let _ = EncodingProposal::new(Encoding::Gzip, Some(0.0)).unwrap();
         let _ = EncodingProposal::new(Encoding::Gzip, Some(0.5)).unwrap();
         let _ = EncodingProposal::new(Encoding::Gzip, Some(1.0)).unwrap();
-        Ok(())
     }
 
     #[test]
-    fn error_code_500() -> crate::Result<()> {
+    fn error_code_500() {
         let err = EncodingProposal::new(Encoding::Gzip, Some(1.1)).unwrap_err();
         assert_eq!(err.status(), 500);
 
@@ -140,6 +139,5 @@ mod test {
 
         let err = EncodingProposal::new(Encoding::Gzip, Some(-0.0)).unwrap_err();
         assert_eq!(err.status(), 500);
-        Ok(())
     }
 }
