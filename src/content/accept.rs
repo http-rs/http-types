@@ -79,7 +79,7 @@ impl Accept {
                 // Handle empty strings, and wildcard directives.
                 if part.is_empty() {
                     continue;
-                } else if part == "*" {
+                } else if part == "*/*" {
                     wildcard = true;
                     continue;
                 }
@@ -177,8 +177,8 @@ impl Header for Accept {
 
         if self.wildcard {
             match output.len() {
-                0 => write!(output, "*").unwrap(),
-                _ => write!(output, ", *").unwrap(),
+                0 => write!(output, "*/*").unwrap(),
+                _ => write!(output, ", */*").unwrap(),
             }
         }
 
@@ -418,6 +418,33 @@ mod test {
         accept.set_wildcard(true);
 
         assert_eq!(accept.negotiate(&[mime::XML])?, mime::XML);
+        Ok(())
+    }
+
+    #[test]
+    fn parse() -> crate::Result<()> {
+        let mut headers = Headers::new();
+        headers.insert("Accept", "application/json; q=0.8,*/*");
+        let accept = Accept::from_headers(headers)?.unwrap();
+
+        assert!(accept.wildcard());
+        assert_eq!(
+            accept.into_iter().collect::<Vec<_>>(),
+            vec![MediaTypeProposal::new(mime::JSON, Some(0.8))?]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn serialize() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(MediaTypeProposal::new(mime::JSON, Some(0.8))?);
+        accept.set_wildcard(true);
+
+        assert_eq!(
+            accept.header_value().as_str(),
+            "application/json;q=0.800, */*"
+        );
         Ok(())
     }
 }
