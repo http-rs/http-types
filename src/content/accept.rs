@@ -141,7 +141,7 @@ impl Accept {
             }
         }
 
-        let mut err = Error::new_adhoc("No suitable ContentEncoding found");
+        let mut err = Error::new_adhoc("No suitable Content-Type found");
         err.set_status(StatusCode::NotAcceptable);
         Err(err)
     }

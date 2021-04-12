@@ -108,7 +108,7 @@ impl TE {
         sort_by_weight(&mut self.entries);
     }
 
-    /// Determine the most suitable `Content-Type` encoding.
+    /// Determine the most suitable `Transfer-Encoding` encoding.
     ///
     /// # Errors
     ///
@@ -131,7 +131,7 @@ impl TE {
             }
         }
 
-        let mut err = Error::new_adhoc("No suitable ContentEncoding found");
+        let mut err = Error::new_adhoc("No suitable Transfer-Encoding found");
         err.set_status(StatusCode::NotAcceptable);
         Err(err)
     }

@@ -110,7 +110,7 @@ impl AcceptEncoding {
         sort_by_weight(&mut self.entries);
     }
 
-    /// Determine the most suitable `Content-Type` encoding.
+    /// Determine the most suitable `Content-Encoding` encoding.
     ///
     /// # Errors
     ///
@@ -133,7 +133,7 @@ impl AcceptEncoding {
             }
         }
 
-        let mut err = Error::new_adhoc("No suitable ContentEncoding found");
+        let mut err = Error::new_adhoc("No suitable Content-Encoding found");
         err.set_status(StatusCode::NotAcceptable);
         Err(err)
     }
