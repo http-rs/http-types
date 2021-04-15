@@ -1,4 +1,3 @@
-use rand::Rng;
 use std::fmt;
 
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, TRACEPARENT};
@@ -60,12 +59,10 @@ impl TraceContext {
     /// assert_eq!(context.sampled(), true);
     /// ```
     pub fn new() -> Self {
-        let mut rng = rand::thread_rng();
-
         Self {
-            id: rng.gen(),
+            id: fastrand::u64(..),
             version: 0,
-            trace_id: rng.gen(),
+            trace_id: fastrand::u128(..),
             parent_id: None,
             flags: 1,
         }
@@ -104,7 +101,6 @@ impl TraceContext {
     /// ```
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let headers = headers.as_ref();
-        let mut rng = rand::thread_rng();
 
         let traceparent = match headers.get(TRACEPARENT) {
             Some(header) => header,
@@ -113,7 +109,7 @@ impl TraceContext {
         let parts: Vec<&str> = traceparent.as_str().split('-').collect();
 
         Ok(Some(Self {
-            id: rng.gen(),
+            id: fastrand::u64(..),
             version: u8::from_str_radix(parts[0], 16)?,
             trace_id: u128::from_str_radix(parts[1], 16).status(400)?,
             parent_id: Some(u64::from_str_radix(parts[2], 16).status(400)?),
@@ -126,10 +122,8 @@ impl TraceContext {
     /// The child will have a new randomly genrated `id` and its `parent_id` will be set to the
     /// `id` of this TraceContext.
     pub fn child(&self) -> Self {
-        let mut rng = rand::thread_rng();
-
         Self {
-            id: rng.gen(),
+            id: fastrand::u64(..),
             version: self.version,
             trace_id: self.trace_id,
             parent_id: Some(self.id),
