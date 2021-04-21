@@ -27,7 +27,7 @@ fs = ["async-std"]
 serde = ["serde_qs", "serde_crate", "serde_json", "serde_urlencoded", "url/serde"]
 
 [dependencies]
-rand = "0.7.3"
+fastrand = "1.4.0"
 base64 = "0.13.0"
 futures-lite = "1.11.1"
 async-channel = "1.5.1"
