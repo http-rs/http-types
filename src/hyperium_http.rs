@@ -61,7 +61,7 @@ fn hyperium_headers_to_headers(hyperium_headers: http::HeaderMap, headers: &mut 
         if let Some(name) = name {
             let name = name.as_str().as_bytes().to_owned();
             let name = unsafe { HeaderName::from_bytes_unchecked(name) };
-            headers.insert(name, value).unwrap();
+            headers.append(name, value);
         }
     }
 }
