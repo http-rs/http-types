@@ -47,7 +47,7 @@ impl ContentLength {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let length = value.as_str().trim().parse().status(400)?;
+        let length = value.as_str().trim().parse::<u64>().status(400)?;
         Ok(Some(Self { length }))
     }
 
