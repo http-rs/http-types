@@ -425,7 +425,7 @@ impl StatusCode {
     /// If this returns `true` it indicates that the request was received,
     /// continuing process.
     pub fn is_informational(&self) -> bool {
-        let num: u16 = self.clone().into();
+        let num: u16 = (*self).into();
         (100..200).contains(&num)
     }
 
@@ -434,7 +434,7 @@ impl StatusCode {
     /// If this returns `true` it indicates that the request was successfully
     /// received, understood, and accepted.
     pub fn is_success(&self) -> bool {
-        let num: u16 = self.clone().into();
+        let num: u16 = (*self).into();
         (200..300).contains(&num)
     }
 
@@ -443,7 +443,7 @@ impl StatusCode {
     /// If this returns `true` it indicates that further action needs to be
     /// taken in order to complete the request.
     pub fn is_redirection(&self) -> bool {
-        let num: u16 = self.clone().into();
+        let num: u16 = (*self).into();
         (300..400).contains(&num)
     }
 
@@ -452,7 +452,7 @@ impl StatusCode {
     /// If this returns `true` it indicates that the request contains bad syntax
     /// or cannot be fulfilled.
     pub fn is_client_error(&self) -> bool {
-        let num: u16 = self.clone().into();
+        let num: u16 = (*self).into();
         (400..500).contains(&num)
     }
 
@@ -461,7 +461,7 @@ impl StatusCode {
     /// If this returns `true` it indicates that the server failed to fulfill an
     /// apparently valid request.
     pub fn is_server_error(&self) -> bool {
-        let num: u16 = self.clone().into();
+        let num: u16 = (*self).into();
         (500..600).contains(&num)
     }
 

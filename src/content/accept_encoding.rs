@@ -83,7 +83,7 @@ impl AcceptEncoding {
             }
         }
 
-        Ok(Some(Self { entries, wildcard }))
+        Ok(Some(Self { wildcard, entries }))
     }
 
     /// Push a directive into the list of entries.
@@ -161,7 +161,7 @@ impl Header for AcceptEncoding {
     fn header_value(&self) -> HeaderValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
+            let directive: HeaderValue = (*directive).into();
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),
