@@ -269,7 +269,7 @@ mod test {
         entries.apply_header(&mut res);
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
-        assert_eq!(entries.wildcard(), true);
+        assert!(entries.wildcard());
         let mut entries = entries.iter();
         assert_eq!(entries.next().unwrap(), &ClearDirective::Cache);
         Ok(())
@@ -281,7 +281,7 @@ mod test {
         res.insert_header("clear-site-data", r#""cookies""#);
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
-        assert_eq!(entries.wildcard(), false);
+        assert!(!entries.wildcard());
         let mut entries = entries.iter();
         assert_eq!(entries.next().unwrap(), &ClearDirective::Cookies);
 
@@ -289,7 +289,7 @@ mod test {
         res.insert_header("clear-site-data", r#""*""#);
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
-        assert_eq!(entries.wildcard(), true);
+        assert!(entries.wildcard());
         let mut entries = entries.iter();
         assert_eq!(entries.next(), None);
         Ok(())

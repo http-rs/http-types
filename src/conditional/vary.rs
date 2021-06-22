@@ -266,7 +266,7 @@ mod test {
         entries.apply_header(&mut res);
 
         let entries = Vary::from_headers(res)?.unwrap();
-        assert_eq!(entries.wildcard(), true);
+        assert!(entries.wildcard());
         let mut entries = entries.iter();
         assert_eq!(entries.next().unwrap(), "User-Agent");
         Ok(())

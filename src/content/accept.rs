@@ -91,7 +91,7 @@ impl Accept {
             }
         }
 
-        Ok(Some(Self { entries, wildcard }))
+        Ok(Some(Self { wildcard, entries }))
     }
 
     /// Push a directive into the list of entries.

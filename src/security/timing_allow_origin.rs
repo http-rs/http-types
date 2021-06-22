@@ -311,7 +311,7 @@ mod test {
         origins.apply_header(&mut headers);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
-        assert_eq!(origins.wildcard(), true);
+        assert!(origins.wildcard());
         let origin = origins.iter().next().unwrap();
         assert_eq!(origin, &Url::parse("https://example.com")?);
         Ok(())
