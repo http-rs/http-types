@@ -71,6 +71,48 @@ where
     }
 }
 
+impl<T> Status<T, Error> for Result<T, Error> {
+    /// Wrap the error value with an additional status code.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
+    ///
+    /// [status]: crate::Status
+    /// [statuscode]: crate::StatusCode
+    fn status<S>(self, status: S) -> Result<T, Error>
+    where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+    {
+        self.map_err(|mut error| {
+            error.set_status(status);
+            error
+        })
+    }
+
+    /// Wrap the error value with an additional status code that is evaluated
+    /// lazily only once an error does occur.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
+    ///
+    /// [status]: crate::Status
+    /// [statuscode]: crate::StatusCode
+    fn with_status<S, F>(self, f: F) -> Result<T, Error>
+    where
+        S: TryInto<StatusCode>,
+        S::Error: Debug,
+        F: FnOnce() -> S,
+    {
+        self.map_err(|mut error| {
+            error.set_status(f());
+            error
+        })
+    }
+}
+
 impl<T> Status<T, Infallible> for Option<T> {
     /// Wrap the error value with an additional status code.
     ///

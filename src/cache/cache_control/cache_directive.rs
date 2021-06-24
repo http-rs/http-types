@@ -94,7 +94,7 @@ impl CacheDirective {
 
         let mut get_dur = || -> crate::Result<Duration> {
             let dur = parts.next().status(400)?;
-            let dur: u64 = dur.parse().status(400)?;
+            let dur: u64 = dur.parse::<u64>().status(400)?;
             Ok(Duration::new(dur, 0))
         };
 
@@ -112,7 +112,7 @@ impl CacheDirective {
             "max-age" => Some(MaxAge(get_dur()?)),
             "max-stale" => match parts.next() {
                 Some(secs) => {
-                    let dur: u64 = secs.parse().status(400)?;
+                    let dur: u64 = secs.parse::<u64>().status(400)?;
                     Some(MaxStale(Some(Duration::new(dur, 0))))
                 }
                 None => Some(MaxStale(None)),
