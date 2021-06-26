@@ -21,7 +21,7 @@ pub struct Extensions {
 impl Extensions {
     /// Create an empty `Extensions`.
     #[inline]
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self { map: None }
     }
 
