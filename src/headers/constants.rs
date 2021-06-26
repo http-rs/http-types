@@ -138,6 +138,9 @@ pub const PROXY_AUTHORIZATION: HeaderName = HeaderName::from_lowercase_str("prox
 /// The `Proxy-Connection` Header
 pub const PROXY_CONNECTION: HeaderName = HeaderName::from_lowercase_str("proxy-connection");
 
+/// The `Range` Header
+pub const RANGE: HeaderName = HeaderName::from_lowercase_str("range");
+
 ///  The `Referer` Header
 pub const REFERER: HeaderName = HeaderName::from_lowercase_str("referer");
 
