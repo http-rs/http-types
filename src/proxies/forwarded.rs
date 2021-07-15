@@ -8,6 +8,7 @@ use std::{borrow::Cow, convert::TryFrom, fmt::Write, net::IpAddr};
 const X_FORWARDED_FOR: HeaderName = HeaderName::from_lowercase_str("x-forwarded-for");
 const X_FORWARDED_PROTO: HeaderName = HeaderName::from_lowercase_str("x-forwarded-proto");
 const X_FORWARDED_BY: HeaderName = HeaderName::from_lowercase_str("x-forwarded-by");
+const X_FORWARDED_HOST: HeaderName = HeaderName::from_lowercase_str("x-forwarded-host");
 
 /// A rust representation of the [forwarded
 /// header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded).
@@ -169,12 +170,16 @@ impl<'a> Forwarded<'a> {
             .get(X_FORWARDED_PROTO)
             .map(|p| Cow::Borrowed(p.as_str()));
 
-        if !forwarded_for.is_empty() || by.is_some() || proto.is_some() {
+        let host = headers
+            .get(X_FORWARDED_HOST)
+            .map(|h| Cow::Borrowed(h.as_str()));
+
+        if !forwarded_for.is_empty() || by.is_some() || proto.is_some() || host.is_some() {
             Ok(Some(Self {
                 forwarded_for,
                 by,
                 proto,
-                host: None,
+                host,
             }))
         } else {
             Ok(None)
@@ -569,10 +574,11 @@ mod tests {
         let mut request = Request::new(Get, Url::parse("http://_/")?);
         request.append_header(X_FORWARDED_FOR, "192.0.2.43, 2001:db8:cafe::17");
         request.append_header(X_FORWARDED_PROTO, "gopher");
+        request.append_header(X_FORWARDED_HOST, "example.com");
         let forwarded = Forwarded::from_headers(&request)?.unwrap();
         assert_eq!(
             forwarded.to_string(),
-            r#"for=192.0.2.43, for="[2001:db8:cafe::17]";proto=gopher"#
+            r#"for=192.0.2.43, for="[2001:db8:cafe::17]";host=example.com;proto=gopher"#
         );
         Ok(())
     }
