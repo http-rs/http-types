@@ -1,8 +1,8 @@
 // This is the compat file for the "hyperium/http" crate.
 
-use crate::headers::{HeaderName, HeaderValue};
-use crate::{Body, Headers, Method, Request, Response, StatusCode, Url, Version};
-use std::convert::TryFrom;
+use crate::headers::{HeaderName, HeaderValue, Headers};
+use crate::{Body, Error, Method, Request, Response, StatusCode, Url, Version};
+use std::convert::{TryFrom, TryInto};
 use std::str::FromStr;
 
 impl From<http::Method> for Method {
@@ -51,6 +51,92 @@ impl From<Version> for http::Version {
             Version::Http2_0 => http::Version::HTTP_2,
             Version::Http3_0 => http::Version::HTTP_3,
         }
+    }
+}
+
+impl TryFrom<http::header::HeaderName> for HeaderName {
+    type Error = Error;
+
+    fn try_from(name: http::header::HeaderName) -> Result<Self, Self::Error> {
+        let name = name.as_str().as_bytes().to_owned();
+        HeaderName::from_bytes(name)
+    }
+}
+
+impl TryFrom<HeaderName> for http::header::HeaderName {
+    type Error = Error;
+
+    fn try_from(name: HeaderName) -> Result<Self, Self::Error> {
+        let name = name.as_str().as_bytes();
+        http::header::HeaderName::from_bytes(name).map_err(|e| Error::new_adhoc(e))
+    }
+}
+
+impl TryFrom<http::header::HeaderValue> for HeaderValue {
+    type Error = Error;
+
+    fn try_from(value: http::header::HeaderValue) -> Result<Self, Self::Error> {
+        let value = value.as_bytes().to_owned();
+        HeaderValue::from_bytes(value)
+    }
+}
+
+impl TryFrom<HeaderValue> for http::header::HeaderValue {
+    type Error = Error;
+
+    fn try_from(value: HeaderValue) -> Result<Self, Self::Error> {
+        let value = value.as_str().as_bytes();
+        http::header::HeaderValue::from_bytes(value).map_err(|e| Error::new_adhoc(e))
+    }
+}
+
+impl TryFrom<http::HeaderMap> for Headers {
+    type Error = Error;
+
+    fn try_from(hyperium_headers: http::HeaderMap) -> Result<Self, Self::Error> {
+        let mut headers = Headers::new();
+
+        hyperium_headers
+            .into_iter()
+            .map(|(name, value)| {
+                if let Some(name) = name {
+                    let value: HeaderValue = value.try_into()?;
+                    let name: HeaderName = name.try_into()?;
+                    headers.append(name, value);
+                }
+                Ok(())
+            })
+            .collect::<Result<Vec<()>, Error>>()?;
+
+        Ok(headers)
+    }
+}
+
+impl TryFrom<Headers> for http::HeaderMap {
+    type Error = Error;
+
+    fn try_from(headers: Headers) -> Result<Self, Self::Error> {
+        let mut hyperium_headers = http::HeaderMap::new();
+
+        headers
+            .into_iter()
+            .map(|(name, values)| {
+                let name: http::header::HeaderName = name.try_into()?;
+
+                values
+                    .into_iter()
+                    .map(|value| {
+                        let value: http::header::HeaderValue = value.try_into()?;
+                        hyperium_headers.append(&name, value);
+                        Ok(())
+                    })
+                    .collect::<Result<Vec<()>, Error>>()?;
+
+                Ok(())
+            })
+            .collect::<Result<Vec<()>, Error>>()?;
+
+        Ok(hyperium_headers)
     }
 }
 
