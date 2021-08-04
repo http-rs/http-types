@@ -2,13 +2,13 @@
 #[macro_export]
 macro_rules! bail {
     ($msg:literal $(,)?) => {
-        return $crate::private::Err($crate::format_err!($msg));
+        return $crate::private::Err($crate::format_err!($msg))
     };
     ($msg:expr $(,)?) => {
-        return $crate::private::Err($crate::format_err!($msg));
+        return $crate::private::Err($crate::format_err!($msg))
     };
     ($msg:expr, $($arg:tt)*) => {
-        return $crate::private::Err($crate::format_err!($msg, $($arg)*));
+        return $crate::private::Err($crate::format_err!($msg, $($arg)*))
     };
 }
 
@@ -23,17 +23,17 @@ macro_rules! bail {
 macro_rules! ensure {
     ($cond:expr, $msg:literal $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err!($msg));
+            return $crate::private::Err($crate::format_err!($msg))
         }
     };
     ($cond:expr, $msg:expr $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err!($msg));
+            return $crate::private::Err($crate::format_err!($msg))
         }
     };
     ($cond:expr, $msg:expr, $($arg:tt)*) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err!($msg, $($arg)*));
+            return $crate::private::Err($crate::format_err!($msg, $($arg)*))
         }
     };
 }
@@ -49,17 +49,17 @@ macro_rules! ensure {
 macro_rules! ensure_eq {
     ($left:expr, $right:expr, $msg:literal $(,)?) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err!($msg));
+            return $crate::private::Err($crate::format_err!($msg))
         }
     };
     ($left:expr, $right:expr, $msg:expr $(,)?) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err!($msg));
+            return $crate::private::Err($crate::format_err!($msg))
         }
     };
     ($left:expr, $right:expr, $msg:expr, $($arg:tt)*) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err!($msg, $($arg)*));
+            return $crate::private::Err($crate::format_err!($msg, $($arg)*))
         }
     };
 }
@@ -90,13 +90,13 @@ macro_rules! format_err {
 #[macro_export]
 macro_rules! bail_status {
     ($status:literal, $msg:literal $(,)?) => {{
-        return $crate::private::Err($crate::format_err_status!($status, $msg));
+        return $crate::private::Err($crate::format_err_status!($status, $msg))
     }};
     ($status:literal, $msg:expr $(,)?) => {
-        return $crate::private::Err($crate::format_err_status!($status, $msg));
+        return $crate::private::Err($crate::format_err_status!($status, $msg))
     };
     ($status:literal, $msg:expr, $($arg:tt)*) => {
-        return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*));
+        return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*))
     };
 }
 
@@ -112,17 +112,17 @@ macro_rules! bail_status {
 macro_rules! ensure_status {
     ($cond:expr, $status:literal, $msg:literal $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err_status!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg))
         }
     };
     ($cond:expr, $status:literal, $msg:expr $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err_status!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg))
         }
     };
     ($cond:expr, $status:literal, $msg:expr, $($arg:tt)*) => {
         if !$cond {
-            return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*));
+            return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*))
         }
     };
 }
@@ -139,17 +139,17 @@ macro_rules! ensure_status {
 macro_rules! ensure_eq_status {
     ($left:expr, $right:expr, $status:literal, $msg:literal $(,)?) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err_status!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg))
         }
     };
     ($left:expr, $right:expr, $status:literal, $msg:expr $(,)?) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err_status!($status, $msg));
+            return $crate::private::Err($crate::format_err_status!($status, $msg))
         }
     };
     ($left:expr, $right:expr, $status:literal, $msg:expr, $($arg:tt)*) => {
         if $left != $right {
-            return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*));
+            return $crate::private::Err($crate::format_err_status!($status, $msg, $($arg)*))
         }
     };
 }
