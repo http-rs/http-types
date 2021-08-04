@@ -12,9 +12,7 @@ pub struct Connection {
 impl Debug for Connection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = "Box<dyn Asyncread + AsyncWrite + Send + Sync + Unpin>";
-        f.debug_struct("Connection")
-            .field(&"inner", &inner)
-            .finish()
+        f.debug_struct("Connection").field("inner", &inner).finish()
     }
 }
 

@@ -43,7 +43,7 @@ impl Mime {
     /// Sniff the mime type from a byte slice.
     pub fn sniff(bytes: &[u8]) -> crate::Result<Self> {
         let info = Infer::new();
-        let mime = match info.get(&bytes) {
+        let mime = match info.get(bytes) {
             Some(info) => info.mime,
             None => crate::bail!("Could not sniff the mime type"),
         };

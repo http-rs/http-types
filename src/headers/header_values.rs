@@ -44,7 +44,7 @@ impl HeaderValues {
 
     /// An iterator visiting all header values in arbitrary order.
     pub fn iter(&self) -> Values<'_> {
-        Values::new_values(&self)
+        Values::new_values(self)
     }
 
     // /// An iterator visiting all header values in arbitrary order, with mutable

@@ -119,7 +119,7 @@ impl TE {
 
         // Try and find the first encoding that matches.
         for encoding in &self.entries {
-            if available.contains(&encoding) {
+            if available.contains(encoding) {
                 return Ok(encoding.into());
             }
         }

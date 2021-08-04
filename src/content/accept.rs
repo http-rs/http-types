@@ -129,7 +129,7 @@ impl Accept {
 
         // Try and find the first encoding that matches.
         for accept in &self.entries {
-            if available.contains(&accept) {
+            if available.contains(accept) {
                 return Ok(accept.media_type.clone().into());
             }
         }

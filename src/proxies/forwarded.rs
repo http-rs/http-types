@@ -435,7 +435,7 @@ fn starts_with_ignore_case(start: &'static str, input: &str) -> bool {
 
 impl std::fmt::Display for Forwarded<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.header_value().as_str())
+        f.write_str(self.header_value().as_str())
     }
 }
 
