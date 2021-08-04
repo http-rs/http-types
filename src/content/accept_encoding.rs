@@ -118,7 +118,7 @@ impl AcceptEncoding {
 
         // Try and find the first encoding that matches.
         for encoding in &self.entries {
-            if available.contains(&encoding) {
+            if available.contains(encoding) {
                 return Ok(encoding.into());
             }
         }
@@ -149,7 +149,7 @@ impl AcceptEncoding {
     pub fn value(&self) -> HeaderValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
+            let directive: HeaderValue = (*directive).into();
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),

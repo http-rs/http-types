@@ -269,7 +269,7 @@ mod test {
         assert_eq!(context.trace_id(), 1);
         assert_eq!(context.parent_id().unwrap(), 3735928559);
         assert_eq!(context.flags, 0);
-        assert_eq!(context.sampled(), false);
+        assert!(!context.sampled());
         Ok(())
     }
 
@@ -279,7 +279,7 @@ mod test {
         assert_eq!(context.version(), 0);
         assert_eq!(context.parent_id(), None);
         assert_eq!(context.flags, 1);
-        assert_eq!(context.sampled(), true);
+        assert!(context.sampled());
     }
 
     #[test]
@@ -287,7 +287,7 @@ mod test {
         let mut headers = crate::Headers::new();
         headers.insert(TRACEPARENT, "00-01-02-00");
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
-        assert_eq!(context.sampled(), false);
+        assert!(!context.sampled());
         Ok(())
     }
 
@@ -296,7 +296,7 @@ mod test {
         let mut headers = crate::Headers::new();
         headers.insert(TRACEPARENT, "00-01-02-01");
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
-        assert_eq!(context.sampled(), true);
+        assert!(context.sampled());
         Ok(())
     }
 }

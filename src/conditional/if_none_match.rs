@@ -284,7 +284,7 @@ mod test {
         entries.apply(&mut res);
 
         let entries = IfNoneMatch::from_headers(res)?.unwrap();
-        assert_eq!(entries.wildcard(), true);
+        assert!(entries.wildcard());
         let mut entries = entries.iter();
         assert_eq!(
             entries.next().unwrap(),
