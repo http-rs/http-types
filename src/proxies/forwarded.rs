@@ -12,7 +12,7 @@ const X_FORWARDED_HOST: HeaderName = HeaderName::from_lowercase_str("x-forwarded
 
 /// A rust representation of the [forwarded
 /// header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded).
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Forwarded<'a> {
     by: Option<Cow<'a, str>>,
     forwarded_for: Vec<Cow<'a, str>>,
@@ -208,12 +208,12 @@ impl<'a> Forwarded<'a> {
         let mut input = input;
         let mut forwarded = Forwarded::new();
 
-        if starts_with_ignore_case("for=", input) {
-            input = forwarded.parse_for(input)?;
-        }
-
         while !input.is_empty() {
-            input = forwarded.parse_forwarded_pair(input)?;
+            input = if starts_with_ignore_case("for=", input) {
+                forwarded.parse_for(input)?
+            } else {
+                forwarded.parse_forwarded_pair(input)?
+            }
         }
 
         Ok(forwarded)
@@ -429,8 +429,12 @@ fn match_ignore_case<'a>(start: &'static str, input: &'a str) -> (bool, &'a str)
 }
 
 fn starts_with_ignore_case(start: &'static str, input: &str) -> bool {
-    let len = start.len();
-    input[..len].eq_ignore_ascii_case(start)
+    if start.len() <= input.len() {
+        let len = start.len();
+        input[..len].eq_ignore_ascii_case(start)
+    } else {
+        false
+    }
 }
 
 impl std::fmt::Display for Forwarded<'_> {
@@ -466,6 +470,11 @@ mod tests {
     use super::*;
     use crate::{Method::Get, Request, Response, Result};
     use url::Url;
+
+    #[test]
+    fn starts_with_ignore_case_can_handle_short_inputs() {
+        assert!(!starts_with_ignore_case("helloooooo", "h"));
+    }
 
     #[test]
     fn parsing_for() -> Result<()> {
@@ -639,6 +648,21 @@ mod tests {
             Forwarded::from_headers(&request)?.unwrap().into_owned()
         };
         assert_eq!(forwarded.by(), Some("by"));
+        Ok(())
+    }
+
+    #[test]
+    fn round_trip() -> Result<()> {
+        let inputs = [
+            "for=client,for=b,for=c;by=proxy.com;host=example.com;proto=https",
+            "by=proxy.com;proto=https;host=example.com;for=a,for=b",
+        ];
+        for input in inputs {
+            let forwarded = Forwarded::parse(input).map_err(|_| crate::Error::new_adhoc(input))?;
+            let header = forwarded.header_value();
+            let parsed = Forwarded::parse(header.as_str())?;
+            assert_eq!(forwarded, parsed);
+        }
         Ok(())
     }
 }

@@ -5,7 +5,7 @@ pub(crate) fn parse_token(input: &str) -> (Option<&str>, &str) {
     let mut end_of_token = 0;
     for (i, c) in input.char_indices() {
         if tchar(c) {
-            end_of_token = i;
+            end_of_token = i + 1;
         } else {
             break;
         }
@@ -14,7 +14,7 @@ pub(crate) fn parse_token(input: &str) -> (Option<&str>, &str) {
     if end_of_token == 0 {
         (None, input)
     } else {
-        (Some(&input[..end_of_token + 1]), &input[end_of_token + 1..])
+        (Some(&input[..end_of_token]), &input[end_of_token..])
     }
 }
 
@@ -125,7 +125,7 @@ mod test {
         assert_eq!(parse_token("key=value"), (Some("key"), "=value"));
         assert_eq!(parse_token("KEY=value"), (Some("KEY"), "=value"));
         assert_eq!(parse_token("0123)=value"), (Some("0123"), ")=value"));
-
+        assert_eq!(parse_token("a=b"), (Some("a"), "=b"));
         assert_eq!(
             parse_token("!#$%&'*+-.^_`|~=value"),
             (Some("!#$%&'*+-.^_`|~"), "=value",)
