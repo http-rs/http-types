@@ -146,6 +146,7 @@ impl AsMut<HeaderValue> for HeaderValues {
         &mut self.inner[0]
     }
 }
+
 impl Deref for HeaderValues {
     type Target = HeaderValue;
 
@@ -167,6 +168,22 @@ impl<'a> IntoIterator for &'a HeaderValues {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl From<Vec<HeaderValue>> for HeaderValues {
+    fn from(headers: Vec<HeaderValue>) -> Self {
+        Self { inner: headers }
+    }
+}
+
+impl IntoIterator for HeaderValues {
+    type Item = HeaderValue;
+    type IntoIter = std::vec::IntoIter<HeaderValue>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
     }
 }
 
