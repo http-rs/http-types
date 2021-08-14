@@ -484,7 +484,7 @@ impl StatusCode {
             StatusCode::MovedPermanently => "Moved Permanently",
             StatusCode::Found => "Found",
             StatusCode::SeeOther => "See Other",
-            StatusCode::NotModified => "Modified",
+            StatusCode::NotModified => "Not Modified",
             StatusCode::TemporaryRedirect => "Temporary Redirect",
             StatusCode::PermanentRedirect => "Permanent Redirect",
             StatusCode::BadRequest => "Bad Request",
