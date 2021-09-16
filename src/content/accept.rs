@@ -362,9 +362,9 @@ mod test {
         let mut accept = Accept::from_headers(headers)?.unwrap();
         accept.sort();
         let mut accept = accept.iter();
+        assert_eq!(accept.next().unwrap(), mime::XML);
         assert_eq!(accept.next().unwrap(), mime::PLAIN);
         assert_eq!(accept.next().unwrap(), mime::HTML);
-        assert_eq!(accept.next().unwrap(), mime::XML);
         Ok(())
     }
 
@@ -381,9 +381,9 @@ mod test {
         let mut accept = Accept::from_headers(res)?.unwrap();
         accept.sort();
         let mut accept = accept.iter();
-        assert_eq!(accept.next().unwrap(), mime::PLAIN);
         assert_eq!(accept.next().unwrap(), mime::XML);
         assert_eq!(accept.next().unwrap(), mime::HTML);
+        assert_eq!(accept.next().unwrap(), mime::PLAIN);
         Ok(())
     }
 
@@ -394,7 +394,7 @@ mod test {
         accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
         accept.push(MediaTypeProposal::new(mime::XML, None)?);
 
-        assert_eq!(accept.negotiate(&[mime::HTML, mime::XML])?, mime::HTML);
+        assert_eq!(accept.negotiate(&[mime::HTML, mime::XML])?, mime::XML);
         Ok(())
     }
 
