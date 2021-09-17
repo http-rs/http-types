@@ -29,6 +29,12 @@ impl MediaTypeProposal {
                 "MediaTypeProposal should have a weight between 0.0 and 1.0"
             )
         }
+        if weight.is_none() {
+            return Ok(Self {
+                media_type: media_type.into(),
+                weight: Some(1.0),
+            });
+        }
 
         Ok(Self {
             media_type: media_type.into(),
