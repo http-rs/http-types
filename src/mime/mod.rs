@@ -53,11 +53,19 @@ impl Mime {
     /// Guess the mime type from a file extension
     pub fn from_extension(extension: impl AsRef<str>) -> Option<Self> {
         match extension.as_ref() {
+            "bmp" => Some(BMP),
+            "css" => Some(CSS),
             "html" => Some(HTML),
+            "ico" => Some(ICO),
             "js" | "mjs" | "jsonp" => Some(JAVASCRIPT),
             "json" => Some(JSON),
-            "css" => Some(CSS),
+            "otf" => Some(OTF),
             "svg" => Some(SVG),
+            "ttf" => Some(TTF),
+            "txt" => Some(PLAIN),
+            "webp" => Some(WEBP),
+            "woff" => Some(WOFF),
+            "woff2" => Some(WOFF2),
             "xml" => Some(XML),
             _ => None,
         }

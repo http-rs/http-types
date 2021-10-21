@@ -59,15 +59,27 @@ utf8_mime_const!(PLAIN, "Plain text", "text", "plain");
 utf8_mime_const!(XML, "XML", "application", "xml");
 mime_const!(ANY, "matching anything", "*", "*");
 mime_const!(JSON, "JSON", "application", "json");
-mime_const!(SVG, "SVG", "image", "svg+xml");
-mime_const!(PNG, "PNG images", "image", "png");
-mime_const!(JPEG, "JPEG images", "image", "jpeg");
 mime_const!(SSE, "Server Sent Events", "text", "event-stream");
 mime_const!(BYTE_STREAM, "byte streams", "application", "octet-stream");
 mime_const!(FORM, "forms", "application", "x-www-form-urlencoded");
 mime_const!(MULTIPART_FORM, "multipart forms", "multipart", "form-data");
 mime_const!(WASM, "webassembly", "application", "wasm");
+
+// Images
+// https://www.iana.org/assignments/media-types/media-types.xhtml#image
+mime_const!(BMP, "BMP images", "image", "bmp");
+mime_const!(JPEG, "JPEG images", "image", "jpeg");
+mime_const!(PNG, "PNG images", "image", "png");
+mime_const!(SVG, "SVG", "image", "svg+xml");
+mime_const!(WEBP, "WebP images", "image", "webp");
 // There are multiple `.ico` mime types known, but `image/x-icon`
 // is what most browser use. See:
 // https://en.wikipedia.org/wiki/ICO_%28file_format%29#MIME_type
 mime_const!(ICO, "ICO icons", "image", "x-icon");
+
+// Fonts
+// https://www.iana.org/assignments/media-types/media-types.xhtml#font
+mime_const!(OTF, "OTF", "font", "otf");
+mime_const!(TTF, "TTF", "font", "ttf");
+mime_const!(WOFF, "WOFF", "font", "woff");
+mime_const!(WOFF2, "WOFF2", "font", "woff2");
