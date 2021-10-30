@@ -383,7 +383,9 @@ impl Response {
     /// Copy MIME data from the body.
     fn copy_content_type_from_body(&mut self) {
         if self.header(CONTENT_TYPE).is_none() {
-            self.set_content_type(self.body.mime().clone());
+            if let Some(mime) = self.body.mime().cloned() {
+                self.set_content_type(mime);
+            }
         }
     }
 

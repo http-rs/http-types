@@ -56,7 +56,7 @@ pin_project_lite::pin_project! {
     pub struct Body {
         #[pin]
         reader: Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static>,
-        mime: Mime,
+        mime: Option<Mime>,
         length: Option<u64>,
         bytes_read: u64,
     }
@@ -79,7 +79,7 @@ impl Body {
     pub fn empty() -> Self {
         Self {
             reader: Box::new(io::empty()),
-            mime: mime::BYTE_STREAM,
+            mime: Some(mime::BYTE_STREAM),
             length: Some(0),
             bytes_read: 0,
         }
@@ -110,7 +110,7 @@ impl Body {
     ) -> Self {
         Self {
             reader: Box::new(reader),
-            mime: mime::BYTE_STREAM,
+            mime: Some(mime::BYTE_STREAM),
             length,
             bytes_read: 0,
         }
@@ -153,7 +153,7 @@ impl Body {
     /// ```
     pub fn from_bytes(bytes: Vec<u8>) -> Self {
         Self {
-            mime: mime::BYTE_STREAM,
+            mime: Some(mime::BYTE_STREAM),
             length: Some(bytes.len() as u64),
             reader: Box::new(io::Cursor::new(bytes)),
             bytes_read: 0,
@@ -203,7 +203,7 @@ impl Body {
     /// ```
     pub fn from_string(s: String) -> Self {
         Self {
-            mime: mime::PLAIN,
+            mime: Some(mime::PLAIN),
             length: Some(s.len() as u64),
             reader: Box::new(io::Cursor::new(s.into_bytes())),
             bytes_read: 0,
@@ -253,7 +253,7 @@ impl Body {
         let body = Self {
             length: Some(bytes.len() as u64),
             reader: Box::new(io::Cursor::new(bytes)),
-            mime: mime::JSON,
+            mime: Some(mime::JSON),
             bytes_read: 0,
         };
         Ok(body)
@@ -322,7 +322,7 @@ impl Body {
         let body = Self {
             length: Some(bytes.len() as u64),
             reader: Box::new(io::Cursor::new(bytes)),
-            mime: mime::FORM,
+            mime: Some(mime::FORM),
             bytes_read: 0,
         };
         Ok(body)
@@ -444,7 +444,7 @@ impl Body {
             .unwrap_or(mime::BYTE_STREAM);
 
         Ok(Self {
-            mime,
+            mime: Some(mime),
             length: Some(len),
             reader: Box::new(io::BufReader::new(file)),
             bytes_read: 0,
@@ -474,13 +474,41 @@ impl Body {
     }
 
     /// Returns the mime type of this Body.
-    pub fn mime(&self) -> &Mime {
-        &self.mime
+    pub fn mime(&self) -> Option<&Mime> {
+        self.mime.as_ref()
     }
 
     /// Sets the mime type of this Body.
+    ///
+    /// # Examples
+    /// ```
+    /// use http_types::Body;
+    /// use http_types::mime::self;
+    ///
+    /// let mut body = Body::default();
+    /// body.set_mime(Some(mime::CSS));
+    /// assert_eq!(*body.mime(), mime::CSS);
+    /// ```
     pub fn set_mime(&mut self, mime: impl Into<Mime>) {
-        self.mime = mime.into();
+        self.mime = Some(mime.into());
+    }
+
+    /// Unsets the mime type of this Body.
+    ///
+    /// # Examples
+    /// ```
+    /// use http_types::Body;
+    /// use http_types::mime;
+    ///
+    /// let mut body = Body::default();
+    /// assert!(body.mime().is_some());
+    ///
+    /// body.unset_mime();
+    /// assert!(body.mime().is_none());
+    /// ```
+    ///
+    pub fn unset_mime(&mut self) {
+        self.mime = None
     }
 
     /// Create a Body by chaining another Body after this one, consuming both.
@@ -508,7 +536,7 @@ impl Body {
         let mime = if self.mime == other.mime {
             self.mime.clone()
         } else {
-            mime::BYTE_STREAM
+            Some(mime::BYTE_STREAM)
         };
         let length = match (self.length, other.length) {
             (Some(l1), Some(l2)) => (l1 - self.bytes_read).checked_add(l2 - other.bytes_read),
@@ -728,7 +756,7 @@ mod test {
         for buf_len in 1..13 {
             let mut body = Body::from("hello ").chain(Body::from("world"));
             assert_eq!(body.len(), Some(11));
-            assert_eq!(body.mime(), &mime::PLAIN);
+            assert_eq!(body.mime(), Some(&mime::PLAIN));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
@@ -744,7 +772,7 @@ mod test {
         for buf_len in 1..13 {
             let mut body = Body::from(&b"hello "[..]).chain(Body::from("world"));
             assert_eq!(body.len(), Some(11));
-            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(body.mime(), Some(&mime::BYTE_STREAM));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
@@ -761,7 +789,7 @@ mod test {
             let mut body =
                 Body::from_reader(Cursor::new("hello "), Some(6)).chain(Body::from("world"));
             assert_eq!(body.len(), Some(11));
-            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(body.mime(), Some(&mime::BYTE_STREAM));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
@@ -778,7 +806,7 @@ mod test {
             let mut body =
                 Body::from_reader(Cursor::new("hello "), None).chain(Body::from("world"));
             assert_eq!(body.len(), None);
-            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(body.mime(), Some(&mime::BYTE_STREAM));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
@@ -795,7 +823,7 @@ mod test {
             let mut body =
                 Body::from("hello ").chain(Body::from_reader(Cursor::new("world"), None));
             assert_eq!(body.len(), None);
-            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(body.mime(), Some(&mime::BYTE_STREAM));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
@@ -812,7 +840,7 @@ mod test {
             let mut body = Body::from_reader(Cursor::new("hello xyz"), Some(6))
                 .chain(Body::from_reader(Cursor::new("world abc"), Some(5)));
             assert_eq!(body.len(), Some(11));
-            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(body.mime(), Some(&mime::BYTE_STREAM));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
@@ -830,7 +858,7 @@ mod test {
                 .chain(Body::from(&b" "[..]))
                 .chain(Body::from("world"));
             assert_eq!(body.len(), Some(11));
-            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(body.mime(), Some(&mime::BYTE_STREAM));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
@@ -856,7 +884,7 @@ mod test {
 
             let mut body = body1.chain(body2);
             assert_eq!(body.len(), Some(11));
-            assert_eq!(body.mime(), &mime::BYTE_STREAM);
+            assert_eq!(body.mime(), Some(&mime::BYTE_STREAM));
             assert_eq!(
                 read_with_buffers_of_size(&mut body, buf_len).await?,
                 "hello world"
