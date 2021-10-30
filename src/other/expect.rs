@@ -87,7 +87,7 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(EXPECT, "<nori ate the tag. yum.>");
+        headers.insert(EXPECT, "<nori ate the tag. yum.>").unwrap();
         let err = Expect::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
     }

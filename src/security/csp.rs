@@ -361,6 +361,6 @@ impl ContentSecurityPolicy {
         } else {
             "Content-Security-Policy"
         };
-        headers.as_mut().insert(name, self.value());
+        headers.as_mut().insert(name, self.value()).unwrap();
     }
 }

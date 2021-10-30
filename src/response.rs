@@ -119,7 +119,7 @@ impl Response {
         &mut self,
         name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> Option<HeaderValues> {
+    ) -> crate::Result<Option<HeaderValues>> {
         self.headers.insert(name, values)
     }
 
@@ -141,7 +141,11 @@ impl Response {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn append_header(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
+    pub fn append_header(
+        &mut self,
+        name: impl Into<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> crate::Result<()> {
         self.headers.append(name, values)
     }
 
@@ -377,7 +381,7 @@ impl Response {
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(CONTENT_TYPE, value)
+        self.insert_header(CONTENT_TYPE, value).unwrap()
     }
 
     /// Copy MIME data from the body.

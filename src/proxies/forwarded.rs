@@ -567,7 +567,7 @@ mod tests {
     #[test]
     fn bad_parse_from_headers() -> Result<()> {
         let mut response = Response::new(200);
-        response.append_header("forwarded", "uh oh");
+        response.append_header("forwarded", "uh oh").unwrap();
         assert_eq!(
             Forwarded::from_headers(&response).unwrap_err().to_string(),
             "unable to parse forwarded header: parse error in forwarded-pair"
@@ -581,9 +581,13 @@ mod tests {
     #[test]
     fn from_x_headers() -> Result<()> {
         let mut request = Request::new(Get, Url::parse("http://_/")?);
-        request.append_header(X_FORWARDED_FOR, "192.0.2.43, 2001:db8:cafe::17");
-        request.append_header(X_FORWARDED_PROTO, "gopher");
-        request.append_header(X_FORWARDED_HOST, "example.com");
+        request
+            .append_header(X_FORWARDED_FOR, "192.0.2.43, 2001:db8:cafe::17")
+            .unwrap();
+        request.append_header(X_FORWARDED_PROTO, "gopher").unwrap();
+        request
+            .append_header(X_FORWARDED_HOST, "example.com")
+            .unwrap();
         let forwarded = Forwarded::from_headers(&request)?.unwrap();
         assert_eq!(
             forwarded.to_string(),
@@ -632,7 +636,7 @@ mod tests {
     #[test]
     fn from_request() -> Result<()> {
         let mut request = Request::new(Get, Url::parse("http://_/")?);
-        request.append_header("Forwarded", "for=for");
+        request.append_header("Forwarded", "for=for").unwrap();
 
         let forwarded = Forwarded::from_headers(&request)?.unwrap();
         assert_eq!(forwarded.forwarded_for(), vec!["for"]);
@@ -644,7 +648,9 @@ mod tests {
     fn owned_can_outlive_request() -> Result<()> {
         let forwarded = {
             let mut request = Request::new(Get, Url::parse("http://_/")?);
-            request.append_header("Forwarded", "for=for;by=by;host=host;proto=proto");
+            request
+                .append_header("Forwarded", "for=for;by=by;host=host;proto=proto")
+                .unwrap();
             Forwarded::from_headers(&request)?.unwrap().into_owned()
         };
         assert_eq!(forwarded.by(), Some("by"));

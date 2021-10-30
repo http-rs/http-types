@@ -164,7 +164,7 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(ETAG, "<nori ate the tag. yum.>");
+        headers.insert(ETAG, "<nori ate the tag. yum.>").unwrap();
         let err = ETag::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
     }
@@ -179,7 +179,7 @@ mod test {
 
     fn assert_entry_err(s: &str, msg: &str) {
         let mut headers = Headers::new();
-        headers.insert(ETAG, s);
+        headers.insert(ETAG, s).unwrap();
         let err = ETag::from_headers(headers).unwrap_err();
         assert_eq!(format!("{}", err), msg);
     }

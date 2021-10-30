@@ -37,7 +37,7 @@ mod test {
     #[test]
     fn ignore_unkonwn_directives() -> crate::Result<()> {
         let mut headers = Headers::new();
-        headers.insert(CACHE_CONTROL, "barrel_roll");
+        headers.insert(CACHE_CONTROL, "barrel_roll").unwrap();
         let entries = CacheControl::from_headers(headers)?.unwrap();
         let mut entries = entries.iter();
         assert!(entries.next().is_none());
@@ -47,7 +47,7 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(CACHE_CONTROL, "min-fresh=0.9"); // floats are not supported
+        headers.insert(CACHE_CONTROL, "min-fresh=0.9").unwrap(); // floats are not supported
         let err = CacheControl::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
     }

@@ -15,7 +15,10 @@ pub trait Header {
     fn apply_header<H: AsMut<Headers>>(&self, mut headers: H) {
         let name = self.header_name();
         let value = self.header_value();
-        headers.as_mut().insert(name, value);
+
+        // The value should already have been validated when it was created, so this should
+        // possibly be done with an unsafe call
+        headers.as_mut().insert(name, value).unwrap();
     }
 }
 

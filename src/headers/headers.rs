@@ -49,27 +49,32 @@ impl Headers {
         &mut self,
         name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> Option<HeaderValues> {
+    ) -> crate::Result<Option<HeaderValues>> {
         let name = name.into();
-        let values: HeaderValues = values.to_header_values().unwrap().collect();
-        self.headers.insert(name, values)
+        let values: HeaderValues = values.to_header_values()?.collect();
+        Ok(self.headers.insert(name, values))
     }
 
     /// Append a header to the headers.
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
+    pub fn append(
+        &mut self,
+        name: impl Into<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> crate::Result<()> {
         let name = name.into();
         match self.get_mut(&name) {
             Some(headers) => {
-                let mut values: HeaderValues = values.to_header_values().unwrap().collect();
+                let mut values: HeaderValues = values.to_header_values()?.collect();
                 headers.append(&mut values);
             }
             None => {
-                self.insert(name, values);
+                self.insert(name, values)?;
             }
         }
+        Ok(())
     }
 
     /// Get a reference to a header.
@@ -208,9 +213,9 @@ mod tests {
         let non_static_header = HeaderName::from_str("hello")?;
 
         let mut headers = Headers::new();
-        headers.append(STATIC_HEADER, "foo0");
-        headers.append(static_header.clone(), "foo1");
-        headers.append(non_static_header.clone(), "foo2");
+        headers.append(STATIC_HEADER, "foo0").unwrap();
+        headers.append(static_header.clone(), "foo1").unwrap();
+        headers.append(non_static_header.clone(), "foo2").unwrap();
 
         assert_eq!(headers[STATIC_HEADER], ["foo0", "foo1", "foo2",][..]);
         assert_eq!(headers[static_header], ["foo0", "foo1", "foo2",][..]);
@@ -222,7 +227,7 @@ mod tests {
     #[test]
     fn index_into_headers() {
         let mut headers = Headers::new();
-        headers.insert("hello", "foo0");
+        headers.insert("hello", "foo0").unwrap();
         assert_eq!(headers["hello"], "foo0");
         assert_eq!(headers.get("hello").unwrap(), "foo0");
     }
@@ -230,15 +235,15 @@ mod tests {
     #[test]
     fn test_debug_single() {
         let mut headers = Headers::new();
-        headers.insert("single", "foo0");
+        headers.insert("single", "foo0").unwrap();
         assert_eq!(format!("{:?}", headers), r#"{"single": "foo0"}"#);
     }
 
     #[test]
     fn test_debug_multiple() {
         let mut headers = Headers::new();
-        headers.append("multi", "foo0");
-        headers.append("multi", "foo1");
+        headers.append("multi", "foo0").unwrap();
+        headers.append("multi", "foo1").unwrap();
         assert_eq!(format!("{:?}", headers), r#"{"multi": ["foo0", "foo1"]}"#);
     }
 }
