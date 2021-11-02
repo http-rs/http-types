@@ -53,6 +53,7 @@ impl FromStr for AuthenticationScheme {
         // NOTE(yosh): matching here is lowercase as specified by RFC2617#section-1.2
         // > [...] case-insensitive token to identify the authentication scheme [...]
         // https://tools.ietf.org/html/rfc2617#section-1.2
+        #[allow(clippy::match_str_case_mismatch)]
         match s.to_lowercase().as_str() {
             "basic" => Ok(Self::Basic),
             "bearer" => Ok(Self::Bearer),

@@ -413,6 +413,7 @@ impl FromStr for Method {
     type Err = crate::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        #[allow(clippy::match_str_case_mismatch)]
         match &*s.to_ascii_uppercase() {
             "ACL" => Ok(Self::Acl),
             "BASELINE-CONTROL" => Ok(Self::BaselineControl),
