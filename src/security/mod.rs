@@ -65,7 +65,7 @@ pub fn dns_prefetch_control(mut headers: impl AsMut<Headers>) {
     // This will never fail, could use an unsafe version of insert.
     headers
         .as_mut()
-        .insert("X-DNS-Prefetch-Control", "on")
+        .insert("x-dns-prefetch-control", "on")
         .unwrap();
 }
 
@@ -97,7 +97,7 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
         Some(FrameOptions::Deny) => "deny",
     };
     // This will never fail, could use an unsafe version of insert.
-    headers.as_mut().insert("X-Frame-Options", kind).unwrap();
+    headers.as_mut().insert("x-frame-options", kind).unwrap();
 }
 
 /// Removes the `X-Powered-By` header to make it slightly harder for attackers to see what
@@ -116,7 +116,7 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
 // /// ```
 #[inline]
 pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<HeaderValue>) {
-    let name = HeaderName::from_lowercase_str("X-Powered-By");
+    let name = HeaderName::from_lowercase_str("x-powered-by");
     match value {
         Some(value) => {
             // Can never fail as value is already a HeaderValue, could use unsafe version of insert
@@ -148,7 +148,7 @@ pub fn hsts(mut headers: impl AsMut<Headers>) {
     // Never fails, could use unsafe version of insert
     headers
         .as_mut()
-        .insert("Strict-Transport-Security", "max-age=5184000")
+        .insert("strict-transport-security", "max-age=5184000")
         .unwrap();
 }
 
@@ -170,7 +170,7 @@ pub fn nosniff(mut headers: impl AsMut<Headers>) {
     // Never fails, could use unsafe verison of insert.
     headers
         .as_mut()
-        .insert("X-Content-Type-Options", "nosniff")
+        .insert("x-content-type-options", "nosniff")
         .unwrap();
 }
 
@@ -191,7 +191,7 @@ pub fn xss_filter(mut headers: impl AsMut<Headers>) {
     // Never fails, could use unsafe version of insert.
     headers
         .as_mut()
-        .insert("X-XSS-Protection", "1; mode=block")
+        .insert("x-xss-protection", "1; mode=block")
         .unwrap();
 }
 
@@ -249,5 +249,5 @@ pub fn referrer_policy(mut headers: impl AsMut<Headers>, referrer: Option<Referr
     // We MUST allow for multiple Referrer-Policy headers to be set.
     // See: https://w3c.github.io/webappsec-referrer-policy/#unknown-policy-values example #13
     // Never fails, could use unsafe version of append.
-    headers.as_mut().append("Referrer-Policy", policy).unwrap();
+    headers.as_mut().append("referrer-policy", policy).unwrap();
 }
