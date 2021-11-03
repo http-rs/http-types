@@ -278,7 +278,8 @@ mod test {
     #[test]
     fn parse_quotes_correctly() -> crate::Result<()> {
         let mut res = Response::new(200);
-        res.insert_header("clear-site-data", r#""cookies""#);
+        res.insert_header("clear-site-data", r#""cookies""#)
+            .unwrap();
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
         assert!(!entries.wildcard());
@@ -286,7 +287,7 @@ mod test {
         assert_eq!(entries.next().unwrap(), &ClearDirective::Cookies);
 
         let mut res = Response::new(200);
-        res.insert_header("clear-site-data", r#""*""#);
+        res.insert_header("clear-site-data", r#""*""#).unwrap();
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
         assert!(entries.wildcard());

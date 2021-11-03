@@ -120,7 +120,9 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(SOURCE_MAP, "htt://<nori ate the tag. yum.>");
+        headers
+            .insert(SOURCE_MAP, "htt://<nori ate the tag. yum.>")
+            .unwrap();
         let err = SourceMap::from_headers(Url::parse("https://example.net").unwrap(), headers)
             .unwrap_err();
         assert_eq!(err.status(), 500);
@@ -129,7 +131,7 @@ mod test {
     #[test]
     fn fallback_works() -> crate::Result<()> {
         let mut headers = Headers::new();
-        headers.insert(SOURCE_MAP, "/test.json");
+        headers.insert(SOURCE_MAP, "/test.json").unwrap();
 
         let base_url = Url::parse("https://fallback.net/")?;
         let source_map = SourceMap::from_headers(base_url, headers)?.unwrap();
@@ -139,7 +141,9 @@ mod test {
         );
 
         let mut headers = Headers::new();
-        headers.insert(SOURCE_MAP, "https://example.com/test.json");
+        headers
+            .insert(SOURCE_MAP, "https://example.com/test.json")
+            .unwrap();
 
         let base_url = Url::parse("https://fallback.net/")?;
         let source_map = SourceMap::from_headers(base_url, headers)?.unwrap();

@@ -123,7 +123,9 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(REFERER, "htt://<nori ate the tag. yum.>");
+        headers
+            .insert(REFERER, "htt://<nori ate the tag. yum.>")
+            .unwrap();
         let err =
             Referer::from_headers(Url::parse("https://example.net").unwrap(), headers).unwrap_err();
         assert_eq!(err.status(), 500);
@@ -132,7 +134,7 @@ mod test {
     #[test]
     fn fallback_works() -> crate::Result<()> {
         let mut headers = Headers::new();
-        headers.insert(REFERER, "/test.json");
+        headers.insert(REFERER, "/test.json").unwrap();
 
         let base_url = Url::parse("https://fallback.net/")?;
         let referer = Referer::from_headers(base_url, headers)?.unwrap();
@@ -142,7 +144,9 @@ mod test {
         );
 
         let mut headers = Headers::new();
-        headers.insert(REFERER, "https://example.com/test.json");
+        headers
+            .insert(REFERER, "https://example.com/test.json")
+            .unwrap();
 
         let base_url = Url::parse("https://fallback.net/")?;
         let referer = Referer::from_headers(base_url, headers)?.unwrap();

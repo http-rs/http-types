@@ -103,7 +103,9 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(LAST_MODIFIED, "<nori ate the tag. yum.>");
+        headers
+            .insert(LAST_MODIFIED, "<nori ate the tag. yum.>")
+            .unwrap();
         let err = LastModified::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
     }

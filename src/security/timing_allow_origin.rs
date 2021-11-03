@@ -296,7 +296,9 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(TIMING_ALLOW_ORIGIN, "server; <nori ate your param omnom>");
+        headers
+            .insert(TIMING_ALLOW_ORIGIN, "server; <nori ate your param omnom>")
+            .unwrap();
         let err = TimingAllowOrigin::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
     }

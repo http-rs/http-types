@@ -104,7 +104,9 @@ mod test {
     #[test]
     fn bad_request_on_parse_error() {
         let mut headers = Headers::new();
-        headers.insert(IF_UNMODIFIED_SINCE, "<nori ate the tag. yum.>");
+        headers
+            .insert(IF_UNMODIFIED_SINCE, "<nori ate the tag. yum.>")
+            .unwrap();
         let err = IfUnmodifiedSince::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
     }

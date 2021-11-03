@@ -440,7 +440,7 @@ impl Request {
         &mut self,
         name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> Option<HeaderValues> {
+    ) -> crate::Result<Option<HeaderValues>> {
         self.headers.insert(name, values)
     }
 
@@ -462,7 +462,11 @@ impl Request {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn append_header(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
+    pub fn append_header(
+        &mut self,
+        name: impl Into<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> crate::Result<()> {
         self.headers.append(name, values)
     }
 
@@ -472,7 +476,7 @@ impl Request {
         let value: HeaderValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
-        self.insert_header(CONTENT_TYPE, value)
+        self.insert_header(CONTENT_TYPE, value).unwrap()
     }
 
     /// Copy MIME data from the body.
@@ -1025,14 +1029,16 @@ mod tests {
         #[test]
         fn when_only_one_x_forwarded_hosts_exist() {
             let mut request = build_test_request();
-            request.insert_header("x-forwarded-host", "expected.host");
+            request
+                .insert_header("x-forwarded-host", "expected.host")
+                .unwrap();
             assert_eq!(request.host(), Some("expected.host"));
         }
 
         #[test]
         fn when_host_header_is_set() {
             let mut request = build_test_request();
-            request.insert_header("host", "host.header");
+            request.insert_header("host", "host.header").unwrap();
             assert_eq!(request.host(), Some("host.header"));
         }
 
@@ -1132,7 +1138,9 @@ mod tests {
                 "127.0.0.1:8000".parse::<std::net::SocketAddr>().unwrap(),
             ));
 
-            request.insert_header("Forwarded", "this is an improperly ;;; formatted header");
+            request
+                .insert_header("Forwarded", "this is an improperly ;;; formatted header")
+                .unwrap();
 
             assert_eq!(request.forwarded_for(), None);
             assert_eq!(request.remote(), Some("127.0.0.1:8000"));
@@ -1184,23 +1192,29 @@ mod tests {
     }
 
     fn set_x_forwarded_for(request: &mut Request, client: &'static str) {
-        request.insert_header(
-            "x-forwarded-for",
-            format!("{},proxy.com,other-proxy.com", client),
-        );
+        request
+            .insert_header(
+                "x-forwarded-for",
+                format!("{},proxy.com,other-proxy.com", client),
+            )
+            .unwrap();
     }
 
     fn set_x_forwarded_host(request: &mut Request, host: &'static str) {
-        request.insert_header(
-            "x-forwarded-host",
-            format!("{},proxy.com,other-proxy.com", host),
-        );
+        request
+            .insert_header(
+                "x-forwarded-host",
+                format!("{},proxy.com,other-proxy.com", host),
+            )
+            .unwrap();
     }
 
     fn set_forwarded(request: &mut Request, client: &'static str) {
-        request.insert_header(
-            "Forwarded",
-            format!("by=something.com;for={};host=host.com;proto=http", client),
-        );
+        request
+            .insert_header(
+                "Forwarded",
+                format!("by=something.com;for={};host=host.com;proto=http", client),
+            )
+            .unwrap();
     }
 }
