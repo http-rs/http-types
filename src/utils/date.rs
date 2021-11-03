@@ -218,10 +218,10 @@ impl From<SystemTime> for HttpDate {
             .expect("all times should be after the epoch");
         let secs_since_epoch = dur.as_secs();
 
-        if secs_since_epoch >= YEAR_9999_SECONDS {
-            // year 9999
-            panic!("date must be before year 9999");
-        }
+        assert!(
+            secs_since_epoch < YEAR_9999_SECONDS,
+            "date must be before year 9999"
+        );
 
         /* 2000-03-01 (mod 400 year, immediately after feb29 */
         const LEAPOCH: i64 = 11017;

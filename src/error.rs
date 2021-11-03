@@ -159,7 +159,7 @@ impl Error {
 
     /// Retrieves a reference to the type name of the error, if available.
     pub fn type_name(&self) -> Option<&str> {
-        self.type_name.as_deref()
+        self.type_name
     }
 
     /// Converts anything which implements `Display` into an `http_types::Error`.

@@ -565,13 +565,13 @@ impl<'a> From<&'a [u8]> for Body {
 }
 
 impl AsyncRead for Body {
-    #[allow(missing_doc_code_examples)]
+    #[allow(rustdoc::missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        let mut buf = match self.length {
+        let buf = match self.length {
             None => buf,
             Some(length) if length == self.bytes_read => return Poll::Ready(Ok(0)),
             Some(length) => {
@@ -582,14 +582,14 @@ impl AsyncRead for Body {
             }
         };
 
-        let bytes = ready!(Pin::new(&mut self.reader).poll_read(cx, &mut buf))?;
+        let bytes = ready!(Pin::new(&mut self.reader).poll_read(cx, buf))?;
         self.bytes_read += bytes as u64;
         Poll::Ready(Ok(bytes))
     }
 }
 
 impl AsyncBufRead for Body {
-    #[allow(missing_doc_code_examples)]
+    #[allow(rustdoc::missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         self.project().reader.poll_fill_buf(cx)
     }
@@ -632,6 +632,7 @@ mod test {
         #[derive(Debug, Deserialize)]
         #[serde(crate = "serde_crate")]
         struct Foo {
+            #[allow(dead_code)]
             inner: String,
         }
         let body = Body::empty();
@@ -644,6 +645,7 @@ mod test {
         #[derive(Debug, Deserialize)]
         #[serde(crate = "serde_crate")]
         struct Foo {
+            #[allow(dead_code)]
             inner: String,
         }
         let body = Body::empty();
