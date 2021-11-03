@@ -486,29 +486,14 @@ impl Body {
     /// use http_types::mime;
     ///
     /// let mut body = Body::empty();
-    /// body.set_mime(mime::CSS);
+    /// body.set_mime(Some(mime::CSS));
     /// assert_eq!(body.mime(), Some(&mime::CSS));
+    ///
+    /// body.set_mime(None);
+    /// assert_eq!(body.mime(), None);
     /// ```
-    pub fn set_mime(&mut self, mime: impl Into<Mime>) {
-        self.mime = Some(mime.into());
-    }
-
-    /// Unsets the mime type of this Body.
-    ///
-    /// # Examples
-    /// ```
-    /// use http_types::Body;
-    /// use http_types::mime;
-    ///
-    /// let mut body = Body::empty();
-    /// assert!(body.mime().is_some());
-    ///
-    /// body.unset_mime();
-    /// assert!(body.mime().is_none());
-    /// ```
-    ///
-    pub fn unset_mime(&mut self) {
-        self.mime = None
+    pub fn set_mime(&mut self, mime: Option<Mime>) {
+        self.mime = mime;
     }
 
     /// Create a Body by chaining another Body after this one, consuming both.
