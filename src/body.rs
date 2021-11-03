@@ -483,11 +483,11 @@ impl Body {
     /// # Examples
     /// ```
     /// use http_types::Body;
-    /// use http_types::mime::self;
+    /// use http_types::mime;
     ///
-    /// let mut body = Body::default();
-    /// body.set_mime(Some(mime::CSS));
-    /// assert_eq!(*body.mime(), mime::CSS);
+    /// let mut body = Body::empty();
+    /// body.set_mime(mime::CSS);
+    /// assert_eq!(body.mime(), Some(&mime::CSS));
     /// ```
     pub fn set_mime(&mut self, mime: impl Into<Mime>) {
         self.mime = Some(mime.into());
@@ -500,7 +500,7 @@ impl Body {
     /// use http_types::Body;
     /// use http_types::mime;
     ///
-    /// let mut body = Body::default();
+    /// let mut body = Body::empty();
     /// assert!(body.mime().is_some());
     ///
     /// body.unset_mime();
