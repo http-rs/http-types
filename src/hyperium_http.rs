@@ -102,7 +102,7 @@ impl TryFrom<http::HeaderMap> for Headers {
                 if let Some(name) = name {
                     let value: HeaderValue = value.try_into()?;
                     let name: HeaderName = name.try_into()?;
-                    headers.append(name, value);
+                    headers.append(name, value)?;
                 }
                 Ok(())
             })
@@ -140,16 +140,20 @@ impl TryFrom<Headers> for http::HeaderMap {
     }
 }
 
-fn hyperium_headers_to_headers(hyperium_headers: http::HeaderMap, headers: &mut Headers) {
+fn hyperium_headers_to_headers(
+    hyperium_headers: http::HeaderMap,
+    headers: &mut Headers,
+) -> crate::Result<()> {
     for (name, value) in hyperium_headers {
         let value = value.as_bytes().to_owned();
         let value = unsafe { HeaderValue::from_bytes_unchecked(value) };
         if let Some(name) = name {
             let name = name.as_str().as_bytes().to_owned();
             let name = unsafe { HeaderName::from_bytes_unchecked(name) };
-            headers.append(name, value);
+            headers.append(name, value)?;
         }
     }
+    Ok(())
 }
 
 fn headers_to_hyperium_headers(headers: &mut Headers, hyperium_headers: &mut http::HeaderMap) {
@@ -176,7 +180,7 @@ fn from_url_to_uri(url: &Url) -> http::Uri {
 }
 
 impl TryFrom<http::Request<Body>> for Request {
-    type Error = crate::url::ParseError;
+    type Error = crate::Error;
 
     fn try_from(req: http::Request<Body>) -> Result<Self, Self::Error> {
         let (parts, body) = req.into_parts();
@@ -185,7 +189,7 @@ impl TryFrom<http::Request<Body>> for Request {
         let mut req = Request::new(method, url);
         req.set_body(body);
         req.set_version(Some(parts.version.into()));
-        hyperium_headers_to_headers(parts.headers, req.as_mut());
+        hyperium_headers_to_headers(parts.headers, req.as_mut())?;
         Ok(req)
     }
 }
@@ -203,14 +207,15 @@ impl From<Request> for http::Request<Body> {
     }
 }
 
-impl From<http::Response<Body>> for Response {
-    fn from(res: http::Response<Body>) -> Self {
+impl TryFrom<http::Response<Body>> for Response {
+    type Error = crate::Error;
+    fn try_from(res: http::Response<Body>) -> Result<Self, Self::Error> {
         let (parts, body) = res.into_parts();
         let mut res = Response::new(parts.status);
         res.set_body(body);
         res.set_version(Some(parts.version.into()));
-        hyperium_headers_to_headers(parts.headers, res.as_mut());
-        res
+        hyperium_headers_to_headers(parts.headers, res.as_mut())?;
+        Ok(res)
     }
 }
 
