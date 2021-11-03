@@ -899,7 +899,7 @@ impl Clone for Request {
 }
 
 impl AsyncRead for Request {
-    #[allow(missing_doc_code_examples)]
+    #[allow(rustdoc::missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -910,7 +910,7 @@ impl AsyncRead for Request {
 }
 
 impl AsyncBufRead for Request {
-    #[allow(missing_doc_code_examples)]
+    #[allow(rustdoc::missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
         this.body.poll_fill_buf(cx)

@@ -565,7 +565,7 @@ impl<'a> From<&'a [u8]> for Body {
 }
 
 impl AsyncRead for Body {
-    #[allow(missing_doc_code_examples)]
+    #[allow(rustdoc::missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -589,7 +589,7 @@ impl AsyncRead for Body {
 }
 
 impl AsyncBufRead for Body {
-    #[allow(missing_doc_code_examples)]
+    #[allow(rustdoc::missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         self.project().reader.poll_fill_buf(cx)
     }
