@@ -420,4 +420,22 @@ mod test {
         assert_eq!(accept.negotiate(&[mime::XML])?, mime::XML);
         Ok(())
     }
+
+    #[test]
+    fn negotiate_missing_encoding() -> crate::Result<()> {
+        let mime_html = "text/html".parse::<Mime>()?;
+
+        let mut browser_accept = Accept::new();
+        browser_accept.push(MediaTypeProposal::new(mime_html, None)?);
+
+        let acceptable = &[mime::HTML];
+
+        let content_type = browser_accept.negotiate(acceptable);
+
+        assert!(
+            content_type.is_ok(),
+            "server is expected to return HTML content"
+        );
+        Ok(())
+    }
 }
