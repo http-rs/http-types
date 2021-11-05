@@ -129,8 +129,8 @@ impl Accept {
 
         // Try and find the first encoding that matches.
         for accept in &self.entries {
-            if available.contains(accept) {
-                return Ok(accept.media_type.clone().into());
+            if let Some(accept) = available.iter().find(|m| m.subset_eq(accept.media_type())) {
+                return Ok(accept.clone().into());
             }
         }
 
