@@ -133,7 +133,7 @@ impl Mime {
         }
         for (name, value) in other.params.iter() {
             if !self
-                .param(name.as_str())
+                .param(name.clone())
                 .map(|v| v == value)
                 .unwrap_or(false)
             {
