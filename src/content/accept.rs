@@ -48,6 +48,7 @@ use std::slice;
 /// #
 /// # Ok(()) }
 /// ```
+#[derive(Clone)]
 pub struct Accept {
     wildcard: bool,
     entries: Vec<MediaTypeProposal>,
@@ -125,17 +126,18 @@ impl Accept {
     /// If no suitable encoding is found, an error with the status of `406` will be returned.
     pub fn negotiate(&mut self, available: &[Mime]) -> crate::Result<ContentType> {
         // Start by ordering the encodings.
-        self.sort();
+        let mut tmp_accept = self.clone();
+        sort_by_weight(&mut tmp_accept.entries);
 
         // Try and find the first encoding that matches.
-        for accept in &self.entries {
+        for accept in &tmp_accept.entries {
             if let Some(accept) = available.iter().find(|m| m.subset_eq(accept.media_type())) {
                 return Ok(accept.clone().into());
             }
         }
 
         // If no encoding matches and wildcard is set, send whichever encoding we got.
-        if self.wildcard {
+        if tmp_accept.wildcard {
             if let Some(accept) = available.iter().next() {
                 return Ok(accept.clone().into());
             }
@@ -436,6 +438,16 @@ mod test {
             content_type.is_ok(),
             "server is expected to return HTML content"
         );
+        Ok(())
+    }
+    #[test]
+    fn negotiate_tie() -> crate::Result<()> {
+        let mut accept = Accept::new();
+        accept.push(MediaTypeProposal::new(mime::HTML, Some(0.4))?);
+        accept.push(MediaTypeProposal::new(mime::XML, Some(0.4))?);
+
+        assert_eq!(accept.negotiate(&[mime::HTML, mime::XML])?, mime::XML);
+        assert_eq!(accept.negotiate(&[mime::XML, mime::HTML])?, mime::XML);
         Ok(())
     }
 }
