@@ -129,8 +129,8 @@ impl Accept {
 
         // Try and find the first encoding that matches.
         for accept in &self.entries {
-            if available.contains(accept) {
-                return Ok(accept.media_type.clone().into());
+            if let Some(accept) = available.iter().find(|m| m.subset_eq(accept.media_type())) {
+                return Ok(accept.clone().into());
             }
         }
 
@@ -418,6 +418,24 @@ mod test {
         accept.set_wildcard(true);
 
         assert_eq!(accept.negotiate(&[mime::XML])?, mime::XML);
+        Ok(())
+    }
+
+    #[test]
+    fn negotiate_missing_encoding() -> crate::Result<()> {
+        let mime_html = "text/html".parse::<Mime>()?;
+
+        let mut browser_accept = Accept::new();
+        browser_accept.push(MediaTypeProposal::new(mime_html, None)?);
+
+        let acceptable = &[mime::HTML];
+
+        let content_type = browser_accept.negotiate(acceptable);
+
+        assert!(
+            content_type.is_ok(),
+            "server is expected to return HTML content"
+        );
         Ok(())
     }
 }

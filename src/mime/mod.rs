@@ -103,6 +103,45 @@ impl Mime {
             .position(|(k, _)| k == &name)
             .map(|pos| self.params.remove(pos).1)
     }
+
+    /// Check if this mime is a subtype of another mime.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // All mime types are subsets of */*
+    /// use http_types::mime::Mime;
+    /// use std::str::FromStr;
+    ///
+    /// assert!(Mime::from_str("text/css").unwrap().subset_eq(&Mime::from_str("*/*").unwrap()));
+    ///
+    /// // A mime type is subset of itself
+    /// assert!(Mime::from_str("text/css").unwrap().subset_eq(&Mime::from_str("text/css").unwrap()));
+    ///
+    /// // A mime type which is otherwise a subset with extra parameters is a subset of a mime type without those parameters
+    /// assert!(Mime::from_str("text/css;encoding=utf-8").unwrap().subset_eq(&Mime::from_str("text/css").unwrap()));
+    ///
+    /// // A mime type more general than another mime type is not a subset
+    /// assert!(!Mime::from_str("*/css;encoding=utf-8").unwrap().subset_eq(&Mime::from_str("text/css").unwrap()));
+    /// ```
+    pub fn subset_eq(&self, other: &Mime) -> bool {
+        if other.basetype() != "*" && self.basetype() != other.basetype() {
+            return false;
+        }
+        if other.subtype() != "*" && self.subtype() != other.subtype() {
+            return false;
+        }
+        for (name, value) in other.params.iter() {
+            if !self
+                .param(name.clone())
+                .map(|v| v == value)
+                .unwrap_or(false)
+            {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 impl Display for Mime {
