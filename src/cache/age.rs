@@ -62,7 +62,7 @@ impl Age {
         // entry. We want the last entry.
         let header = headers.iter().last().unwrap();
 
-        let num: u64 = header.as_str().parse().status(400)?;
+        let num: u64 = header.as_str().parse::<u64>().status(400)?;
         let dur = Duration::from_secs_f64(num as f64);
 
         Ok(Some(Self { dur }))
