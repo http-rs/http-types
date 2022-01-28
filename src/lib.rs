@@ -123,6 +123,7 @@ pub mod cache;
 pub mod conditional;
 pub mod content;
 pub mod headers;
+pub mod language;
 pub mod mime;
 pub mod other;
 pub mod proxies;
