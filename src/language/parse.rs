@@ -40,20 +40,20 @@ pub(crate) fn parse(input: &str) -> crate::Result<LanguageRange> {
         input = rest;
     }
 
-    Ok(LanguageRange { tags })
+    Ok(LanguageRange { subtags: tags })
 }
 
 #[test]
 fn test() {
     let range = parse("en").unwrap();
-    assert_eq!(&range.tags, &["en"]);
+    assert_eq!(&range.subtags, &["en"]);
 
     let range = parse("en-CA").unwrap();
-    assert_eq!(&range.tags, &["en", "CA"]);
+    assert_eq!(&range.subtags, &["en", "CA"]);
 
     let range = parse("zh-Hant-CN-x-private1-private2").unwrap();
     assert_eq!(
-        &range.tags,
+        &range.subtags,
         &["zh", "Hant", "CN", "x", "private1", "private2"]
     );
 }
