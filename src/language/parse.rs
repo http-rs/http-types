@@ -16,44 +16,35 @@ fn split_tag(input: &str) -> Option<(&str, &str)> {
 // language-range   = (1*8ALPHA *("-" 1*8alphanum)) / "*"
 // alphanum         = ALPHA / DIGIT
 pub(crate) fn parse(input: &str) -> crate::Result<LanguageRange> {
-    let tags = if input == "*" {
-        vec![Cow::from(input.to_string())]
-    } else {
-        let mut tags = Vec::new();
+    let mut tags = Vec::new();
 
-        let (tag, mut input) = split_tag(input).ok_or_else(|| crate::format_err!("WIP error"))?;
+    let (tag, mut input) = split_tag(input).ok_or_else(|| crate::format_err!("WIP error"))?;
+    crate::ensure!(!tag.is_empty(), "Language tag should not be empty");
+    crate::ensure!(
+        tag.bytes()
+            .all(|b| (b'a'..=b'z').contains(&b) || (b'A'..=b'Z').contains(&b)),
+        "Language tag should be alpha"
+    );
+    tags.push(Cow::from(tag.to_string()));
+
+    while !input.is_empty() {
+        let (tag, rest) = split_tag(input).ok_or_else(|| crate::format_err!("WIP error"))?;
         crate::ensure!(!tag.is_empty(), "Language tag should not be empty");
         crate::ensure!(
-            tag.bytes()
-                .all(|b| (b'a'..=b'z').contains(&b) || (b'A'..=b'Z').contains(&b)),
-            "Language tag should be alpha"
+            tag.bytes().all(|b| (b'a'..=b'z').contains(&b)
+                || (b'A'..=b'Z').contains(&b)
+                || (b'0'..=b'9').contains(&b)),
+            "Language tag should be alpha numeric"
         );
         tags.push(Cow::from(tag.to_string()));
-
-        while !input.is_empty() {
-            let (tag, rest) = split_tag(input).ok_or_else(|| crate::format_err!("WIP error"))?;
-            crate::ensure!(!tag.is_empty(), "Language tag should not be empty");
-            crate::ensure!(
-                tag.bytes().all(|b| (b'a'..=b'z').contains(&b)
-                    || (b'A'..=b'Z').contains(&b)
-                    || (b'0'..=b'9').contains(&b)),
-                "Language tag should be alpha numeric"
-            );
-            tags.push(Cow::from(tag.to_string()));
-            input = rest;
-        }
-
-        tags
-    };
+        input = rest;
+    }
 
     Ok(LanguageRange { tags })
 }
 
 #[test]
 fn test() {
-    let range = parse("*").unwrap();
-    assert_eq!(&range.tags, &["*"]);
-
     let range = parse("en").unwrap();
     assert_eq!(&range.tags, &["en"]);
 
