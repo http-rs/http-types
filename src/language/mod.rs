@@ -7,7 +7,8 @@ mod parse;
 use crate::headers::HeaderValue;
 use std::{fmt::{self, Display}, borrow::Cow, str::FromStr};
 
-#[derive(Debug)]
+/// An RFC 4647 language range.
+#[derive(Debug, Clone, PartialEq)]
 pub struct LanguageRange {
     pub(crate) tags: Vec<Cow<'static, str>>
 }
@@ -38,5 +39,11 @@ impl FromStr for LanguageRange {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse::parse(s)
+    }
+}
+
+impl<'a> From<&'a str> for LanguageRange {
+    fn from(value: &'a str) -> Self {
+        Self::from_str(value).unwrap()
     }
 }
