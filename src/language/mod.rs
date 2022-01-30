@@ -1,16 +1,20 @@
 //! RFC 4647 Language Ranges.
-//! 
+//!
 //! [Read more](https://datatracker.ietf.org/doc/html/rfc4647)
 
 mod parse;
 
 use crate::headers::HeaderValue;
-use std::{fmt::{self, Display}, borrow::Cow, str::FromStr};
+use std::{
+    borrow::Cow,
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 /// An RFC 4647 language range.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LanguageRange {
-    pub(crate) tags: Vec<Cow<'static, str>>
+    pub(crate) tags: Vec<Cow<'static, str>>,
 }
 
 impl Display for LanguageRange {
