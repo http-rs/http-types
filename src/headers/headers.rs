@@ -208,7 +208,7 @@ mod tests {
     const STATIC_HEADER: HeaderName = HeaderName::from_lowercase_str("hello");
 
     #[test]
-    fn test_header_name_static_non_static() -> crate::Result<()> {
+    fn test_header_name_static_non_static() -> crate::ResponseResult<()> {
         let static_header = HeaderName::from_lowercase_str("hello");
         let non_static_header = HeaderName::from_str("hello")?;
 

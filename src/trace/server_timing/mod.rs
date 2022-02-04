@@ -216,8 +216,10 @@ impl<'a> Iterator for IterMut<'a> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -254,6 +256,6 @@ mod test {
             .insert(SERVER_TIMING, "server; <nori ate your param omnom>")
             .unwrap();
         let err = ServerTiming::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

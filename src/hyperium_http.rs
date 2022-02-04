@@ -1,5 +1,6 @@
 // This is the compat file for the "hyperium/http" crate.
 
+use crate::errors::HeaderError;
 use crate::headers::{HeaderName, HeaderValue, Headers};
 use crate::{Body, Error, Method, Request, Response, StatusCode, Url, Version};
 use std::convert::{TryFrom, TryInto};
@@ -68,7 +69,8 @@ impl TryFrom<HeaderName> for http::header::HeaderName {
 
     fn try_from(name: HeaderName) -> Result<Self, Self::Error> {
         let name = name.as_str().as_bytes();
-        http::header::HeaderName::from_bytes(name).map_err(Error::new_adhoc)
+        http::header::HeaderName::from_bytes(name)
+            .map_err(|_| HeaderError::NameInvalid("(hyper http)").into())
     }
 }
 
@@ -86,7 +88,8 @@ impl TryFrom<HeaderValue> for http::header::HeaderValue {
 
     fn try_from(value: HeaderValue) -> Result<Self, Self::Error> {
         let value = value.as_str().as_bytes();
-        http::header::HeaderValue::from_bytes(value).map_err(Error::new_adhoc)
+        http::header::HeaderValue::from_bytes(value)
+            .map_err(|_| HeaderError::ValueInvalid("(hyper http)").into())
     }
 }
 

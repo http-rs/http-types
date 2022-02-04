@@ -32,7 +32,10 @@ fn unsuccessfully_deserialize_query() {
 
     let params = req.query::<Params>();
     assert!(params.is_err());
-    assert_eq!(params.err().unwrap().to_string(), "missing field `msg`");
+    assert_eq!(
+        params.err().unwrap().to_string(),
+        "Query string deserialization error: missing field `msg`"
+    );
 }
 
 #[test]
@@ -44,7 +47,10 @@ fn malformatted_query() {
 
     let params = req.query::<Params>();
     assert!(params.is_err());
-    assert_eq!(params.err().unwrap().to_string(), "missing field `msg`");
+    assert_eq!(
+        params.err().unwrap().to_string(),
+        "Query string deserialization error: missing field `msg`"
+    );
 }
 
 #[test]

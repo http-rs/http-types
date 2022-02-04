@@ -4,7 +4,7 @@ pub(crate) use date::fmt_http_date;
 pub(crate) use date::parse_http_date;
 pub(crate) use date::HttpDate;
 
-use crate::{Error, Status, StatusCode};
+use crate::errors::HeaderError;
 
 use std::cmp::Ordering;
 use std::str::FromStr;
@@ -13,20 +13,14 @@ use std::str::FromStr;
 pub(crate) fn parse_weight(s: &str) -> crate::Result<f32> {
     let mut parts = s.split('=');
     if !matches!(parts.next(), Some("q")) {
-        let mut err = Error::new_adhoc("invalid weight");
-        err.set_status(StatusCode::BadRequest);
-        return Err(err);
+        return Err(HeaderError::SpecificityInvalid.into());
     }
     match parts.next() {
         Some(s) => {
-            let weight = f32::from_str(s).status(400)?;
+            let weight = f32::from_str(s).map_err(|_| HeaderError::SpecificityInvalid)?;
             Ok(weight)
         }
-        None => {
-            let mut err = Error::new_adhoc("invalid weight");
-            err.set_status(StatusCode::BadRequest);
-            Err(err)
-        }
+        None => Err(HeaderError::SpecificityInvalid.into()),
     }
 }
 

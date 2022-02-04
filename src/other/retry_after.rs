@@ -14,7 +14,7 @@ use crate::utils::{fmt_http_date, parse_http_date};
 /// # Examples
 ///
 /// ```no_run
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::other::RetryAfter;
 /// use http_types::Response;
@@ -129,7 +129,7 @@ mod test {
     use crate::headers::Headers;
 
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() -> anyhow::Result<()> {
         let retry = RetryAfter::new(Duration::from_secs(10));
 
         let mut headers = Headers::new();
@@ -147,7 +147,7 @@ mod test {
     }
 
     #[test]
-    fn new_at() -> crate::Result<()> {
+    fn new_at() -> anyhow::Result<()> {
         let now = SystemTime::now();
         let retry = RetryAfter::new_at(now + Duration::from_secs(10));
 

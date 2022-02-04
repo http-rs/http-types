@@ -7,8 +7,8 @@ use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use crate::errors::BodyError;
 use crate::mime::{self, Mime};
-use crate::{Status, StatusCode};
 
 pin_project_lite::pin_project! {
     /// A streaming HTTP body.
@@ -177,9 +177,7 @@ impl Body {
     /// ```
     pub async fn into_bytes(mut self) -> crate::Result<Vec<u8>> {
         let mut buf = Vec::with_capacity(1024);
-        self.read_to_end(&mut buf)
-            .await
-            .status(StatusCode::UnprocessableEntity)?;
+        self.read_to_end(&mut buf).await?;
         Ok(buf)
     }
 
@@ -225,11 +223,10 @@ impl Body {
     /// # Ok(()) }) }
     /// ```
     pub async fn into_string(mut self) -> crate::Result<String> {
-        let len = usize::try_from(self.len().unwrap_or(0)).status(StatusCode::PayloadTooLarge)?;
+        let len = usize::try_from(self.len().unwrap_or(0))
+            .map_err(|_| BodyError::PayloadTooLarge(self.len()))?;
         let mut result = String::with_capacity(len);
-        self.read_to_string(&mut result)
-            .await
-            .status(StatusCode::UnprocessableEntity)?;
+        self.read_to_string(&mut result).await?;
         Ok(result)
     }
 
@@ -249,7 +246,7 @@ impl Body {
     /// ```
     #[cfg(feature = "serde")]
     pub fn from_json(json: &impl Serialize) -> crate::Result<Self> {
-        let bytes = serde_json::to_vec(&json)?;
+        let bytes = serde_json::to_vec(&json).map_err(BodyError::SerializeJSON)?;
         let body = Self {
             length: Some(bytes.len() as u64),
             reader: Box::new(io::Cursor::new(bytes)),
@@ -283,7 +280,7 @@ impl Body {
     pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
         let mut buf = Vec::with_capacity(1024);
         self.read_to_end(&mut buf).await?;
-        serde_json::from_slice(&buf).status(StatusCode::UnprocessableEntity)
+        serde_json::from_slice(&buf).map_err(|e| BodyError::DeserializeJSON(e).into())
     }
 
     /// Creates a `Body` from a type, serializing it using form encoding.
@@ -316,7 +313,7 @@ impl Body {
     /// ```
     #[cfg(feature = "serde")]
     pub fn from_form(form: &impl Serialize) -> crate::Result<Self> {
-        let query = serde_urlencoded::to_string(form)?;
+        let query = serde_urlencoded::to_string(form).map_err(BodyError::SerializeForm)?;
         let bytes = query.into_bytes();
 
         let body = Self {
@@ -356,7 +353,7 @@ impl Body {
     #[cfg(feature = "serde")]
     pub async fn into_form<T: DeserializeOwned>(self) -> crate::Result<T> {
         let s = self.into_string().await?;
-        serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)
+        serde_urlencoded::from_str(&s).map_err(|e| BodyError::DeserializeForm(e).into())
     }
 
     /// Create a `Body` from a file named by a path.
@@ -636,9 +633,12 @@ fn guess_ext(path: &std::path::Path) -> Option<Mime> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use async_std::io::Cursor;
     use serde_crate::Deserialize;
+
+    use crate::StatusCode;
+
+    use super::*;
 
     #[async_std::test]
     async fn json_status() {
@@ -650,7 +650,10 @@ mod test {
         }
         let body = Body::empty();
         let res = body.into_json::<Foo>().await;
-        assert_eq!(res.unwrap_err().status(), 422);
+        assert_eq!(
+            res.unwrap_err().associated_status_code(),
+            Some(StatusCode::UnprocessableEntity)
+        );
     }
 
     #[async_std::test]
@@ -663,10 +666,16 @@ mod test {
         }
         let body = Body::empty();
         let res = body.into_form::<Foo>().await;
-        assert_eq!(res.unwrap_err().status(), 422);
+        assert_eq!(
+            res.unwrap_err().associated_status_code(),
+            Some(StatusCode::UnprocessableEntity)
+        );
     }
 
-    async fn read_with_buffers_of_size<R>(reader: &mut R, size: usize) -> crate::Result<String>
+    async fn read_with_buffers_of_size<R>(
+        reader: &mut R,
+        size: usize,
+    ) -> crate::ResponseResult<String>
     where
         R: AsyncRead + Unpin,
     {
@@ -681,7 +690,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn attempting_to_read_past_length() -> crate::Result<()> {
+    async fn attempting_to_read_past_length() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body = Body::from_reader(Cursor::new("hello world"), Some(5));
             assert_eq!(
@@ -695,7 +704,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn attempting_to_read_when_length_is_greater_than_content() -> crate::Result<()> {
+    async fn attempting_to_read_when_length_is_greater_than_content() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body = Body::from_reader(Cursor::new("hello world"), Some(15));
             assert_eq!(
@@ -709,7 +718,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn attempting_to_read_when_length_is_exactly_right() -> crate::Result<()> {
+    async fn attempting_to_read_when_length_is_exactly_right() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body = Body::from_reader(Cursor::new("hello world"), Some(11));
             assert_eq!(
@@ -723,7 +732,8 @@ mod test {
     }
 
     #[async_std::test]
-    async fn reading_in_various_buffer_lengths_when_there_is_no_length() -> crate::Result<()> {
+    async fn reading_in_various_buffer_lengths_when_there_is_no_length() -> crate::ResponseResult<()>
+    {
         for buf_len in 1..13 {
             let mut body = Body::from_reader(Cursor::new("hello world"), None);
             assert_eq!(
@@ -737,7 +747,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_strings() -> crate::Result<()> {
+    async fn chain_strings() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body = Body::from("hello ").chain(Body::from("world"));
             assert_eq!(body.len(), Some(11));
@@ -753,7 +763,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_mixed_bytes_string() -> crate::Result<()> {
+    async fn chain_mixed_bytes_string() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body = Body::from(&b"hello "[..]).chain(Body::from("world"));
             assert_eq!(body.len(), Some(11));
@@ -769,7 +779,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_mixed_reader_string() -> crate::Result<()> {
+    async fn chain_mixed_reader_string() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body =
                 Body::from_reader(Cursor::new("hello "), Some(6)).chain(Body::from("world"));
@@ -786,7 +796,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_mixed_nolen_len() -> crate::Result<()> {
+    async fn chain_mixed_nolen_len() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body =
                 Body::from_reader(Cursor::new("hello "), None).chain(Body::from("world"));
@@ -803,7 +813,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_mixed_len_nolen() -> crate::Result<()> {
+    async fn chain_mixed_len_nolen() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body =
                 Body::from("hello ").chain(Body::from_reader(Cursor::new("world"), None));
@@ -820,7 +830,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_short() -> crate::Result<()> {
+    async fn chain_short() -> crate::ResponseResult<()> {
         for buf_len in 1..26 {
             let mut body = Body::from_reader(Cursor::new("hello xyz"), Some(6))
                 .chain(Body::from_reader(Cursor::new("world abc"), Some(5)));
@@ -837,7 +847,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_many() -> crate::Result<()> {
+    async fn chain_many() -> crate::ResponseResult<()> {
         for buf_len in 1..13 {
             let mut body = Body::from("hello")
                 .chain(Body::from(&b" "[..]))
@@ -855,7 +865,7 @@ mod test {
     }
 
     #[async_std::test]
-    async fn chain_skip_start() -> crate::Result<()> {
+    async fn chain_skip_start() -> crate::ResponseResult<()> {
         for buf_len in 1..26 {
             let mut body1 = Body::from_reader(Cursor::new("1234 hello xyz"), Some(11));
             let mut buf = vec![0; 5];

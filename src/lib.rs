@@ -116,6 +116,9 @@ pub mod url {
 }
 
 #[macro_use]
+mod macros_internal;
+
+#[macro_use]
 mod utils;
 
 pub mod auth;
@@ -132,7 +135,7 @@ pub mod transfer;
 pub mod upgrade;
 
 mod body;
-mod error;
+mod errors;
 mod extensions;
 mod macros;
 mod method;
@@ -144,7 +147,7 @@ mod status_code;
 mod version;
 
 pub use body::Body;
-pub use error::{Error, Result};
+pub use errors::{Error, RequestError, RequestResult, ResponseError, ResponseResult, Result};
 pub use method::Method;
 pub use request::Request;
 pub use response::Response;
@@ -175,15 +178,15 @@ pub mod convert {
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
-    use crate::Error;
+    use crate::ResponseError;
     pub use crate::StatusCode;
     use core::fmt::{Debug, Display};
     pub use core::result::Result::Err;
 
-    pub fn new_adhoc<M>(message: M) -> Error
+    pub fn new_adhoc<M>(message: M) -> ResponseError
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::new_adhoc(message)
+        ResponseError::from_str(message)
     }
 }

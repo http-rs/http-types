@@ -1,5 +1,5 @@
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers};
-use crate::Status;
 
 use crate::headers::STRICT_TRANSPORT_SECURITY;
 use std::time::Duration;
@@ -122,7 +122,11 @@ impl StrictTransportSecurity {
                 };
 
                 if key == "max-age" {
-                    let secs = value.parse::<u64>().status(400)?;
+                    let secs = value.parse::<u64>().map_err(|_| {
+                        HeaderError::StrictTransportSecurityInvalid(
+                            "`max-age` directive not a valid u64",
+                        )
+                    })?;
                     max_age = Some(Duration::from_secs(secs));
                 }
             }
@@ -131,10 +135,10 @@ impl StrictTransportSecurity {
         let max_age = match max_age {
             Some(max_age) => max_age,
             None => {
-                return Err(crate::format_err_status!(
-                    400,
-                    "`Strict-Transport-Security` header did not contain a `max-age` directive",
-                ));
+                return Err(HeaderError::StrictTransportSecurityInvalid(
+                    "did not contain a `max-age` directive",
+                )
+                .into());
             }
         };
 
@@ -160,9 +164,11 @@ impl From<Duration> for StrictTransportSecurity {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::Response;
     use std::time::Duration;
+
+    use crate::{Response, StatusCode};
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -187,7 +193,7 @@ mod test {
             .insert_header(STRICT_TRANSPORT_SECURITY, "<nori ate the tag. yum.>")
             .unwrap();
         let err = StrictTransportSecurity::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 
     #[test]
@@ -197,7 +203,7 @@ mod test {
             .insert_header(STRICT_TRANSPORT_SECURITY, "max-age=birds")
             .unwrap();
         let err = StrictTransportSecurity::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 
     #[test]

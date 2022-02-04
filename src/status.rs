@@ -1,24 +1,24 @@
-use crate::{Error, StatusCode};
 use core::convert::{Infallible, TryInto};
 use std::error::Error as StdError;
-use std::fmt::Debug;
+
+use crate::{ResponseError, StatusCode};
 
 /// Provides the `status` method for `Result` and `Option`.
 ///
 /// This trait is sealed and cannot be implemented outside of `http-types`.
 pub trait Status<T, E>: private::Sealed {
     /// Wrap the error value with an additional status code.
-    fn status<S>(self, status: S) -> Result<T, Error>
+    fn status<S>(self, status: S) -> Result<T, ResponseError>
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug;
+        S::Error: StdError + Send + Sync + 'static;
 
     /// Wrap the error value with an additional status code that is evaluated
     /// lazily only once an error does occur.
-    fn with_status<S, F>(self, f: F) -> Result<T, Error>
+    fn with_status<S, F>(self, f: F) -> Result<T, ResponseError>
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug,
+        S::Error: StdError + Send + Sync + 'static,
         F: FnOnce() -> S;
 }
 
@@ -34,17 +34,12 @@ where
     ///
     /// [status]: crate::Status
     /// [statuscode]: crate::StatusCode
-    fn status<S>(self, status: S) -> Result<T, Error>
+    fn status<S>(self, status: S) -> Result<T, ResponseError>
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug,
+        S::Error: StdError + Send + Sync + 'static,
     {
-        self.map_err(|error| {
-            let status = status
-                .try_into()
-                .expect("Could not convert into a valid `StatusCode`");
-            Error::new(status, error)
-        })
+        self.map_err(|error| ResponseError::new_status(status, error))
     }
 
     /// Wrap the error value with an additional status code that is evaluated
@@ -56,60 +51,13 @@ where
     ///
     /// [status]: crate::Status
     /// [statuscode]: crate::StatusCode
-    fn with_status<S, F>(self, f: F) -> Result<T, Error>
+    fn with_status<S, F>(self, f: F) -> Result<T, ResponseError>
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug,
+        S::Error: StdError + Send + Sync + 'static,
         F: FnOnce() -> S,
     {
-        self.map_err(|error| {
-            let status = f()
-                .try_into()
-                .expect("Could not convert into a valid `StatusCode`");
-            Error::new(status, error)
-        })
-    }
-}
-
-impl<T> Status<T, Error> for Result<T, Error> {
-    /// Wrap the error value with an additional status code.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
-    ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
-    fn status<S>(self, status: S) -> Result<T, Error>
-    where
-        S: TryInto<StatusCode>,
-        S::Error: Debug,
-    {
-        self.map_err(|mut error| {
-            error.set_status(status);
-            error
-        })
-    }
-
-    /// Wrap the error value with an additional status code that is evaluated
-    /// lazily only once an error does occur.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
-    ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
-    fn with_status<S, F>(self, f: F) -> Result<T, Error>
-    where
-        S: TryInto<StatusCode>,
-        S::Error: Debug,
-        F: FnOnce() -> S,
-    {
-        self.map_err(|mut error| {
-            error.set_status(f());
-            error
-        })
+        self.map_err(|error| ResponseError::new_status(f(), error))
     }
 }
 
@@ -122,17 +70,12 @@ impl<T> Status<T, Infallible> for Option<T> {
     ///
     /// [status]: crate::Status
     /// [statuscode]: crate::StatusCode
-    fn status<S>(self, status: S) -> Result<T, Error>
+    fn status<S>(self, status: S) -> Result<T, ResponseError>
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug,
+        S::Error: StdError + Send + Sync + 'static,
     {
-        self.ok_or_else(|| {
-            let status = status
-                .try_into()
-                .expect("Could not convert into a valid `StatusCode`");
-            Error::from_str(status, "NoneError")
-        })
+        self.ok_or_else(|| ResponseError::from_str_status(status, "NoneError"))
     }
 
     /// Wrap the error value with an additional status code that is evaluated
@@ -144,18 +87,13 @@ impl<T> Status<T, Infallible> for Option<T> {
     ///
     /// [status]: crate::Status
     /// [statuscode]: crate::StatusCode
-    fn with_status<S, F>(self, f: F) -> Result<T, Error>
+    fn with_status<S, F>(self, f: F) -> Result<T, ResponseError>
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug,
+        S::Error: StdError + Send + Sync + 'static,
         F: FnOnce() -> S,
     {
-        self.ok_or_else(|| {
-            let status = f()
-                .try_into()
-                .expect("Could not convert into a valid `StatusCode`");
-            Error::from_str(status, "NoneError")
-        })
+        self.ok_or_else(|| ResponseError::from_str_status(f(), "NoneError"))
     }
 }
 

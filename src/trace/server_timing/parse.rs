@@ -1,17 +1,14 @@
 use std::time::Duration;
 
 use super::Metric;
-use crate::{ensure, format_err, StatusCode};
+use crate::errors::HeaderError;
 
 /// Parse multiple entries from a single header.
 ///
 /// Each entry is comma-delimited.
 pub(super) fn parse_header(s: &str, entries: &mut Vec<Metric>) -> crate::Result<()> {
     for part in s.trim().split(',') {
-        let entry = parse_entry(part).map_err(|mut e| {
-            e.set_status(StatusCode::BadRequest);
-            e
-        })?;
+        let entry = parse_entry(part)?;
         entries.push(entry);
     }
     Ok(())
@@ -35,7 +32,7 @@ fn parse_entry(s: &str) -> crate::Result<Metric> {
     // Get the name. This is non-optional.
     let name = parts
         .next()
-        .ok_or_else(|| format_err!("Server timing headers must include a name"))?
+        .ok_or(HeaderError::ServerTimingInvalid("must include a name"))?
         .trim_end();
 
     // We must extract these values from the k-v pairs that follow.
@@ -43,9 +40,9 @@ fn parse_entry(s: &str) -> crate::Result<Metric> {
     let mut desc = None;
 
     for mut part in parts {
-        ensure!(
+        internal_ensure!(
             !part.is_empty(),
-            "Server timing params cannot end with a trailing `;`"
+            HeaderError::ServerTimingInvalid("params cannot end with a trailing `;`")
         );
 
         part = part.trim_start();
@@ -53,33 +50,39 @@ fn parse_entry(s: &str) -> crate::Result<Metric> {
         let mut params = part.split('=');
         let name = params
             .next()
-            .ok_or_else(|| format_err!("Server timing params must have a name"))?
+            .ok_or(HeaderError::ServerTimingInvalid("params must have a name"))?
             .trim_end();
         let mut value = params
             .next()
-            .ok_or_else(|| format_err!("Server timing params must have a value"))?
+            .ok_or(HeaderError::ServerTimingInvalid("params must have a value"))?
             .trim_start();
 
         match name {
             "dur" => {
                 let millis: f64 = value.parse().map_err(|_| {
-                        format_err!("Server timing duration params must be a valid double-precision floating-point number.")
-                    })?;
+                    HeaderError::ServerTimingInvalid(
+                        "duration params must be a valid double-precision floating-point number.",
+                    )
+                })?;
                 dur = Some(Duration::from_secs_f64(millis) / 1000);
             }
             "desc" => {
                 // Ensure quotes line up, and strip them from the resulting output
                 if value.starts_with('"') {
                     value = &value[1..value.len()];
-                    ensure!(
+                    internal_ensure!(
                         value.ends_with('"'),
-                        "Server timing description params must use matching quotes"
+                        HeaderError::ServerTimingInvalid(
+                            "description params must use matching quotes"
+                        )
                     );
                     value = &value[0..value.len() - 1];
                 } else {
-                    ensure!(
+                    internal_ensure!(
                         !value.ends_with('"'),
-                        "Server timing description params must use matching quotes"
+                        HeaderError::ServerTimingInvalid(
+                            "description params must use matching quotes"
+                        )
                     );
                 }
                 desc = Some(value.to_string());
@@ -106,11 +109,11 @@ mod test {
         assert_entry("Server ", "Server", None, None)?;
         assert_entry_err(
             "Server ;",
-            "Server timing params cannot end with a trailing `;`",
+            "Header error: Server-Timing header was invalid: params cannot end with a trailing `;`",
         );
         assert_entry_err(
             "Server; ",
-            "Server timing params cannot end with a trailing `;`",
+            "Header error: Server-Timing header was invalid: params cannot end with a trailing `;`",
         );
 
         // Metric name + param
@@ -120,7 +123,7 @@ mod test {
         assert_entry("Server; dur = 1000", "Server", Some(1000), None)?;
         assert_entry_err(
             "Server; dur=1000;",
-            "Server timing params cannot end with a trailing `;`",
+            "Header error: Server-Timing header was invalid: params cannot end with a trailing `;`",
         );
 
         // Metric name + desc
@@ -131,11 +134,11 @@ mod test {
         assert_entry(r#"DB; desc=a_db"#, "DB", None, Some("a_db"))?;
         assert_entry_err(
             r#"DB; desc="db"#,
-            "Server timing description params must use matching quotes",
+            "Header error: Server-Timing header was invalid: description params must use matching quotes",
         );
         assert_entry_err(
             "Server; desc=a_db;",
-            "Server timing params cannot end with a trailing `;`",
+            "Header error: Server-Timing header was invalid: params cannot end with a trailing `;`",
         );
 
         // Metric name + dur + desc
@@ -147,7 +150,7 @@ mod test {
         )?;
         assert_entry_err(
             r#"Server; dur=1000; desc="a server";"#,
-            "Server timing params cannot end with a trailing `;`",
+            "Header error: Server-Timing header was invalid: params cannot end with a trailing `;`",
         );
         Ok(())
     }

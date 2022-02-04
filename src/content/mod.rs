@@ -12,7 +12,7 @@
 //! # Examples
 //!
 //! ```
-//! # fn main() -> http_types::Result<()> {
+//! # fn main() -> anyhow::Result<()> {
 //! #
 //! use http_types::content::{Accept, MediaTypeProposal};
 //! use http_types::{mime, Response};

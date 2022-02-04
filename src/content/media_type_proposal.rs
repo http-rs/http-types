@@ -1,4 +1,4 @@
-use crate::ensure;
+use crate::errors::MediaTypeError;
 use crate::headers::HeaderValue;
 use crate::mime::Mime;
 
@@ -22,11 +22,11 @@ pub struct MediaTypeProposal {
 
 impl MediaTypeProposal {
     /// Create a new instance of `MediaTypeProposal`.
-    pub fn new(media_type: impl Into<Mime>, weight: Option<f32>) -> crate::Result<Self> {
+    pub fn new(media_type: impl Into<Mime>, weight: Option<f32>) -> Result<Self, MediaTypeError> {
         if let Some(weight) = weight {
-            ensure!(
+            internal_ensure!(
                 weight.is_sign_positive() && weight <= 1.0,
-                "MediaTypeProposal should have a weight between 0.0 and 1.0"
+                MediaTypeError::Proposal("should have a weight between 0.0 and 1.0")
             )
         }
         if weight.is_none() {
@@ -57,11 +57,16 @@ impl MediaTypeProposal {
     /// Because `;` and `q=0.0` are all valid values for in use in a media type,
     /// we have to parse the full string to the media type first, and then see if
     /// a `q` value has been set.
-    pub(crate) fn from_str(s: &str) -> crate::Result<Self> {
+    pub(crate) fn from_str(s: &str) -> Result<Self, MediaTypeError> {
         let mut media_type = Mime::from_str(s)?;
         let weight = media_type
             .remove_param("q")
-            .map(|param| param.as_str().parse())
+            .map(|param| {
+                param
+                    .as_str()
+                    .parse()
+                    .map_err(|_| MediaTypeError::Proposal("weight not a valid float32"))
+            })
             .transpose()?;
         Self::new(media_type, weight)
     }
@@ -145,17 +150,5 @@ mod test {
         let _ = MediaTypeProposal::new(mime::JSON, Some(0.0)).unwrap();
         let _ = MediaTypeProposal::new(mime::XML, Some(0.5)).unwrap();
         let _ = MediaTypeProposal::new(mime::HTML, Some(1.0)).unwrap();
-    }
-
-    #[test]
-    fn error_code_500() {
-        let err = MediaTypeProposal::new(mime::JSON, Some(1.1)).unwrap_err();
-        assert_eq!(err.status(), 500);
-
-        let err = MediaTypeProposal::new(mime::XML, Some(-0.1)).unwrap_err();
-        assert_eq!(err.status(), 500);
-
-        let err = MediaTypeProposal::new(mime::HTML, Some(-0.0)).unwrap_err();
-        assert_eq!(err.status(), 500);
     }
 }

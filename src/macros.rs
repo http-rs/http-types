@@ -78,7 +78,7 @@ macro_rules! format_err {
     };
     ($err:expr $(,)?) => ({
         let error = $err;
-        Error::new_adhoc(error)
+        ResponseError::new_adhoc(error)
     });
     ($fmt:expr, $($arg:tt)*) => {
         $crate::private::new_adhoc(format!($fmt, $($arg)*))

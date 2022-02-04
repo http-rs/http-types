@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
-use crate::bail_status as bail;
+use crate::errors::AuthError;
 
 /// HTTP Mutual Authentication Algorithms
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -47,7 +47,7 @@ impl Display for AuthenticationScheme {
 }
 
 impl FromStr for AuthenticationScheme {
-    type Err = crate::Error;
+    type Err = AuthError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // NOTE(yosh): matching here is lowercase as specified by RFC2617#section-1.2
@@ -65,7 +65,7 @@ impl FromStr for AuthenticationScheme {
             "scram-sha-1" => Ok(Self::ScramSha1),
             "scram-sha-256" => Ok(Self::ScramSha256),
             "vapid" => Ok(Self::Vapid),
-            s => bail!(400, "`{}` is not a recognized authentication scheme", s),
+            s => Err(AuthError::SchemeUnrecognized(s.to_string())),
         }
     }
 }

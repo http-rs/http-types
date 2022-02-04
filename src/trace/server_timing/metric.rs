@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::headers::HeaderValue;
+use crate::{errors::HeaderError, headers::HeaderValue};
 
 /// An individual entry into `ServerTiming`.
 //
@@ -28,9 +28,15 @@ impl Metric {
     ///
     /// An error will be returned if the string values are invalid ASCII.
     pub fn new(name: String, dur: Option<Duration>, desc: Option<String>) -> crate::Result<Self> {
-        crate::ensure!(name.is_ascii(), "Name should be valid ASCII");
+        internal_ensure!(
+            name.is_ascii(),
+            HeaderError::ServerTimingInvalidMetric("Name should be valid ASCII")
+        );
         if let Some(desc) = desc.as_ref() {
-            crate::ensure!(desc.is_ascii(), "Description should be valid ASCII");
+            internal_ensure!(
+                desc.is_ascii(),
+                HeaderError::ServerTimingInvalidMetric("Description should be valid ASCII")
+            );
         };
 
         Ok(Self { name, dur, desc })

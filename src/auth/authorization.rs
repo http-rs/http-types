@@ -1,5 +1,5 @@
 use crate::auth::AuthenticationScheme;
-use crate::bail_status as bail;
+use crate::errors::AuthError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, AUTHORIZATION};
 
 /// Credentials to authenticate a user agent with a server.
@@ -60,8 +60,8 @@ impl Authorization {
         let scheme = iter.next();
         let credential = iter.next();
         let (scheme, credentials) = match (scheme, credential) {
-            (None, _) => bail!(400, "Could not find scheme"),
-            (Some(_), None) => bail!(400, "Could not find credentials"),
+            (None, _) => return Err(AuthError::SchemeMissing.into()),
+            (Some(_), None) => return Err(AuthError::CredentialsMissing.into()),
             (Some(scheme), Some(credentials)) => (scheme.parse()?, credentials.to_owned()),
         };
 
@@ -107,8 +107,10 @@ impl Header for Authorization {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -133,6 +135,6 @@ mod test {
             .insert(AUTHORIZATION, "<nori ate the tag. yum.>")
             .unwrap();
         let err = Authorization::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

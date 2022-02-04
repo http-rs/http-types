@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 #[cfg(feature = "cookies")]
 use crate::cookies::Cookie;
+use crate::errors::HeaderError;
 use crate::headers::HeaderValues;
 use crate::mime::Mime;
 use crate::Error;
@@ -21,7 +22,10 @@ impl HeaderValue {
     ///
     /// This function will error if the bytes is not valid ASCII.
     pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, Error> {
-        crate::ensure!(bytes.is_ascii(), "Bytes should be valid ASCII");
+        internal_ensure!(
+            bytes.is_ascii(),
+            HeaderError::ValueInvalid("Bytes should be valid ASCII")
+        );
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
         let string = unsafe { String::from_utf8_unchecked(bytes) };
@@ -80,7 +84,10 @@ impl FromStr for HeaderValue {
     ///
     /// This checks it's valid ASCII.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
+        internal_ensure!(
+            s.is_ascii(),
+            HeaderError::ValueInvalid("String slice should be valid ASCII")
+        );
         Ok(Self {
             inner: String::from(s),
         })

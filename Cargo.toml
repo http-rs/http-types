@@ -50,7 +50,8 @@ serde_json = { version = "1.0.51", optional = true }
 serde_crate = { version = "1.0.106", features = ["derive"], optional = true, package = "serde" }
 serde_urlencoded = { version = "0.7.0", optional = true}
 serde_qs = { version = "0.9.1", optional = true }
-
+miette = "3"
+thiserror = "1.0.29"
 
 [dev-dependencies]
 http = "0.2.0"

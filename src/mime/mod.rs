@@ -12,6 +12,7 @@ use std::fmt::{self, Debug, Display};
 use std::option;
 use std::str::FromStr;
 
+use crate::errors::MediaTypeError;
 use crate::headers::{HeaderValue, ToHeaderValues};
 
 use infer::Infer;
@@ -41,11 +42,11 @@ pub struct Mime {
 
 impl Mime {
     /// Sniff the mime type from a byte slice.
-    pub fn sniff(bytes: &[u8]) -> crate::Result<Self> {
+    pub fn sniff(bytes: &[u8]) -> Result<Self, MediaTypeError> {
         let info = Infer::new();
         let mime = match info.get(bytes) {
             Some(info) => info.mime_type(),
-            None => crate::bail!("Could not sniff the mime type"),
+            None => return Err(MediaTypeError::Sniff),
         };
         Mime::from_str(mime)
     }
@@ -179,7 +180,7 @@ impl Display for Mime {
 // }
 
 impl FromStr for Mime {
-    type Err = crate::Error;
+    type Err = MediaTypeError;
 
     /// Create a new `Mime`.
     ///
@@ -225,13 +226,16 @@ impl Display for ParamName {
 }
 
 impl FromStr for ParamName {
-    type Err = crate::Error;
+    type Err = MediaTypeError;
 
     /// Create a new `HeaderName`.
     ///
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
+        internal_ensure!(
+            s.is_ascii(),
+            MediaTypeError::ParamName("Param Name: String slice should be valid ASCII")
+        );
         Ok(ParamName(Cow::Owned(s.to_ascii_lowercase())))
     }
 }

@@ -8,6 +8,7 @@ use std::task::{Context, Poll};
 
 #[cfg(feature = "serde")]
 use crate::convert::{DeserializeOwned, Serialize};
+use crate::errors::Error;
 use crate::headers::{
     self, HeaderName, HeaderValue, HeaderValues, Headers, Names, ToHeaderValues, Values,
     CONTENT_TYPE,
@@ -659,11 +660,7 @@ impl Request {
         // This allows successful deserialisation of structs where all fields are optional
         // when none of those fields has actually been passed by the caller.
         let query = self.url().query().unwrap_or("");
-        serde_qs::from_str(query).map_err(|e| {
-            // Return the displayable version of the deserialisation error to the caller
-            // for easier debugging.
-            crate::Error::from_str(crate::StatusCode::BadRequest, format!("{}", e))
-        })
+        serde_qs::from_str(query).map_err(Error::QueryDeserialize)
     }
 
     /// Set the URL querystring.
@@ -689,8 +686,7 @@ impl Request {
     /// ```
     #[cfg(feature = "serde")]
     pub fn set_query(&mut self, query: &impl Serialize) -> crate::Result<()> {
-        let query = serde_qs::to_string(query)
-            .map_err(|e| crate::Error::from_str(crate::StatusCode::BadRequest, format!("{}", e)))?;
+        let query = serde_qs::to_string(query).map_err(Error::QuerySerialize)?;
         self.url.set_query(Some(&query));
         Ok(())
     }

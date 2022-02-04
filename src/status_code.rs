@@ -1,5 +1,7 @@
 use std::fmt::{self, Debug, Display};
 
+use crate::Error;
+
 /// HTTP response status codes.
 ///
 /// As defined by [rfc7231 section 6](https://tools.ietf.org/html/rfc7231#section-6).
@@ -531,6 +533,12 @@ impl StatusCode {
     }
 }
 
+impl Default for StatusCode {
+    fn default() -> Self {
+        Self::InternalServerError
+    }
+}
+
 #[cfg(feature = "serde")]
 mod serde {
     use super::StatusCode;
@@ -624,7 +632,7 @@ impl From<StatusCode> for u16 {
 }
 
 impl std::convert::TryFrom<u16> for StatusCode {
-    type Error = crate::Error;
+    type Error = Error;
 
     fn try_from(num: u16) -> Result<Self, Self::Error> {
         match num {
@@ -687,7 +695,7 @@ impl std::convert::TryFrom<u16> for StatusCode {
             508 => Ok(StatusCode::LoopDetected),
             510 => Ok(StatusCode::NotExtended),
             511 => Ok(StatusCode::NetworkAuthenticationRequired),
-            _ => crate::bail!("Invalid status code"),
+            _ => Err(Error::StatusCodeInvalid(num)),
         }
     }
 }

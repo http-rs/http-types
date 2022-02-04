@@ -1,11 +1,13 @@
 use std::borrow::Cow;
 use std::fmt;
 
+use crate::errors::MediaTypeError;
+
 use super::{Mime, ParamName, ParamValue};
 
 /// Parse a string into a mime type.
 /// Follows the [WHATWG MIME parsing algorithm](https://mimesniff.spec.whatwg.org/#parsing-a-mime-type)
-pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
+pub(crate) fn parse(input: &str) -> Result<Mime, MediaTypeError> {
     // 1
     let input = input.trim_matches(is_http_whitespace_char);
 
@@ -13,14 +15,20 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
     let (basetype, input) = collect_code_point_sequence_char(input, '/');
 
     // 4.
-    crate::ensure!(!basetype.is_empty(), "MIME type should not be empty");
-    crate::ensure!(
+    internal_ensure!(
+        !basetype.is_empty(),
+        MediaTypeError::Parse("MIME type should not be empty")
+    );
+    internal_ensure!(
         basetype.chars().all(is_http_token_code_point),
-        "MIME type should ony contain valid HTTP token code points"
+        MediaTypeError::Parse("MIME type should ony contain valid HTTP token code points")
     );
 
     // 5.
-    crate::ensure!(!input.is_empty(), "MIME must contain a sub type");
+    internal_ensure!(
+        !input.is_empty(),
+        MediaTypeError::Parse("MIME must contain a sub type")
+    );
 
     // 6.
     let input = &input[1..];
@@ -32,10 +40,13 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
     let subtype = subtype.trim_end_matches(is_http_whitespace_char);
 
     // 9.
-    crate::ensure!(!subtype.is_empty(), "MIME sub type should not be empty");
-    crate::ensure!(
+    internal_ensure!(
+        !subtype.is_empty(),
+        MediaTypeError::Parse("MIME sub type should not be empty")
+    );
+    internal_ensure!(
         subtype.chars().all(is_http_token_code_point),
-        "MIME sub type should ony contain valid HTTP token code points"
+        MediaTypeError::Parse("MIME sub type should ony contain valid HTTP token code points")
     );
 
     // 10.

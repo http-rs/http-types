@@ -1,21 +1,16 @@
-//! HTTP error types
-
+use std::convert::TryInto;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
+use anyhow::Context;
+
 use crate::StatusCode;
-use std::convert::TryInto;
 
-/// A specialized `Result` type for HTTP operations.
-///
-/// This type is broadly used across `http_types` for any operation which may
-/// produce an error.
-pub type Result<T> = std::result::Result<T, Error>;
-
-/// The error type for HTTP operations.
-pub struct Error {
-    error: anyhow::Error,
-    status: crate::StatusCode,
+/// An error type to be used for where handlers and middleware can error when handling an http response.
+#[derive(Debug)]
+pub struct ResponseError {
+    pub(super) error: anyhow::Error,
+    status: Option<crate::StatusCode>,
     type_name: Option<&'static str>,
 }
 
@@ -30,64 +25,85 @@ impl Display for BacktracePlaceholder {
     }
 }
 
-impl Error {
+impl ResponseError {
     /// Create a new error object from any error type.
     ///
-    /// The error type must be threadsafe and 'static, so that the Error will be
+    /// The error type must be thread-safe and 'static, so that the Error will be
     /// as well. If the error type does not provide a backtrace, a backtrace will
     /// be created here to ensure that a backtrace exists.
-    pub fn new<S, E>(status: S, error: E) -> Self
+    pub fn new<E>(error: E) -> Self
     where
-        S: TryInto<StatusCode>,
-        S::Error: Debug,
         E: Into<anyhow::Error>,
     {
         Self {
-            status: status
-                .try_into()
-                .expect("Could not convert into a valid `StatusCode`"),
+            status: None,
             error: error.into(),
             type_name: Some(std::any::type_name::<E>()),
         }
     }
 
-    /// Create a new error object from static string.
-    pub fn from_str<S, M>(status: S, msg: M) -> Self
+    /// Create a new error object from any error type.
+    ///
+    /// The error type must be thread-safe and 'static, so that the Error will be
+    /// as well. If the error type does not provide a backtrace, a backtrace will
+    /// be created here to ensure that a backtrace exists.
+    pub fn new_status<S, E>(status: S, error: E) -> Self
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug,
+        S::Error: StdError + Send + Sync + 'static,
+        E: Into<anyhow::Error>,
+    {
+        let mut err = Self::new(error);
+        if let Err(new_err) = err.set_status(status) {
+            return new_err;
+        }
+        err
+    }
+
+    /// Create a new error object from static string.
+    #[allow(clippy::should_implement_trait)]
+    pub fn from_str<M>(msg: M) -> Self
+    where
         M: Display + Debug + Send + Sync + 'static,
     {
         Self {
-            status: status
-                .try_into()
-                .expect("Could not convert into a valid `StatusCode`"),
+            status: None,
             error: anyhow::Error::msg(msg),
             type_name: None,
         }
     }
-    /// Create a new error from a message.
-    pub(crate) fn new_adhoc<M>(message: M) -> Error
+
+    /// Create a new error object from static string.
+    pub fn from_str_status<S, M>(status: S, msg: M) -> Self
     where
+        S: TryInto<StatusCode>,
+        S::Error: StdError + Send + Sync + 'static,
         M: Display + Debug + Send + Sync + 'static,
     {
-        Self::from_str(StatusCode::InternalServerError, message)
+        let mut err = Self::from_str(msg);
+        if let Err(new_err) = err.set_status(status) {
+            return new_err;
+        }
+        err
     }
 
     /// Get the status code associated with this error.
-    pub fn status(&self) -> StatusCode {
+    pub fn status(&self) -> Option<StatusCode> {
         self.status
     }
 
     /// Set the status code associated with this error.
-    pub fn set_status<S>(&mut self, status: S)
+    pub fn set_status<S>(&mut self, status: S) -> Result<(), ResponseError>
     where
         S: TryInto<StatusCode>,
-        S::Error: Debug,
+        S::Error: StdError + Send + Sync + 'static,
     {
-        self.status = status
-            .try_into()
-            .expect("Could not convert into a valid `StatusCode`");
+        self.status = Some(
+            status
+                .try_into()
+                .context("Could not convert into a valid `StatusCode`")?,
+        );
+        Ok(())
     }
 
     /// Get the backtrace for this Error.
@@ -165,7 +181,7 @@ impl Error {
     /// Converts anything which implements `Display` into an `http_types::Error`.
     ///
     /// This is handy for errors which are not `Send + Sync + 'static` because `std::error::Error` requires `Display`.
-    /// Note that any assiciated context not included in the `Display` output will be lost,
+    /// Note that any associated context not included in the `Display` output will be lost,
     /// and so this may be lossy for some types which implement `std::error::Error`.
     ///
     /// **Note: Prefer `error.into()` via `From<Into<anyhow::Error>>` when possible!**
@@ -176,7 +192,7 @@ impl Error {
     /// Converts anything which implements `Debug` into an `http_types::Error`.
     ///
     /// This is handy for errors which are not `Send + Sync + 'static` because `std::error::Error` requires `Debug`.
-    /// Note that any assiciated context not included in the `Debug` output will be lost,
+    /// Note that any associated context not included in the `Debug` output will be lost,
     /// and so this may be lossy for some types which implement `std::error::Error`.
     ///
     /// **Note: Prefer `error.into()` via `From<Into<anyhow::Error>>` when possible!**
@@ -185,61 +201,43 @@ impl Error {
     }
 }
 
-impl Display for Error {
+impl Display for ResponseError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(&self.error, formatter)
     }
 }
 
-impl Debug for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Debug::fmt(&self.error, formatter)
-    }
-}
-
-impl<E: Into<anyhow::Error>> From<E> for Error {
+impl<E: Into<anyhow::Error>> From<E> for ResponseError {
     fn from(error: E) -> Self {
-        Self::new(StatusCode::InternalServerError, error)
+        Self::new(error)
     }
 }
 
-impl AsRef<dyn StdError + Send + Sync> for Error {
+impl AsRef<dyn StdError + Send + Sync> for ResponseError {
     fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
         self.error.as_ref()
     }
 }
 
-impl AsRef<StatusCode> for Error {
-    fn as_ref(&self) -> &StatusCode {
-        &self.status
-    }
-}
-
-impl AsMut<StatusCode> for Error {
-    fn as_mut(&mut self) -> &mut StatusCode {
-        &mut self.status
-    }
-}
-
-impl AsRef<dyn StdError> for Error {
+impl AsRef<dyn StdError> for ResponseError {
     fn as_ref(&self) -> &(dyn StdError + 'static) {
         self.error.as_ref()
     }
 }
 
-impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
-    fn from(error: Error) -> Self {
+impl From<ResponseError> for Box<dyn StdError + Send + Sync + 'static> {
+    fn from(error: ResponseError) -> Self {
         error.error.into()
     }
 }
 
-impl From<Error> for Box<dyn StdError + 'static> {
-    fn from(error: Error) -> Self {
+impl From<ResponseError> for Box<dyn StdError + 'static> {
+    fn from(error: ResponseError) -> Self {
         Box::<dyn StdError + Send + Sync>::from(error.error)
     }
 }
 
-impl AsRef<anyhow::Error> for Error {
+impl AsRef<anyhow::Error> for ResponseError {
     fn as_ref(&self) -> &anyhow::Error {
         &self.error
     }

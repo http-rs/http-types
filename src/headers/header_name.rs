@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::fmt::{self, Debug, Display};
 use std::str::FromStr;
 
+use crate::errors::HeaderError;
 use crate::Error;
 
 use super::Header;
@@ -17,7 +18,10 @@ impl HeaderName {
     ///
     /// This function will error if the bytes is not valid ASCII.
     pub fn from_bytes(mut bytes: Vec<u8>) -> Result<Self, Error> {
-        crate::ensure!(bytes.is_ascii(), "Bytes should be valid ASCII");
+        internal_ensure!(
+            bytes.is_ascii(),
+            HeaderError::NameInvalid("Bytes should be valid ASCII")
+        );
         bytes.make_ascii_lowercase();
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
@@ -79,7 +83,10 @@ impl FromStr for HeaderName {
     ///
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
+        internal_ensure!(
+            s.is_ascii(),
+            HeaderError::NameInvalid("String slice should be valid ASCII")
+        );
         Ok(HeaderName(Cow::Owned(s.to_ascii_lowercase())))
     }
 }
@@ -129,7 +136,7 @@ impl PartialEq<String> for HeaderName {
     }
 }
 
-impl<'a> PartialEq<&String> for HeaderName {
+impl PartialEq<&String> for HeaderName {
     fn eq(&self, other: &&String) -> bool {
         match HeaderName::from_str(other) {
             Err(_) => false,

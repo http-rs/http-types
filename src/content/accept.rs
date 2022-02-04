@@ -1,5 +1,6 @@
 //! Client header advertising which media types the client is able to understand.
 
+use crate::errors::HeaderError;
 use crate::headers::{HeaderName, HeaderValue, Headers, ACCEPT};
 use crate::mime::Mime;
 use crate::utils::sort_by_weight;
@@ -7,7 +8,6 @@ use crate::{
     content::{ContentType, MediaTypeProposal},
     headers::Header,
 };
-use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
 
@@ -30,7 +30,7 @@ use std::slice;
 /// # Examples
 ///
 /// ```
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::content::{Accept, MediaTypeProposal};
 /// use http_types::{mime, Response};
@@ -86,7 +86,8 @@ impl Accept {
 
                 // Try and parse a directive from a str. If the directive is
                 // unkown we skip it.
-                let entry = MediaTypeProposal::from_str(part)?;
+                let entry = MediaTypeProposal::from_str(part)
+                    .map_err(HeaderError::AcceptInvalidMediaType)?;
                 entries.push(entry);
             }
         }
@@ -141,9 +142,7 @@ impl Accept {
             }
         }
 
-        let mut err = Error::new_adhoc("No suitable Content-Type found");
-        err.set_status(StatusCode::NotAcceptable);
-        Err(err)
+        Err(HeaderError::AcceptUnnegotiable.into())
     }
 
     /// An iterator visiting all entries.
@@ -288,9 +287,9 @@ impl Debug for Accept {
 
 #[cfg(test)]
 mod test {
+    use crate::{mime, Response, StatusCode};
+
     use super::*;
-    use crate::mime;
-    use crate::Response;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -350,7 +349,7 @@ mod test {
     }
 
     #[test]
-    fn reorder_based_on_weight() -> crate::Result<()> {
+    fn reorder_based_on_weight() -> anyhow::Result<()> {
         let mut accept = Accept::new();
         accept.push(MediaTypeProposal::new(mime::HTML, Some(0.4))?);
         accept.push(MediaTypeProposal::new(mime::XML, None)?);
@@ -369,7 +368,7 @@ mod test {
     }
 
     #[test]
-    fn reorder_based_on_weight_and_location() -> crate::Result<()> {
+    fn reorder_based_on_weight_and_location() -> anyhow::Result<()> {
         let mut accept = Accept::new();
         accept.push(MediaTypeProposal::new(mime::HTML, None)?);
         accept.push(MediaTypeProposal::new(mime::XML, None)?);
@@ -388,7 +387,7 @@ mod test {
     }
 
     #[test]
-    fn negotiate() -> crate::Result<()> {
+    fn negotiate() -> anyhow::Result<()> {
         let mut accept = Accept::new();
         accept.push(MediaTypeProposal::new(mime::HTML, Some(0.4))?);
         accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
@@ -399,20 +398,26 @@ mod test {
     }
 
     #[test]
-    fn negotiate_not_acceptable() -> crate::Result<()> {
+    fn negotiate_not_acceptable() -> anyhow::Result<()> {
         let mut accept = Accept::new();
         let err = accept.negotiate(&[mime::JSON]).unwrap_err();
-        assert_eq!(err.status(), 406);
+        assert_eq!(
+            err.associated_status_code(),
+            Some(StatusCode::NotAcceptable)
+        );
 
         let mut accept = Accept::new();
         accept.push(MediaTypeProposal::new(mime::JSON, Some(0.8))?);
         let err = accept.negotiate(&[mime::XML]).unwrap_err();
-        assert_eq!(err.status(), 406);
+        assert_eq!(
+            err.associated_status_code(),
+            Some(StatusCode::NotAcceptable)
+        );
         Ok(())
     }
 
     #[test]
-    fn negotiate_wildcard() -> crate::Result<()> {
+    fn negotiate_wildcard() -> anyhow::Result<()> {
         let mut accept = Accept::new();
         accept.push(MediaTypeProposal::new(mime::JSON, Some(0.8))?);
         accept.set_wildcard(true);
@@ -422,7 +427,7 @@ mod test {
     }
 
     #[test]
-    fn negotiate_missing_encoding() -> crate::Result<()> {
+    fn negotiate_missing_encoding() -> anyhow::Result<()> {
         let mime_html = "text/html".parse::<Mime>()?;
 
         let mut browser_accept = Accept::new();

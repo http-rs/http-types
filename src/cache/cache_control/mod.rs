@@ -15,8 +15,10 @@ pub use cache_directive::CacheDirective;
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::{Header, Headers, CACHE_CONTROL};
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -49,6 +51,6 @@ mod test {
         let mut headers = Headers::new();
         headers.insert(CACHE_CONTROL, "min-fresh=0.9").unwrap(); // floats are not supported
         let err = CacheControl::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }
