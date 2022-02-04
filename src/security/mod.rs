@@ -18,9 +18,11 @@
 use crate::headers::{HeaderName, HeaderValue, Headers};
 
 mod csp;
+mod strict_transport_security;
 mod timing_allow_origin;
 
 pub use csp::{ContentSecurityPolicy, Source};
+pub use strict_transport_security::StrictTransportSecurity;
 
 #[cfg(feature = "serde")]
 pub use csp::{ReportTo, ReportToEndpoint};
