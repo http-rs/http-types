@@ -117,7 +117,7 @@ mod test {
         let date = Date::new(now);
 
         let mut headers = Headers::new();
-        date.apply_header(&mut headers);
+        headers.insert(date);
 
         let date = Date::from_headers(headers)?.unwrap();
 

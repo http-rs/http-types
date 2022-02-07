@@ -90,7 +90,7 @@ mod test {
         let last_modified = LastModified::new(time);
 
         let mut headers = Headers::new();
-        last_modified.apply_header(&mut headers);
+        last_headers.insert(modified);
 
         let last_modified = LastModified::from_headers(headers)?.unwrap();
 

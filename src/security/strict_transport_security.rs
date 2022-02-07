@@ -170,7 +170,7 @@ mod test {
         let stc = StrictTransportSecurity::new(duration);
 
         let mut headers = Response::new(200);
-        stc.apply_header(&mut headers);
+        headers.insert(stc);
 
         let stc = StrictTransportSecurity::from_headers(headers)?.unwrap();
 

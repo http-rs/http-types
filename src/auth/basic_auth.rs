@@ -123,7 +123,7 @@ mod test {
         let authz = BasicAuth::new(username, password);
 
         let mut headers = Headers::new();
-        authz.apply_header(&mut headers);
+        headers.insert(authz);
 
         let authz = BasicAuth::from_headers(headers)?.unwrap();
 

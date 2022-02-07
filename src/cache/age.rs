@@ -92,7 +92,7 @@ mod test {
         let age = Age::new(Duration::from_secs(12));
 
         let mut headers = Headers::new();
-        age.apply_header(&mut headers);
+        headers.insert(age);
 
         let age = Age::from_headers(headers)?.unwrap();
         assert_eq!(age, Age::new(Duration::from_secs(12)));

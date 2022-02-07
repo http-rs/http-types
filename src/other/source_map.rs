@@ -106,7 +106,7 @@ mod test {
         let source_map = SourceMap::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
-        source_map.apply_header(&mut headers);
+        source_headers.insert(map);
 
         let base_url = Url::parse("https://example.net/")?;
         let source_map = SourceMap::from_headers(base_url, headers)?.unwrap();

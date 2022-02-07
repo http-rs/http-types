@@ -91,7 +91,7 @@ mod test {
         let expires = IfModifiedSince::new(time);
 
         let mut headers = Headers::new();
-        expires.apply_header(&mut headers);
+        headers.insert(expires);
 
         let expires = IfModifiedSince::from_headers(headers)?.unwrap();
 

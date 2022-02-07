@@ -289,7 +289,7 @@ mod test {
         accept.push(Encoding::Gzip);
 
         let mut headers = Response::new(200);
-        accept.apply_header(&mut headers);
+        headers.insert(accept);
 
         let accept = TE::from_headers(headers)?.unwrap();
         assert_eq!(accept.iter().next().unwrap(), Encoding::Gzip);
@@ -302,7 +302,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply_header(&mut headers);
+        headers.insert(accept);
 
         let accept = TE::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -316,7 +316,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        accept.apply_header(&mut headers);
+        headers.insert(accept);
 
         let accept = TE::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -331,7 +331,7 @@ mod test {
         accept.push(Encoding::Brotli);
 
         let mut headers = Response::new(200);
-        accept.apply_header(&mut headers);
+        headers.insert(accept);
 
         let accept = TE::from_headers(headers)?.unwrap();
         let mut accept = accept.iter();
@@ -348,7 +348,7 @@ mod test {
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
 
         let mut headers = Response::new(200);
-        accept.apply_header(&mut headers);
+        headers.insert(accept);
 
         let mut accept = TE::from_headers(headers)?.unwrap();
         accept.sort();

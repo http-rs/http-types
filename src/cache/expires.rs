@@ -94,7 +94,7 @@ mod test {
         let expires = Expires::new_at(time);
 
         let mut headers = Headers::new();
-        expires.apply_header(&mut headers);
+        headers.insert(expires);
 
         let expires = Expires::from_headers(headers)?.unwrap();
 

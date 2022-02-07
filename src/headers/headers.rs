@@ -11,6 +11,8 @@ use crate::headers::{
     Header, HeaderName, HeaderValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 
+use super::HeaderValue;
+
 /// A collection of HTTP Headers.
 ///
 /// Headers are never manually constructed, but are part of `Request`,
@@ -29,7 +31,7 @@ use crate::headers::{
 /// ```
 #[derive(Clone)]
 pub struct Headers {
-    pub(crate) headers: HashMap<HeaderName, Vec<HeaderValue>>,
+    pub(crate) headers: HashMap<HeaderName, HeaderValue>,
 }
 
 impl Headers {
@@ -43,29 +45,16 @@ impl Headers {
     /// Insert a header into the headers.
     ///
     /// Not that this will replace all header values for a given header name.
-    /// If you wish to add header values for a header name that already exists
-    /// use `Headers::append`
-    pub fn insert<H: Header>(&mut self, header: H) -> Option<HeaderValues> {
+    pub fn insert<H: Header>(&mut self, header: H) -> Option<HeaderValue> {
         let name = header.header_name();
         let value = header.header_value();
         self.headers.insert(name, value)
     }
 
-    /// Append a header to the headers.
-    ///
-    /// Unlike `insert` this function will not override the contents of a header, but insert a
-    /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append<H: Header>(&mut self, header: H) -> crate::Result<()> {
-        let name = header.header_name();
-        let value = header.header_value();
-        let mut headers = self.headers.entry(name).or_default();
-        headers.push(value);
-        Ok(())
-    }
-
     /// Get a reference to a header.
-    pub fn get(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
-        self.headers.get(&name.into())
+    pub fn get<H: Header>(&self, name: HeaderName) -> Option<H> {
+        let value = self.headers.get(&name)?;
+        H::from_parts(name, value.clone()).ok()
     }
 
     /// Get a mutable reference to a header.
@@ -74,7 +63,7 @@ impl Headers {
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+    pub fn remove<H: Header>(&mut self, name: HeaderName) -> Option<HeaderValue> {
         self.headers.remove(&name.into())
     }
 

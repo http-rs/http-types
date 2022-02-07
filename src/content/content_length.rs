@@ -84,7 +84,7 @@ mod test {
         let content_len = ContentLength::new(12);
 
         let mut headers = Headers::new();
-        content_len.apply_header(&mut headers);
+        content_headers.insert(len);
 
         let content_len = ContentLength::from_headers(headers)?.unwrap();
         assert_eq!(content_len.len(), 12);

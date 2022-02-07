@@ -266,7 +266,7 @@ mod test {
         origins.push(Url::parse("https://example.com")?);
 
         let mut headers = Headers::new();
-        origins.apply_header(&mut headers);
+        headers.insert(origins);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         let origin = origins.iter().next().unwrap();
@@ -281,7 +281,7 @@ mod test {
         origins.push(Url::parse("https://mozilla.org/")?);
 
         let mut headers = Headers::new();
-        origins.apply_header(&mut headers);
+        headers.insert(origins);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         let mut origins = origins.iter();
@@ -310,7 +310,7 @@ mod test {
         origins.set_wildcard(true);
 
         let mut headers = Headers::new();
-        origins.apply_header(&mut headers);
+        headers.insert(origins);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
         assert!(origins.wildcard());

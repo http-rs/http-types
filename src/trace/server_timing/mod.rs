@@ -225,7 +225,7 @@ mod test {
         timings.push(Metric::new("server".to_owned(), None, None)?);
 
         let mut headers = Headers::new();
-        timings.apply_header(&mut headers);
+        headers.insert(timings);
 
         let timings = ServerTiming::from_headers(headers)?.unwrap();
         let entry = timings.iter().next().unwrap();
@@ -239,7 +239,7 @@ mod test {
         timings.push(Metric::new("server".to_owned(), None, None)?);
 
         let mut headers = Headers::new();
-        timings.apply_header(&mut headers);
+        headers.insert(timings);
 
         let timings = ServerTiming::from_headers(headers)?.unwrap();
         let entry = timings.iter().next().unwrap();

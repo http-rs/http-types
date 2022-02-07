@@ -109,7 +109,7 @@ mod test {
         let referer = Referer::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
-        referer.apply_header(&mut headers);
+        headers.insert(referer);
 
         let base_url = Url::parse("https://example.net/")?;
         let referer = Referer::from_headers(base_url, headers)?.unwrap();

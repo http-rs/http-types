@@ -117,7 +117,7 @@ mod test {
         let authz = Authorization::new(scheme, credentials.into());
 
         let mut headers = Headers::new();
-        authz.apply_header(&mut headers);
+        headers.insert(authz);
 
         let authz = Authorization::from_headers(headers)?.unwrap();
 
