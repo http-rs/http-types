@@ -155,6 +155,9 @@ pub use version::Version;
 #[doc(inline)]
 pub use crate::url::Url;
 
+#[doc(inline)]
+pub use crate::headers::Header;
+
 pub mod security;
 pub mod trailers;
 

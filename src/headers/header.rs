@@ -4,32 +4,20 @@ use crate::headers::{HeaderName, HeaderValue, Headers};
 
 /// A trait representing a [`HeaderName`] and [`HeaderValue`] pair.
 pub trait Header {
-    /// Access the header's name.
+    /// The header's name.
     fn header_name(&self) -> HeaderName;
 
     /// Access the header's value.
     fn header_value(&self) -> HeaderValue;
-
-    /// Insert the header name and header value into something that looks like a
-    /// [`Headers`] map.
-    fn apply_header<H: AsMut<Headers>>(&self, mut headers: H) {
-        let name = self.header_name();
-        let value = self.header_value();
-
-        // The value should already have been validated when it was created, so this should
-        // possibly be done with an unsafe call
-        headers.as_mut().insert(name, value).unwrap();
-    }
 }
 
-impl<'a, 'b> Header for (&'a str, &'b str) {
+impl Header for (HeaderName, HeaderValue) {
     fn header_name(&self) -> HeaderName {
-        HeaderName::from(self.0)
+        self.0
     }
 
     fn header_value(&self) -> HeaderValue {
-        HeaderValue::from_bytes(self.1.to_owned().into_bytes())
-            .expect("String slice should be valid ASCII")
+        self.1
     }
 }
 

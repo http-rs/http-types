@@ -8,7 +8,7 @@ use std::ops::Index;
 use std::str::FromStr;
 
 use crate::headers::{
-    HeaderName, HeaderValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
+    Header, HeaderName, HeaderValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 
 /// A collection of HTTP Headers.
@@ -29,7 +29,7 @@ use crate::headers::{
 /// ```
 #[derive(Clone)]
 pub struct Headers {
-    pub(crate) headers: HashMap<HeaderName, HeaderValues>,
+    pub(crate) headers: HashMap<HeaderName, Vec<HeaderValue>>,
 }
 
 impl Headers {
@@ -45,35 +45,21 @@ impl Headers {
     /// Not that this will replace all header values for a given header name.
     /// If you wish to add header values for a header name that already exists
     /// use `Headers::append`
-    pub fn insert(
-        &mut self,
-        name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
-    ) -> crate::Result<Option<HeaderValues>> {
-        let name = name.into();
-        let values: HeaderValues = values.to_header_values()?.collect();
-        Ok(self.headers.insert(name, values))
+    pub fn insert<H: Header>(&mut self, header: H) -> Option<HeaderValues> {
+        let name = header.header_name();
+        let value = header.header_value();
+        self.headers.insert(name, value)
     }
 
     /// Append a header to the headers.
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append(
-        &mut self,
-        name: impl Into<HeaderName>,
-        values: impl ToHeaderValues,
-    ) -> crate::Result<()> {
-        let name = name.into();
-        match self.get_mut(&name) {
-            Some(headers) => {
-                let mut values: HeaderValues = values.to_header_values()?.collect();
-                headers.append(&mut values);
-            }
-            None => {
-                self.insert(name, values)?;
-            }
-        }
+    pub fn append<H: Header>(&mut self, header: H) -> crate::Result<()> {
+        let name = header.header_name();
+        let value = header.header_value();
+        let mut headers = self.headers.entry(name).or_default();
+        headers.push(value);
         Ok(())
     }
 
