@@ -65,7 +65,7 @@ fn parse_entry(s: &str) -> crate::Result<Metric> {
                 let millis: f64 = value.parse().map_err(|_| {
                         format_err!("Server timing duration params must be a valid double-precision floating-point number.")
                     })?;
-                dur = Some(Duration::from_secs_f64(millis / 1000.0));
+                dur = Some(Duration::from_micros((millis * 1000.0).round() as u64));
             }
             "desc" => {
                 // Ensure quotes line up, and strip them from the resulting output
