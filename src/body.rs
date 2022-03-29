@@ -507,7 +507,7 @@ impl AsyncRead for Body {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        let mut buf = match self.length {
+        let buf = match self.length {
             None => buf,
             Some(length) if length == self.bytes_read => return Poll::Ready(Ok(0)),
             Some(length) => {
@@ -516,7 +516,7 @@ impl AsyncRead for Body {
             }
         };
 
-        let bytes = ready!(Pin::new(&mut self.reader).poll_read(cx, &mut buf))?;
+        let bytes = ready!(Pin::new(&mut self.reader).poll_read(cx, buf))?;
         self.bytes_read += bytes;
         Poll::Ready(Ok(bytes))
     }
@@ -551,7 +551,7 @@ async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
 /// This is useful for plain-text formats such as HTML and CSS.
 #[cfg(all(feature = "fs", not(target_os = "unknown")))]
 fn guess_ext(path: &std::path::Path) -> Option<Mime> {
-    let ext = path.extension().map(|p| p.to_str()).flatten();
+    let ext = path.extension().and_then(|p| p.to_str());
     ext.and_then(Mime::from_extension)
 }
 
@@ -565,7 +565,7 @@ mod test {
     async fn json_status() {
         #[derive(Debug, Deserialize)]
         struct Foo {
-            inner: String,
+            _inner: String,
         }
         let body = Body::empty();
         let res = body.into_json::<Foo>().await;
@@ -576,7 +576,7 @@ mod test {
     async fn form_status() {
         #[derive(Debug, Deserialize)]
         struct Foo {
-            inner: String,
+            _inner: String,
         }
         let body = Body::empty();
         let res = body.into_form::<Foo>().await;

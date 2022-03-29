@@ -88,7 +88,6 @@ impl CacheDirective {
             return Ok(None);
         }
 
-        s.to_lowercase();
         let mut parts = s.split('=');
         let next = parts.next().unwrap();
 
