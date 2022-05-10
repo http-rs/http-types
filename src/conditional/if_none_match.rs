@@ -94,8 +94,8 @@ impl IfNoneMatch {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {
             match n {
-                0 => write!(output, "{}", etag.to_string()).unwrap(),
-                _ => write!(output, ", {}", etag.to_string()).unwrap(),
+                0 => write!(output, "{}", etag).unwrap(),
+                _ => write!(output, ", {}", etag).unwrap(),
             };
         }
 
