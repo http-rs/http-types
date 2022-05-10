@@ -277,7 +277,7 @@ impl Body {
     pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
         let mut buf = Vec::with_capacity(1024);
         self.read_to_end(&mut buf).await?;
-        Ok(serde_json::from_slice(&buf).status(StatusCode::UnprocessableEntity)?)
+        serde_json::from_slice(&buf).status(StatusCode::UnprocessableEntity)
     }
 
     /// Creates a `Body` from a type, serializing it using form encoding.
@@ -346,7 +346,7 @@ impl Body {
     /// ```
     pub async fn into_form<T: DeserializeOwned>(self) -> crate::Result<T> {
         let s = self.into_string().await?;
-        Ok(serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)?)
+        serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)
     }
 
     /// Create a `Body` from a file.
