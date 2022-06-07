@@ -52,7 +52,7 @@ macro_rules! mime_const {
     };
 }
 
-utf8_mime_const!(JAVASCRIPT, "JavaScript", "application", "javascript");
+utf8_mime_const!(JAVASCRIPT, "JavaScript", "text", "javascript");
 utf8_mime_const!(CSS, "CSS", "text", "css");
 utf8_mime_const!(HTML, "HTML", "text", "html");
 utf8_mime_const!(PLAIN, "Plain text", "text", "plain");
