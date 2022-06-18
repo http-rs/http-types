@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, DATE};
+use crate::headers::{Field, FieldName, FieldValue, Headers, DATE};
 use crate::utils::HttpDate;
 
 use std::time::SystemTime;
@@ -73,17 +73,17 @@ impl Date {
     }
 }
 
-impl Header for Date {
-    fn header_name(&self) -> HeaderName {
+impl Field for Date {
+    fn field_name(&self) -> FieldName {
         DATE
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let date: HttpDate = self.at.into();
         let output = format!("{}", date);
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

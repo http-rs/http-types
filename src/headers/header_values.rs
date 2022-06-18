@@ -1,4 +1,4 @@
-use crate::headers::{HeaderValue, Values};
+use crate::headers::{FieldValue, Values};
 
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
@@ -10,7 +10,7 @@ use std::slice::SliceIndex;
 /// This always contains at least one header value.
 #[derive(Clone)]
 pub struct HeaderValues {
-    pub(crate) inner: Vec<HeaderValue>,
+    pub(crate) inner: Vec<FieldValue>,
 }
 
 impl HeaderValues {
@@ -20,23 +20,23 @@ impl HeaderValues {
     }
 
     /// Returns a reference or a value depending on the type of index.
-    pub fn get(&self, index: usize) -> Option<&HeaderValue> {
+    pub fn get(&self, index: usize) -> Option<&FieldValue> {
         self.inner.get(index)
     }
 
     /// Returns a mutable reference or a value depending on the type of index.
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut HeaderValue> {
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut FieldValue> {
         self.inner.get_mut(index)
     }
 
     /// Returns `true` if there is a value corresponding to the specified `HeaderValue` in the list,
     /// `false` otherwise.
-    pub fn contains(&self, value: &HeaderValue) -> bool {
+    pub fn contains(&self, value: &FieldValue) -> bool {
         self.inner.contains(value)
     }
 
     /// Returns the last `HeaderValue`.
-    pub fn last(&self) -> &HeaderValue {
+    pub fn last(&self) -> &FieldValue {
         self.inner
             .last()
             .expect("HeaderValues must always contain at least one value")
@@ -56,7 +56,7 @@ impl HeaderValues {
     // }
 }
 
-impl<I: SliceIndex<[HeaderValue]>> Index<I> for HeaderValues {
+impl<I: SliceIndex<[FieldValue]>> Index<I> for HeaderValues {
     type Output = I::Output;
 
     #[inline]
@@ -65,10 +65,10 @@ impl<I: SliceIndex<[HeaderValue]>> Index<I> for HeaderValues {
     }
 }
 
-impl FromIterator<HeaderValue> for HeaderValues {
+impl FromIterator<FieldValue> for HeaderValues {
     fn from_iter<I>(iter: I) -> HeaderValues
     where
-        I: IntoIterator<Item = HeaderValue>,
+        I: IntoIterator<Item = FieldValue>,
     {
         let iter = iter.into_iter();
         let mut output = Vec::with_capacity(iter.size_hint().0);
@@ -129,40 +129,40 @@ impl<'a> PartialEq<&String> for HeaderValues {
     }
 }
 
-impl From<HeaderValue> for HeaderValues {
-    fn from(other: HeaderValue) -> Self {
+impl From<FieldValue> for HeaderValues {
+    fn from(other: FieldValue) -> Self {
         Self { inner: vec![other] }
     }
 }
 
-impl AsRef<HeaderValue> for HeaderValues {
-    fn as_ref(&self) -> &HeaderValue {
+impl AsRef<FieldValue> for HeaderValues {
+    fn as_ref(&self) -> &FieldValue {
         &self.inner[0]
     }
 }
 
-impl AsMut<HeaderValue> for HeaderValues {
-    fn as_mut(&mut self) -> &mut HeaderValue {
+impl AsMut<FieldValue> for HeaderValues {
+    fn as_mut(&mut self) -> &mut FieldValue {
         &mut self.inner[0]
     }
 }
 
 impl Deref for HeaderValues {
-    type Target = HeaderValue;
+    type Target = FieldValue;
 
-    fn deref(&self) -> &HeaderValue {
+    fn deref(&self) -> &FieldValue {
         &self.inner[0]
     }
 }
 
 impl DerefMut for HeaderValues {
-    fn deref_mut(&mut self) -> &mut HeaderValue {
+    fn deref_mut(&mut self) -> &mut FieldValue {
         &mut self.inner[0]
     }
 }
 
 impl<'a> IntoIterator for &'a HeaderValues {
-    type Item = &'a HeaderValue;
+    type Item = &'a FieldValue;
     type IntoIter = Values<'a>;
 
     #[inline]
@@ -171,15 +171,15 @@ impl<'a> IntoIterator for &'a HeaderValues {
     }
 }
 
-impl From<Vec<HeaderValue>> for HeaderValues {
-    fn from(headers: Vec<HeaderValue>) -> Self {
+impl From<Vec<FieldValue>> for HeaderValues {
+    fn from(headers: Vec<FieldValue>) -> Self {
         Self { inner: headers }
     }
 }
 
 impl IntoIterator for HeaderValues {
-    type Item = HeaderValue;
-    type IntoIter = std::vec::IntoIter<HeaderValue>;
+    type Item = FieldValue;
+    type IntoIter = std::vec::IntoIter<FieldValue>;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {

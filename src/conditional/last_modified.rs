@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, LAST_MODIFIED};
+use crate::headers::{Field, FieldName, FieldValue, Headers, LAST_MODIFIED};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
@@ -66,15 +66,15 @@ impl LastModified {
     }
 }
 
-impl Header for LastModified {
-    fn header_name(&self) -> HeaderName {
+impl Field for LastModified {
+    fn field_name(&self) -> FieldName {
         LAST_MODIFIED
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = fmt_http_date(self.instant);
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

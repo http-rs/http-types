@@ -15,9 +15,9 @@ mod to_header_values;
 mod values;
 
 pub use constants::*;
-pub use header::Header;
-pub use header_name::HeaderName;
-pub use header_value::HeaderValue;
+pub use header::Field;
+pub use header_name::FieldName;
+pub use header_value::FieldValue;
 pub use header_values::HeaderValues;
 pub use headers::Headers;
 pub use into_iter::IntoIter;

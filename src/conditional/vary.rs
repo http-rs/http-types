@@ -1,6 +1,6 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, VARY};
+use crate::headers::{Field, FieldName, FieldValue, Headers, VARY};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -37,7 +37,7 @@ use std::str::FromStr;
 /// # Ok(()) }
 /// ```
 pub struct Vary {
-    entries: Vec<HeaderName>,
+    entries: Vec<FieldName>,
     wildcard: bool,
 }
 
@@ -66,7 +66,7 @@ impl Vary {
                     wildcard = true;
                     continue;
                 }
-                let entry = HeaderName::from_str(part.trim())?;
+                let entry = FieldName::from_str(part.trim())?;
                 entries.push(entry);
             }
         }
@@ -85,7 +85,7 @@ impl Vary {
     }
 
     /// Push a directive into the list of entries.
-    pub fn push(&mut self, directive: impl Into<HeaderName>) -> crate::Result<()> {
+    pub fn push(&mut self, directive: impl Into<FieldName>) -> crate::Result<()> {
         self.entries.push(directive.into());
         Ok(())
     }
@@ -105,15 +105,15 @@ impl Vary {
     }
 }
 
-impl Header for Vary {
-    fn header_name(&self) -> HeaderName {
+impl Field for Vary {
+    fn field_name(&self) -> FieldName {
         VARY
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, name) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = name
+            let directive: FieldValue = name
                 .as_str()
                 .parse()
                 .expect("Could not convert a HeaderName into a HeaderValue");
@@ -131,12 +131,12 @@ impl Header for Vary {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 
 impl IntoIterator for Vary {
-    type Item = HeaderName;
+    type Item = FieldName;
     type IntoIter = IntoIter;
 
     #[inline]
@@ -148,7 +148,7 @@ impl IntoIterator for Vary {
 }
 
 impl<'a> IntoIterator for &'a Vary {
-    type Item = &'a HeaderName;
+    type Item = &'a FieldName;
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -158,7 +158,7 @@ impl<'a> IntoIterator for &'a Vary {
 }
 
 impl<'a> IntoIterator for &'a mut Vary {
-    type Item = &'a mut HeaderName;
+    type Item = &'a mut FieldName;
     type IntoIter = IterMut<'a>;
 
     #[inline]
@@ -170,11 +170,11 @@ impl<'a> IntoIterator for &'a mut Vary {
 /// A borrowing iterator over entries in `Vary`.
 #[derive(Debug)]
 pub struct IntoIter {
-    inner: std::vec::IntoIter<HeaderName>,
+    inner: std::vec::IntoIter<FieldName>,
 }
 
 impl Iterator for IntoIter {
-    type Item = HeaderName;
+    type Item = FieldName;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -189,11 +189,11 @@ impl Iterator for IntoIter {
 /// A lending iterator over entries in `Vary`.
 #[derive(Debug)]
 pub struct Iter<'a> {
-    inner: slice::Iter<'a, HeaderName>,
+    inner: slice::Iter<'a, FieldName>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = &'a HeaderName;
+    type Item = &'a FieldName;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -208,11 +208,11 @@ impl<'a> Iterator for Iter<'a> {
 /// A mutable iterator over entries in `Vary`.
 #[derive(Debug)]
 pub struct IterMut<'a> {
-    inner: slice::IterMut<'a, HeaderName>,
+    inner: slice::IterMut<'a, FieldName>,
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut HeaderName;
+    type Item = &'a mut FieldName;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()

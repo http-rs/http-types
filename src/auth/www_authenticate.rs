@@ -1,6 +1,6 @@
 use crate::bail_status as bail;
-use crate::headers::{HeaderName, HeaderValue, Headers, WWW_AUTHENTICATE};
-use crate::{auth::AuthenticationScheme, headers::Header};
+use crate::headers::{FieldName, FieldValue, Headers, WWW_AUTHENTICATE};
+use crate::{auth::AuthenticationScheme, headers::Field};
 
 /// Define the authentication method that should be used to gain access to a
 /// resource.
@@ -114,16 +114,16 @@ impl WwwAuthenticate {
     }
 }
 
-impl Header for WwwAuthenticate {
-    fn header_name(&self) -> HeaderName {
+impl Field for WwwAuthenticate {
+    fn field_name(&self) -> FieldName {
         WWW_AUTHENTICATE
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = format!(r#"{} realm="{}", charset="UTF-8""#, self.scheme, self.realm);
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

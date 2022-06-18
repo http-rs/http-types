@@ -4,13 +4,13 @@ use std::str::FromStr;
 
 use crate::Error;
 
-use super::Header;
+use super::Field;
 
 /// A header name.
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct HeaderName(Cow<'static, str>);
+pub struct FieldName(Cow<'static, str>);
 
-impl HeaderName {
+impl FieldName {
     /// Create a new `HeaderName` from a Vec of ASCII bytes.
     ///
     /// # Error
@@ -22,7 +22,7 @@ impl HeaderName {
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
         let string = unsafe { String::from_utf8_unchecked(bytes.to_vec()) };
-        Ok(HeaderName(Cow::Owned(string)))
+        Ok(FieldName(Cow::Owned(string)))
     }
 
     /// Create a new `HeaderName` from an ASCII string.
@@ -51,28 +51,28 @@ impl HeaderName {
     pub unsafe fn from_bytes_unchecked(mut bytes: Vec<u8>) -> Self {
         bytes.make_ascii_lowercase();
         let string = String::from_utf8_unchecked(bytes);
-        HeaderName(Cow::Owned(string))
+        FieldName(Cow::Owned(string))
     }
 
     /// Converts a string assumed to lowercase into a `HeaderName`
     pub(crate) const fn from_lowercase_str(str: &'static str) -> Self {
-        HeaderName(Cow::Borrowed(str))
+        FieldName(Cow::Borrowed(str))
     }
 }
 
-impl Debug for HeaderName {
+impl Debug for FieldName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.0)
     }
 }
 
-impl Display for HeaderName {
+impl Display for FieldName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl FromStr for HeaderName {
+impl FromStr for FieldName {
     type Err = Error;
 
     /// Create a new `HeaderName`.
@@ -80,58 +80,58 @@ impl FromStr for HeaderName {
     /// This checks it's valid ASCII, and lowercases it.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         crate::ensure!(s.is_ascii(), "String slice should be valid ASCII");
-        Ok(HeaderName(Cow::Owned(s.to_ascii_lowercase())))
+        Ok(FieldName(Cow::Owned(s.to_ascii_lowercase())))
     }
 }
 
-impl From<&HeaderName> for HeaderName {
-    fn from(value: &HeaderName) -> HeaderName {
+impl From<&FieldName> for FieldName {
+    fn from(value: &FieldName) -> FieldName {
         value.clone()
     }
 }
 
-impl<T: Header> From<T> for HeaderName {
-    fn from(header: T) -> HeaderName {
-        header.header_name()
+impl<T: Field> From<T> for FieldName {
+    fn from(header: T) -> FieldName {
+        header.field_name()
     }
 }
 
-impl<'a> From<&'a str> for HeaderName {
+impl<'a> From<&'a str> for FieldName {
     fn from(value: &'a str) -> Self {
         Self::from_str(value).expect("String slice should be valid ASCII")
     }
 }
 
-impl PartialEq<str> for HeaderName {
+impl PartialEq<str> for FieldName {
     fn eq(&self, other: &str) -> bool {
-        match HeaderName::from_str(other) {
+        match FieldName::from_str(other) {
             Err(_) => false,
             Ok(other) => self == &other,
         }
     }
 }
 
-impl<'a> PartialEq<&'a str> for HeaderName {
+impl<'a> PartialEq<&'a str> for FieldName {
     fn eq(&self, other: &&'a str) -> bool {
-        match HeaderName::from_str(other) {
+        match FieldName::from_str(other) {
             Err(_) => false,
             Ok(other) => self == &other,
         }
     }
 }
 
-impl PartialEq<String> for HeaderName {
+impl PartialEq<String> for FieldName {
     fn eq(&self, other: &String) -> bool {
-        match HeaderName::from_str(other) {
+        match FieldName::from_str(other) {
             Err(_) => false,
             Ok(other) => self == &other,
         }
     }
 }
 
-impl<'a> PartialEq<&String> for HeaderName {
+impl<'a> PartialEq<&String> for FieldName {
     fn eq(&self, other: &&String) -> bool {
-        match HeaderName::from_str(other) {
+        match FieldName::from_str(other) {
             Err(_) => false,
             Ok(other) => self == &other,
         }
@@ -145,8 +145,8 @@ mod tests {
     #[test]
     #[allow(clippy::eq_op)]
     fn test_header_name_static_non_static() {
-        let static_header = HeaderName::from_lowercase_str("hello");
-        let non_static_header = HeaderName::from_str("hello").unwrap();
+        let static_header = FieldName::from_lowercase_str("hello");
+        let non_static_header = FieldName::from_str("hello").unwrap();
 
         assert_eq!(&static_header, &non_static_header);
         assert_eq!(&static_header, &static_header);
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn equality() {
-        let static_header = HeaderName::from_lowercase_str("hello");
+        let static_header = FieldName::from_lowercase_str("hello");
         assert_eq!(static_header, "hello");
         assert_eq!(&static_header, "hello");
         assert_eq!(static_header, String::from("hello"));
@@ -178,7 +178,7 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        let header_name = HeaderName::from_str("hello").unwrap();
+        let header_name = FieldName::from_str("hello").unwrap();
         assert_eq!(format!("{:?}", header_name), "\"hello\"");
     }
 }

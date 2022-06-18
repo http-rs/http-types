@@ -1,47 +1,48 @@
 use std::ops::Deref;
 
-use crate::headers::{HeaderName, HeaderValue};
+use crate::headers::{FieldName, FieldValue};
 
 /// A trait representing a [`HeaderName`] and [`HeaderValue`] pair.
-pub trait Header
+#[doc(alias = "Header")]
+#[doc(alias = "FieldHeader")]
+pub trait Field
 where
     Self: Sized,
 {
     /// The header's name.
-    fn header_name(&self) -> HeaderName;
+    fn field_name(&self) -> FieldName;
 
     /// Access the header's value.
-    fn header_value(&self) -> HeaderValue;
-
-    /// Create an instance from a header value.
-    fn from_parts(name: HeaderName, value: HeaderValue) -> crate::Result<Self>;
+    fn field_value(&self) -> FieldValue;
 }
 
-impl Header for (HeaderName, HeaderValue) {
-    fn header_name(&self) -> HeaderName {
+/// Conversion into a [`Field`].
+#[doc(alias = "IntoHeader")]
+pub trait IntoField {
+    /// What type are we converting into?
+    type IntoField: Field;
+
+    /// Convert into a `Field`.
+    fn into_field(self) -> Self::IntoField;
+}
+
+impl Field for (FieldName, FieldValue) {
+    fn field_name(&self) -> FieldName {
         self.0
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         self.1
-    }
-
-    fn from_parts(name: HeaderName, value: HeaderValue) -> crate::Result<Self> {
-        Ok((name, value))
     }
 }
 
-impl<'a, T: Header> Header for &'a T {
-    fn header_name(&self) -> HeaderName {
-        self.deref().header_name()
+impl<'a, T: Field> Field for &'a T {
+    fn field_name(&self) -> FieldName {
+        self.deref().field_name()
     }
 
-    fn header_value(&self) -> HeaderValue {
-        self.deref().header_value()
-    }
-
-    fn from_parts(name: HeaderName, value: HeaderValue) -> crate::Result<Self> {
-        T::from_parts(name, value)
+    fn field_value(&self) -> FieldValue {
+        self.deref().field_value()
     }
 }
 

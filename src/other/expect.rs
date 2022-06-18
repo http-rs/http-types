@@ -1,5 +1,5 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, EXPECT};
-use crate::{ensure_eq_status, headers::Header};
+use crate::headers::{FieldName, FieldValue, Headers, EXPECT};
+use crate::{ensure_eq_status, headers::Field};
 
 use std::fmt::Debug;
 
@@ -56,14 +56,14 @@ impl Expect {
     }
 }
 
-impl Header for Expect {
-    fn header_name(&self) -> HeaderName {
+impl Field for Expect {
+    fn field_name(&self) -> FieldName {
         EXPECT
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let value = "100-continue";
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(value.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(value.into()) }
     }
 }
 

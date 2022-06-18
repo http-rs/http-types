@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_LENGTH};
+use crate::headers::{Field, FieldName, FieldValue, Headers, CONTENT_LENGTH};
 use crate::Status;
 
 /// The size of the entity-body, in bytes, sent to the recipient.
@@ -62,15 +62,15 @@ impl ContentLength {
     }
 }
 
-impl Header for ContentLength {
-    fn header_name(&self) -> HeaderName {
+impl Field for ContentLength {
+    fn field_name(&self) -> FieldName {
         CONTENT_LENGTH
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = format!("{}", self.length);
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

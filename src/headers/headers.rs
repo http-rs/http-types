@@ -8,10 +8,10 @@ use std::ops::Index;
 use std::str::FromStr;
 
 use crate::headers::{
-    Header, HeaderName, HeaderValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
+    Field, FieldName, HeaderValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 
-use super::HeaderValue;
+use super::FieldValue;
 
 /// A collection of HTTP Headers.
 ///
@@ -31,7 +31,7 @@ use super::HeaderValue;
 /// ```
 #[derive(Clone)]
 pub struct Headers {
-    pub(crate) headers: HashMap<HeaderName, HeaderValue>,
+    pub(crate) headers: HashMap<FieldName, FieldValue>,
 }
 
 impl Headers {
@@ -45,25 +45,25 @@ impl Headers {
     /// Insert a header into the headers.
     ///
     /// Not that this will replace all header values for a given header name.
-    pub fn insert<H: Header>(&mut self, header: H) -> Option<HeaderValue> {
-        let name = header.header_name();
-        let value = header.header_value();
+    pub fn insert<H: Field>(&mut self, header: H) -> Option<FieldValue> {
+        let name = header.field_name();
+        let value = header.field_value();
         self.headers.insert(name, value)
     }
 
     /// Get a reference to a header.
-    pub fn get<H: Header>(&self, name: HeaderName) -> Option<H> {
+    pub fn get<H: Field>(&self, name: FieldName) -> Option<H> {
         let value = self.headers.get(&name)?;
         H::from_parts(name, value.clone()).ok()
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut HeaderValues> {
         self.headers.get_mut(&name.into())
     }
 
     /// Remove a header.
-    pub fn remove<H: Header>(&mut self, name: HeaderName) -> Option<HeaderValue> {
+    pub fn remove<H: Field>(&mut self, name: FieldName) -> Option<FieldValue> {
         self.headers.remove(&name.into())
     }
 
@@ -95,7 +95,7 @@ impl Headers {
     }
 }
 
-impl Index<HeaderName> for Headers {
+impl Index<FieldName> for Headers {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
@@ -104,7 +104,7 @@ impl Index<HeaderName> for Headers {
     ///
     /// Panics if the name is not present in `Headers`.
     #[inline]
-    fn index(&self, name: HeaderName) -> &HeaderValues {
+    fn index(&self, name: FieldName) -> &HeaderValues {
         self.get(name).expect("no entry found for name")
     }
 }
@@ -119,13 +119,13 @@ impl Index<&str> for Headers {
     /// Panics if the name is not present in `Headers`.
     #[inline]
     fn index(&self, name: &str) -> &HeaderValues {
-        let name = HeaderName::from_str(name).expect("string slice needs to be valid ASCII");
+        let name = FieldName::from_str(name).expect("string slice needs to be valid ASCII");
         self.get(name).expect("no entry found for name")
     }
 }
 
 impl IntoIterator for Headers {
-    type Item = (HeaderName, HeaderValues);
+    type Item = (FieldName, HeaderValues);
     type IntoIter = IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -138,7 +138,7 @@ impl IntoIterator for Headers {
 }
 
 impl<'a> IntoIterator for &'a Headers {
-    type Item = (&'a HeaderName, &'a HeaderValues);
+    type Item = (&'a FieldName, &'a HeaderValues);
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -148,7 +148,7 @@ impl<'a> IntoIterator for &'a Headers {
 }
 
 impl<'a> IntoIterator for &'a mut Headers {
-    type Item = (&'a HeaderName, &'a mut HeaderValues);
+    type Item = (&'a FieldName, &'a mut HeaderValues);
     type IntoIter = IterMut<'a>;
 
     #[inline]
@@ -180,12 +180,12 @@ mod tests {
     use super::*;
     use std::str::FromStr;
 
-    const STATIC_HEADER: HeaderName = HeaderName::from_lowercase_str("hello");
+    const STATIC_HEADER: FieldName = FieldName::from_lowercase_str("hello");
 
     #[test]
     fn test_header_name_static_non_static() -> crate::Result<()> {
-        let static_header = HeaderName::from_lowercase_str("hello");
-        let non_static_header = HeaderName::from_str("hello")?;
+        let static_header = FieldName::from_lowercase_str("hello");
+        let non_static_header = FieldName::from_str("hello")?;
 
         let mut headers = Headers::new();
         headers.append(STATIC_HEADER, "foo0").unwrap();

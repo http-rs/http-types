@@ -4,27 +4,27 @@ use std::iter;
 use std::option;
 use std::slice;
 
-use crate::headers::{Header, HeaderValue, HeaderValues, Values};
+use crate::headers::{Field, FieldValue, HeaderValues, Values};
 
 /// A trait for objects which can be converted or resolved to one or more `HeaderValue`s.
 pub trait ToHeaderValues {
     /// Returned iterator over header values which this type may correspond to.
-    type Iter: Iterator<Item = HeaderValue>;
+    type Iter: Iterator<Item = FieldValue>;
 
     /// Converts this object to an iterator of resolved `HeaderValues`.
     fn to_header_values(&self) -> crate::Result<Self::Iter>;
 }
 
-impl<T: Header> ToHeaderValues for T {
-    type Iter = option::IntoIter<HeaderValue>;
+impl<T: Field> ToHeaderValues for T {
+    type Iter = option::IntoIter<FieldValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
-        Ok(Some(self.header_value()).into_iter())
+        Ok(Some(self.field_value()).into_iter())
     }
 }
 
-impl ToHeaderValues for HeaderValue {
-    type Iter = option::IntoIter<HeaderValue>;
+impl ToHeaderValues for FieldValue {
+    type Iter = option::IntoIter<FieldValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         Ok(Some(self.clone()).into_iter())
@@ -39,8 +39,8 @@ impl<'a> ToHeaderValues for &'a HeaderValues {
     }
 }
 
-impl<'a> ToHeaderValues for &'a [HeaderValue] {
-    type Iter = iter::Cloned<slice::Iter<'a, HeaderValue>>;
+impl<'a> ToHeaderValues for &'a [FieldValue] {
+    type Iter = iter::Cloned<slice::Iter<'a, FieldValue>>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         Ok(self.iter().cloned())
@@ -48,7 +48,7 @@ impl<'a> ToHeaderValues for &'a [HeaderValue] {
 }
 
 impl<'a> ToHeaderValues for &'a str {
-    type Iter = option::IntoIter<HeaderValue>;
+    type Iter = option::IntoIter<FieldValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         let value = self
@@ -59,7 +59,7 @@ impl<'a> ToHeaderValues for &'a str {
 }
 
 impl ToHeaderValues for String {
-    type Iter = option::IntoIter<HeaderValue>;
+    type Iter = option::IntoIter<FieldValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         self.as_str().to_header_values()
@@ -67,7 +67,7 @@ impl ToHeaderValues for String {
 }
 
 impl ToHeaderValues for &String {
-    type Iter = option::IntoIter<HeaderValue>;
+    type Iter = option::IntoIter<FieldValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         self.as_str().to_header_values()
@@ -75,7 +75,7 @@ impl ToHeaderValues for &String {
 }
 
 impl ToHeaderValues for Cow<'_, str> {
-    type Iter = option::IntoIter<HeaderValue>;
+    type Iter = option::IntoIter<FieldValue>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {
         self.as_ref().to_header_values()

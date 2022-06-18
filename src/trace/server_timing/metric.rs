@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::headers::HeaderValue;
+use crate::headers::FieldValue;
 
 /// An individual entry into `ServerTiming`.
 //
@@ -52,8 +52,8 @@ impl Metric {
     }
 }
 
-impl From<Metric> for HeaderValue {
-    fn from(entry: Metric) -> HeaderValue {
+impl From<Metric> for FieldValue {
+    fn from(entry: Metric) -> FieldValue {
         let mut string = entry.name;
 
         // Format a `Duration` into the format that the spec expects.
@@ -69,14 +69,14 @@ impl From<Metric> for HeaderValue {
         };
 
         // SAFETY: we validate that the values are valid ASCII on creation.
-        unsafe { HeaderValue::from_bytes_unchecked(string.into_bytes()) }
+        unsafe { FieldValue::from_bytes_unchecked(string.into_bytes()) }
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::HeaderValue;
+    use crate::headers::FieldValue;
     use std::time::Duration;
 
     #[test]
@@ -86,16 +86,16 @@ mod test {
         let dur = Duration::from_secs(1);
         let desc = String::from("A server timing");
 
-        let val: HeaderValue = Metric::new(name.clone(), None, None)?.into();
+        let val: FieldValue = Metric::new(name.clone(), None, None)?.into();
         assert_eq!(val, "Server");
 
-        let val: HeaderValue = Metric::new(name.clone(), Some(dur), None)?.into();
+        let val: FieldValue = Metric::new(name.clone(), Some(dur), None)?.into();
         assert_eq!(val, "Server; dur=1000");
 
-        let val: HeaderValue = Metric::new(name.clone(), None, Some(desc.clone()))?.into();
+        let val: FieldValue = Metric::new(name.clone(), None, Some(desc.clone()))?.into();
         assert_eq!(val, r#"Server; desc="A server timing""#);
 
-        let val: HeaderValue = Metric::new(name.clone(), Some(dur), Some(desc.clone()))?.into();
+        let val: FieldValue = Metric::new(name.clone(), Some(dur), Some(desc.clone()))?.into();
         assert_eq!(val, r#"Server; dur=1000; desc="A server timing""#);
         Ok(())
     }

@@ -15,7 +15,7 @@
 // //! assert_eq!(res["X-XSS-Protection"], "1; mode=block");
 //! ```
 
-use crate::headers::{HeaderName, HeaderValue, Headers};
+use crate::headers::{FieldName, FieldValue, Headers};
 
 mod csp;
 mod strict_transport_security;
@@ -117,8 +117,8 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
 // /// assert_eq!(headers.get("X-Powered-By"), None);
 // /// ```
 #[inline]
-pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<HeaderValue>) {
-    let name = HeaderName::from_lowercase_str("X-Powered-By");
+pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<FieldValue>) {
+    let name = FieldName::from_lowercase_str("X-Powered-By");
     match value {
         Some(value) => {
             // Can never fail as value is already a HeaderValue, could use unsafe version of insert

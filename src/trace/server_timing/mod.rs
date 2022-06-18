@@ -32,7 +32,7 @@ use std::iter::Iterator;
 
 use std::slice;
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, SERVER_TIMING};
+use crate::headers::{Field, FieldName, FieldValue, Headers, SERVER_TIMING};
 
 /// Metrics and descriptions for the given request-response cycle.
 ///
@@ -105,15 +105,15 @@ impl ServerTiming {
     }
 }
 
-impl Header for ServerTiming {
-    fn header_name(&self) -> HeaderName {
+impl Field for ServerTiming {
+    fn field_name(&self) -> FieldName {
         SERVER_TIMING
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, timing) in self.timings.iter().enumerate() {
-            let timing: HeaderValue = timing.clone().into();
+            let timing: FieldValue = timing.clone().into();
             match n {
                 0 => write!(output, "{}", timing).unwrap(),
                 _ => write!(output, ", {}", timing).unwrap(),
@@ -121,7 +121,7 @@ impl Header for ServerTiming {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::headers::HeaderValue;
+use crate::headers::FieldValue;
 use crate::Status;
 
 use std::time::Duration;
@@ -127,10 +127,10 @@ impl CacheDirective {
     }
 }
 
-impl From<CacheDirective> for HeaderValue {
+impl From<CacheDirective> for FieldValue {
     fn from(directive: CacheDirective) -> Self {
         use CacheDirective::*;
-        let h = |s: String| unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) };
+        let h = |s: String| unsafe { FieldValue::from_bytes_unchecked(s.into_bytes()) };
 
         match directive {
             Immutable => h("immutable".to_string()),

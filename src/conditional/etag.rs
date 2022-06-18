@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ETAG};
+use crate::headers::{Field, FieldName, FieldValue, Headers, ETAG};
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Display};
@@ -112,14 +112,14 @@ impl ETag {
     }
 }
 
-impl Header for ETag {
-    fn header_name(&self) -> HeaderName {
+impl Field for ETag {
+    fn field_name(&self) -> FieldName {
         ETAG
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let s = self.to_string();
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(s.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(s.into()) }
     }
 }
 

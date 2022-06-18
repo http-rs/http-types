@@ -1,11 +1,11 @@
 //! Client header advertising which media types the client is able to understand.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ACCEPT};
+use crate::headers::{FieldName, FieldValue, Headers, ACCEPT};
 use crate::mime::Mime;
 use crate::utils::sort_by_weight;
 use crate::{
     content::{ContentType, MediaTypeProposal},
-    headers::Header,
+    headers::Field,
 };
 use crate::{Error, StatusCode};
 
@@ -161,14 +161,14 @@ impl Accept {
     }
 }
 
-impl Header for Accept {
-    fn header_name(&self) -> HeaderName {
+impl Field for Accept {
+    fn field_name(&self) -> FieldName {
         ACCEPT
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
+            let directive: FieldValue = directive.clone().into();
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),
@@ -183,7 +183,7 @@ impl Header for Accept {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

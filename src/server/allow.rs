@@ -1,6 +1,6 @@
 //! List the set of methods supported by a resource.
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, ALLOW};
+use crate::headers::{Field, FieldName, FieldValue, Headers, ALLOW};
 use crate::Method;
 
 use std::collections::{hash_set, HashSet};
@@ -84,11 +84,11 @@ impl Allow {
     }
 }
 
-impl Header for Allow {
-    fn header_name(&self) -> HeaderName {
+impl Field for Allow {
+    fn field_name(&self) -> FieldName {
         ALLOW
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, method) in self.entries.iter().enumerate() {
             match n {
@@ -98,7 +98,7 @@ impl Header for Allow {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

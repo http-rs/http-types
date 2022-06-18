@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, AGE};
+use crate::headers::{Field, FieldName, FieldValue, Headers, AGE};
 use crate::Status;
 
 use std::fmt::Debug;
@@ -69,16 +69,16 @@ impl Age {
     }
 }
 
-impl Header for Age {
-    fn header_name(&self) -> HeaderName {
+impl Field for Age {
+    fn field_name(&self) -> FieldName {
         AGE
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = self.dur.as_secs().to_string();
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

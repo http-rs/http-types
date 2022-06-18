@@ -49,7 +49,7 @@
 //! - [HTTP/2 spec: HTTP Sequence](https://http2.github.io/http2-spec/#HttpSequence)
 
 use crate::headers::{
-    HeaderName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
+    FieldName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 use futures_lite::Stream;
 
@@ -89,7 +89,7 @@ impl Trailers {
     /// ```
     pub fn insert(
         &mut self,
-        name: impl Into<HeaderName>,
+        name: impl Into<FieldName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<Option<HeaderValues>> {
         self.headers.insert(name, values)
@@ -114,24 +114,24 @@ impl Trailers {
     /// ```
     pub fn append(
         &mut self,
-        name: impl Into<HeaderName>,
+        name: impl Into<FieldName>,
         values: impl ToHeaderValues,
     ) -> crate::Result<()> {
         self.headers.append(name, values)
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
+    pub fn get(&self, name: impl Into<FieldName>) -> Option<&HeaderValues> {
         self.headers.get(name)
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut HeaderValues> {
         self.headers.get_mut(name)
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+    pub fn remove(&mut self, name: impl Into<FieldName>) -> Option<HeaderValues> {
         self.headers.remove(name)
     }
 
@@ -181,7 +181,7 @@ impl DerefMut for Trailers {
     }
 }
 
-impl Index<HeaderName> for Trailers {
+impl Index<FieldName> for Trailers {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
@@ -190,7 +190,7 @@ impl Index<HeaderName> for Trailers {
     ///
     /// Panics if the name is not present in `Trailers`.
     #[inline]
-    fn index(&self, name: HeaderName) -> &HeaderValues {
+    fn index(&self, name: FieldName) -> &HeaderValues {
         self.headers.index(name)
     }
 }

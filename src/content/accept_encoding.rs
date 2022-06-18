@@ -1,10 +1,10 @@
 //! Client header advertising available compression algorithms.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, ACCEPT_ENCODING};
+use crate::headers::{FieldName, FieldValue, Headers, ACCEPT_ENCODING};
 use crate::utils::sort_by_weight;
 use crate::{
     content::{ContentEncoding, Encoding, EncodingProposal},
-    headers::Header,
+    headers::Field,
 };
 use crate::{Error, StatusCode};
 
@@ -153,15 +153,15 @@ impl AcceptEncoding {
     }
 }
 
-impl Header for AcceptEncoding {
-    fn header_name(&self) -> HeaderName {
+impl Field for AcceptEncoding {
+    fn field_name(&self) -> FieldName {
         ACCEPT_ENCODING
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = (*directive).into();
+            let directive: FieldValue = (*directive).into();
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),
@@ -176,7 +176,7 @@ impl Header for AcceptEncoding {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::headers::{self, Header, HeaderName, HeaderValue, Headers};
+use crate::headers::{self, Field, FieldName, FieldValue, Headers};
 use crate::transfer::{Encoding, EncodingProposal, TransferEncoding};
 use crate::utils::sort_by_weight;
 use crate::{Error, StatusCode};
@@ -151,15 +151,15 @@ impl TE {
     }
 }
 
-impl Header for TE {
-    fn header_name(&self) -> HeaderName {
+impl Field for TE {
+    fn field_name(&self) -> FieldName {
         headers::TE
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = (*directive).into();
+            let directive: FieldValue = (*directive).into();
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),
@@ -174,7 +174,7 @@ impl Header for TE {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

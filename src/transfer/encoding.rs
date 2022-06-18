@@ -1,4 +1,4 @@
-use crate::headers::HeaderValue;
+use crate::headers::FieldValue;
 use std::fmt::{self, Display};
 
 /// Available compression algorithms.
@@ -56,9 +56,9 @@ impl Display for Encoding {
     }
 }
 
-impl From<Encoding> for HeaderValue {
+impl From<Encoding> for FieldValue {
     fn from(directive: Encoding) -> Self {
         let s = directive.to_string();
-        unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) }
+        unsafe { FieldValue::from_bytes_unchecked(s.into_bytes()) }
     }
 }

@@ -1,6 +1,6 @@
 use crate::auth::AuthenticationScheme;
 use crate::bail_status as bail;
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, AUTHORIZATION};
+use crate::headers::{Field, FieldName, FieldValue, Headers, AUTHORIZATION};
 
 /// Credentials to authenticate a user agent with a server.
 ///
@@ -92,16 +92,16 @@ impl Authorization {
     }
 }
 
-impl Header for Authorization {
-    fn header_name(&self) -> HeaderName {
+impl Field for Authorization {
+    fn field_name(&self) -> FieldName {
         AUTHORIZATION
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = format!("{} {}", self.scheme, self.credentials);
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

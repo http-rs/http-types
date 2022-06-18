@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, REFERER};
+use crate::headers::{Field, FieldName, FieldValue, Headers, REFERER};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -86,16 +86,16 @@ impl Referer {
     }
 }
 
-impl Header for Referer {
-    fn header_name(&self) -> HeaderName {
+impl Field for Referer {
+    fn field_name(&self) -> FieldName {
         REFERER
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = self.location.to_string();
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

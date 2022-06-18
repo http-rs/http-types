@@ -10,11 +10,11 @@ use crate::Error;
 
 /// A header value.
 #[derive(Clone, Eq, PartialEq, Hash)]
-pub struct HeaderValue {
+pub struct FieldValue {
     inner: String,
 }
 
-impl HeaderValue {
+impl FieldValue {
     /// Create a new `HeaderValue` from a Vec of ASCII bytes.
     ///
     /// # Error
@@ -48,32 +48,32 @@ impl HeaderValue {
     }
 }
 
-impl From<Mime> for HeaderValue {
+impl From<Mime> for FieldValue {
     fn from(mime: Mime) -> Self {
-        HeaderValue {
+        FieldValue {
             inner: format!("{}", mime),
         }
     }
 }
 
 #[cfg(feature = "cookies")]
-impl From<Cookie<'_>> for HeaderValue {
+impl From<Cookie<'_>> for FieldValue {
     fn from(cookie: Cookie<'_>) -> Self {
-        HeaderValue {
+        FieldValue {
             inner: cookie.to_string(),
         }
     }
 }
 
-impl From<&Mime> for HeaderValue {
+impl From<&Mime> for FieldValue {
     fn from(mime: &Mime) -> Self {
-        HeaderValue {
+        FieldValue {
             inner: format!("{}", mime),
         }
     }
 }
 
-impl FromStr for HeaderValue {
+impl FromStr for FieldValue {
     type Err = Error;
 
     /// Create a new `HeaderValue`.
@@ -87,7 +87,7 @@ impl FromStr for HeaderValue {
     }
 }
 
-impl<'a> TryFrom<&'a str> for HeaderValue {
+impl<'a> TryFrom<&'a str> for FieldValue {
     type Error = Error;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
@@ -95,43 +95,43 @@ impl<'a> TryFrom<&'a str> for HeaderValue {
     }
 }
 
-impl Debug for HeaderValue {
+impl Debug for FieldValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.inner)
     }
 }
 
-impl Display for HeaderValue {
+impl Display for FieldValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.inner)
     }
 }
 
-impl PartialEq<str> for HeaderValue {
+impl PartialEq<str> for FieldValue {
     fn eq(&self, other: &str) -> bool {
         self.inner == other
     }
 }
 
-impl<'a> PartialEq<&'a str> for HeaderValue {
+impl<'a> PartialEq<&'a str> for FieldValue {
     fn eq(&self, other: &&'a str) -> bool {
         &self.inner == other
     }
 }
 
-impl PartialEq<String> for HeaderValue {
+impl PartialEq<String> for FieldValue {
     fn eq(&self, other: &String) -> bool {
         &self.inner == other
     }
 }
 
-impl<'a> PartialEq<&String> for HeaderValue {
+impl<'a> PartialEq<&String> for FieldValue {
     fn eq(&self, other: &&String) -> bool {
         &&self.inner == other
     }
 }
 
-impl From<HeaderValues> for HeaderValue {
+impl From<HeaderValues> for FieldValue {
     fn from(mut other: HeaderValues) -> Self {
         other.inner.reverse();
         other
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        let header_value = HeaderValue::from_str("foo0").unwrap();
+        let header_value = FieldValue::from_str("foo0").unwrap();
         assert_eq!(format!("{:?}", header_value), "\"foo0\"");
     }
 }

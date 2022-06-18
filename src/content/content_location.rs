@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_LOCATION};
+use crate::headers::{Field, FieldName, FieldValue, Headers, CONTENT_LOCATION};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -81,15 +81,15 @@ impl ContentLocation {
     }
 }
 
-impl Header for ContentLocation {
-    fn header_name(&self) -> HeaderName {
+impl Field for ContentLocation {
+    fn field_name(&self) -> FieldName {
         CONTENT_LOCATION
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = self.url.to_string();
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

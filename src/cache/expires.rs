@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, EXPIRES};
+use crate::headers::{Field, FieldName, FieldValue, Headers, EXPIRES};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
@@ -71,15 +71,15 @@ impl Expires {
     }
 }
 
-impl Header for Expires {
-    fn header_name(&self) -> HeaderName {
+impl Field for Expires {
+    fn field_name(&self) -> FieldName {
         EXPIRES
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = fmt_http_date(self.instant);
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, SOURCE_MAP};
+use crate::headers::{Field, FieldName, FieldValue, Headers, SOURCE_MAP};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -83,16 +83,16 @@ impl SourceMap {
     }
 }
 
-impl Header for SourceMap {
-    fn header_name(&self) -> HeaderName {
+impl Field for SourceMap {
+    fn field_name(&self) -> FieldName {
         SOURCE_MAP
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = self.location.to_string();
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

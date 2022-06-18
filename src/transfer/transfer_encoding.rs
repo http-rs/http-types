@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, TRANSFER_ENCODING};
+use crate::headers::{Field, FieldName, FieldValue, Headers, TRANSFER_ENCODING};
 use crate::transfer::{Encoding, EncodingProposal};
 
 use std::fmt::{self, Debug};
@@ -64,11 +64,11 @@ impl TransferEncoding {
     }
 }
 
-impl Header for TransferEncoding {
-    fn header_name(&self) -> HeaderName {
+impl Field for TransferEncoding {
+    fn field_name(&self) -> FieldName {
         TRANSFER_ENCODING
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         self.inner.into()
     }
 }

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, TRACEPARENT};
+use crate::headers::{Field, FieldName, FieldValue, Headers, TRACEPARENT};
 use crate::Status;
 
 /// Extract and apply [Trace-Context](https://w3c.github.io/trace-context/) headers.
@@ -195,14 +195,14 @@ impl TraceContext {
     }
 }
 
-impl Header for TraceContext {
-    fn header_name(&self) -> HeaderName {
+impl Field for TraceContext {
+    fn field_name(&self) -> FieldName {
         TRACEPARENT
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = format!("{}", self);
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

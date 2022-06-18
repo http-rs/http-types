@@ -3,8 +3,8 @@
 //! This is used to update caches or to prevent uploading a new resource when
 //! one already exists.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, IF_NONE_MATCH};
-use crate::{conditional::ETag, headers::Header};
+use crate::headers::{FieldName, FieldValue, Headers, IF_NONE_MATCH};
+use crate::{conditional::ETag, headers::Field};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -109,11 +109,11 @@ impl IfNoneMatch {
     }
 }
 
-impl Header for IfNoneMatch {
-    fn header_name(&self) -> HeaderName {
+impl Field for IfNoneMatch {
+    fn field_name(&self) -> FieldName {
         IF_NONE_MATCH
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {
             match n {
@@ -130,7 +130,7 @@ impl Header for IfNoneMatch {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

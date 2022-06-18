@@ -1,4 +1,4 @@
-use crate::headers::{Header, HeaderName, HeaderValue, Headers};
+use crate::headers::{Field, FieldName, FieldValue, Headers};
 use crate::Status;
 
 use crate::headers::STRICT_TRANSPORT_SECURITY;
@@ -70,12 +70,12 @@ impl StrictTransportSecurity {
     }
 }
 
-impl Header for StrictTransportSecurity {
-    fn header_name(&self) -> HeaderName {
+impl Field for StrictTransportSecurity {
+    fn field_name(&self) -> FieldName {
         STRICT_TRANSPORT_SECURITY
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let max_age = self.max_age.as_secs();
         let mut output = format!("max-age={}", max_age);
         if self.include_subdomains {
@@ -86,7 +86,7 @@ impl Header for StrictTransportSecurity {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

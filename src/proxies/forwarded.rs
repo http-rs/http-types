@@ -1,14 +1,14 @@
 use crate::{
-    headers::{Header, HeaderName, HeaderValue, Headers, FORWARDED},
+    headers::{Field, FieldName, FieldValue, Headers, FORWARDED},
     parse_utils::{parse_quoted_string, parse_token},
 };
 use std::{borrow::Cow, convert::TryFrom, fmt::Write, net::IpAddr};
 
 // these constants are private because they are nonstandard
-const X_FORWARDED_FOR: HeaderName = HeaderName::from_lowercase_str("x-forwarded-for");
-const X_FORWARDED_PROTO: HeaderName = HeaderName::from_lowercase_str("x-forwarded-proto");
-const X_FORWARDED_BY: HeaderName = HeaderName::from_lowercase_str("x-forwarded-by");
-const X_FORWARDED_HOST: HeaderName = HeaderName::from_lowercase_str("x-forwarded-host");
+const X_FORWARDED_FOR: FieldName = FieldName::from_lowercase_str("x-forwarded-for");
+const X_FORWARDED_PROTO: FieldName = FieldName::from_lowercase_str("x-forwarded-proto");
+const X_FORWARDED_BY: FieldName = FieldName::from_lowercase_str("x-forwarded-by");
+const X_FORWARDED_HOST: FieldName = FieldName::from_lowercase_str("x-forwarded-host");
 
 /// A rust representation of the [forwarded
 /// header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded).
@@ -358,11 +358,11 @@ impl<'a> Forwarded<'a> {
     }
 }
 
-impl<'a> Header for Forwarded<'a> {
-    fn header_name(&self) -> HeaderName {
+impl<'a> Field for Forwarded<'a> {
+    fn field_name(&self) -> FieldName {
         FORWARDED
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         if let Some(by) = self.by() {
             write!(&mut output, "by={};", by).unwrap();
@@ -391,7 +391,7 @@ impl<'a> Header for Forwarded<'a> {
         output.pop();
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -439,7 +439,7 @@ fn starts_with_ignore_case(start: &'static str, input: &str) -> bool {
 
 impl std::fmt::Display for Forwarded<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.header_value().as_str())
+        f.write_str(self.field_value().as_str())
     }
 }
 
@@ -665,7 +665,7 @@ mod tests {
         ];
         for input in inputs {
             let forwarded = Forwarded::parse(input).map_err(|_| crate::Error::new_adhoc(input))?;
-            let header = forwarded.header_value();
+            let header = forwarded.field_value();
             let parsed = Forwarded::parse(header.as_str())?;
             assert_eq!(forwarded, parsed);
         }

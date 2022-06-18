@@ -1,8 +1,8 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
+use crate::headers::{FieldName, FieldValue, Headers, AUTHORIZATION};
 use crate::Status;
 use crate::{
     auth::{AuthenticationScheme, Authorization},
-    headers::Header,
+    headers::Field,
 };
 use crate::{bail_status as bail, ensure_status as ensure};
 
@@ -98,16 +98,16 @@ impl BasicAuth {
     }
 }
 
-impl Header for BasicAuth {
-    fn header_name(&self) -> HeaderName {
+impl Field for BasicAuth {
+    fn field_name(&self) -> FieldName {
         AUTHORIZATION
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let scheme = AuthenticationScheme::Basic;
         let credentials = base64::encode(format!("{}:{}", self.username, self.password));
         let auth = Authorization::new(scheme, credentials);
-        auth.header_value()
+        auth.field_value()
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::content::Encoding;
 use crate::ensure;
-use crate::headers::HeaderValue;
+use crate::headers::FieldValue;
 use crate::utils::parse_weight;
 
 use std::cmp::{Ordering, PartialEq};
@@ -108,13 +108,13 @@ impl PartialOrd for EncodingProposal {
     }
 }
 
-impl From<EncodingProposal> for HeaderValue {
-    fn from(entry: EncodingProposal) -> HeaderValue {
+impl From<EncodingProposal> for FieldValue {
+    fn from(entry: EncodingProposal) -> FieldValue {
         let s = match entry.weight {
             Some(weight) => format!("{};q={:.3}", entry.encoding, weight),
             None => entry.encoding.to_string(),
         };
-        unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) }
+        unsafe { FieldValue::from_bytes_unchecked(s.into_bytes()) }
     }
 }
 

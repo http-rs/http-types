@@ -1,7 +1,7 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, IF_MATCH};
-use crate::{conditional::ETag, headers::Header};
+use crate::headers::{FieldName, FieldValue, Headers, IF_MATCH};
+use crate::{conditional::ETag, headers::Field};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -103,11 +103,11 @@ impl IfMatch {
     }
 }
 
-impl Header for IfMatch {
-    fn header_name(&self) -> HeaderName {
+impl Field for IfMatch {
+    fn field_name(&self) -> FieldName {
         IF_MATCH
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {
             match n {
@@ -124,7 +124,7 @@ impl Header for IfMatch {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

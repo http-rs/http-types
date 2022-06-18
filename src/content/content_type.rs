@@ -1,6 +1,6 @@
 use std::{convert::TryInto, str::FromStr};
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_TYPE};
+use crate::headers::{Field, FieldName, FieldValue, Headers, CONTENT_TYPE};
 use crate::mime::Mime;
 
 /// Indicate the media type of a resource's content.
@@ -75,14 +75,14 @@ impl ContentType {
     }
 }
 
-impl Header for ContentType {
-    fn header_name(&self) -> HeaderName {
+impl Field for ContentType {
+    fn field_name(&self) -> FieldName {
         CONTENT_TYPE
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = format!("{}", self.media_type);
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 
@@ -118,7 +118,7 @@ mod test {
 
         let ct = ContentType::from_headers(headers)?.unwrap();
         assert_eq!(
-            ct.header_value(),
+            ct.field_value(),
             format!("{}", Mime::from_str("text/*")?).as_str()
         );
         Ok(())

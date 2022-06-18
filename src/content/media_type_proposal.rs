@@ -1,5 +1,5 @@
 use crate::ensure;
-use crate::headers::HeaderValue;
+use crate::headers::FieldValue;
 use crate::mime::Mime;
 
 use std::ops::{Deref, DerefMut};
@@ -125,13 +125,13 @@ impl PartialOrd for MediaTypeProposal {
     }
 }
 
-impl From<MediaTypeProposal> for HeaderValue {
-    fn from(entry: MediaTypeProposal) -> HeaderValue {
+impl From<MediaTypeProposal> for FieldValue {
+    fn from(entry: MediaTypeProposal) -> FieldValue {
         let s = match entry.weight {
             Some(weight) => format!("{};q={:.3}", entry.media_type, weight),
             None => entry.media_type.to_string(),
         };
-        unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) }
+        unsafe { FieldValue::from_bytes_unchecked(s.into_bytes()) }
     }
 }
 

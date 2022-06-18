@@ -26,7 +26,7 @@
 //! # Ok(()) }
 //! ```
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, TIMING_ALLOW_ORIGIN};
+use crate::headers::{Field, FieldName, FieldValue, Headers, TIMING_ALLOW_ORIGIN};
 use crate::{Status, Url};
 
 use std::fmt::Write;
@@ -131,11 +131,11 @@ impl TimingAllowOrigin {
     }
 }
 
-impl Header for TimingAllowOrigin {
-    fn header_name(&self) -> HeaderName {
+impl Field for TimingAllowOrigin {
+    fn field_name(&self) -> FieldName {
         TIMING_ALLOW_ORIGIN
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, origin) in self.origins.iter().enumerate() {
             match n {
@@ -152,7 +152,7 @@ impl Header for TimingAllowOrigin {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

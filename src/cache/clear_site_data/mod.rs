@@ -1,7 +1,7 @@
 //! Clear browsing data (cookies, storage, cache) associated with the
 //! requesting website
 
-use crate::headers::{self, HeaderName, HeaderValue, Headers, CLEAR_SITE_DATA};
+use crate::headers::{self, FieldName, FieldValue, Headers, CLEAR_SITE_DATA};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -12,7 +12,7 @@ use std::str::FromStr;
 mod directive;
 
 pub use directive::ClearDirective;
-use headers::Header;
+use headers::Field;
 
 /// Clear browsing data (cookies, storage, cache) associated with the
 /// requesting website.
@@ -211,12 +211,12 @@ impl Debug for ClearSiteData {
     }
 }
 
-impl Header for ClearSiteData {
-    fn header_name(&self) -> HeaderName {
+impl Field for ClearSiteData {
+    fn field_name(&self) -> FieldName {
         CLEAR_SITE_DATA
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {
             match n {
@@ -233,7 +233,7 @@ impl Header for ClearSiteData {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

@@ -1,6 +1,6 @@
-use headers::Header;
+use headers::Field;
 
-use crate::headers::{HeaderName, HeaderValue, Headers, CACHE_CONTROL};
+use crate::headers::{FieldName, FieldValue, Headers, CACHE_CONTROL};
 use crate::{cache::CacheDirective, headers};
 
 use std::fmt::{self, Debug, Write};
@@ -81,14 +81,14 @@ impl CacheControl {
     }
 }
 
-impl Header for CacheControl {
-    fn header_name(&self) -> HeaderName {
+impl Field for CacheControl {
+    fn field_name(&self) -> FieldName {
         CACHE_CONTROL
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
-            let directive: HeaderValue = directive.clone().into();
+            let directive: FieldValue = directive.clone().into();
             match n {
                 0 => write!(output, "{}", directive).unwrap(),
                 _ => write!(output, ", {}", directive).unwrap(),
@@ -96,7 +96,7 @@ impl Header for CacheControl {
         }
 
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 

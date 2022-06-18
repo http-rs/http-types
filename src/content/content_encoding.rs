@@ -1,9 +1,9 @@
 //! Specify the compression algorithm.
 
-use crate::headers::{HeaderName, HeaderValue, Headers, CONTENT_ENCODING};
+use crate::headers::{FieldName, FieldValue, Headers, CONTENT_ENCODING};
 use crate::{
     content::{Encoding, EncodingProposal},
-    headers::Header,
+    headers::Field,
 };
 
 use std::fmt::{self, Debug};
@@ -67,11 +67,11 @@ impl ContentEncoding {
     }
 }
 
-impl Header for ContentEncoding {
-    fn header_name(&self) -> HeaderName {
+impl Field for ContentEncoding {
+    fn field_name(&self) -> FieldName {
         CONTENT_ENCODING
     }
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         self.inner.into()
     }
 }

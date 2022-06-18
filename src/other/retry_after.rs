@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime, SystemTimeError};
 
-use crate::headers::{Header, HeaderName, HeaderValue, Headers, RETRY_AFTER};
+use crate::headers::{Field, FieldName, FieldValue, Headers, RETRY_AFTER};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 /// Indicate how long the user agent should wait before making a follow-up request.
@@ -89,18 +89,18 @@ impl RetryAfter {
     }
 }
 
-impl Header for RetryAfter {
-    fn header_name(&self) -> HeaderName {
+impl Field for RetryAfter {
+    fn field_name(&self) -> FieldName {
         RETRY_AFTER
     }
 
-    fn header_value(&self) -> HeaderValue {
+    fn field_value(&self) -> FieldValue {
         let output = match self.inner {
             RetryDirective::Duration(dur) => format!("{}", dur.as_secs()),
             RetryDirective::SystemTime(at) => fmt_http_date(at),
         };
         // SAFETY: the internal string is validated to be ASCII.
-        unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
+        unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
 }
 
