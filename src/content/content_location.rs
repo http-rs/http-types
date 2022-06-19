@@ -101,7 +101,7 @@ mod test {
         let content_location = ContentLocation::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Fields::new();
-        content_headers.insert(location);
+        headers.insert_typed(content_location);
 
         let content_location =
             ContentLocation::from_headers(Url::parse("https://example.net/").unwrap(), headers)?

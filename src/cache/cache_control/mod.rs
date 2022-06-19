@@ -16,7 +16,7 @@ pub use cache_directive::CacheDirective;
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::{Field, Fields, CACHE_CONTROL};
+    use crate::headers::{Fields, CACHE_CONTROL};
 
     #[test]
     fn smoke() -> crate::Result<()> {

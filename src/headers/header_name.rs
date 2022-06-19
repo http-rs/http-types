@@ -91,8 +91,8 @@ impl From<&FieldName> for FieldName {
 }
 
 impl<T: Field> From<T> for FieldName {
-    fn from(header: T) -> FieldName {
-        header.field_name()
+    fn from(_field: T) -> FieldName {
+        T::FIELD_NAME
     }
 }
 

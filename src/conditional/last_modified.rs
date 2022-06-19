@@ -88,7 +88,7 @@ mod test {
         let last_modified = LastModified::new(time);
 
         let mut headers = Fields::new();
-        last_headers.insert(modified);
+        headers.insert_typed(last_modified);
 
         let last_modified = LastModified::from_headers(headers)?.unwrap();
 

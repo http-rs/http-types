@@ -582,7 +582,6 @@ mod serde {
         where
             E: DeError,
         {
-            use std::convert::TryFrom;
             match StatusCode::try_from(v) {
                 Ok(status_code) => Ok(status_code),
                 Err(_) => Err(DeError::invalid_value(

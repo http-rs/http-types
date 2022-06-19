@@ -152,10 +152,6 @@ impl TE {
 }
 
 impl Field for TE {
-    fn field_name(&self) -> FieldName {
-        headers::TE
-    }
-
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
@@ -176,6 +172,8 @@ impl Field for TE {
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { FieldValue::from_bytes_unchecked(output.into()) }
     }
+
+    const FIELD_NAME: FieldName = headers::TE;
 }
 
 impl IntoIterator for TE {

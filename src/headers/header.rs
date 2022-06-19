@@ -21,15 +21,3 @@ where
     // // TODO: move this to a separate trait.
     // fn from_field_pair(name: FieldName, value: FieldValue) -> Result<Self, ()>;
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn header_from_strings() {
-        let strings = ("Content-Length", "12");
-        assert_eq!(strings.header_name(), "Content-Length");
-        assert_eq!(strings.header_value(), "12");
-    }
-}

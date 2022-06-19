@@ -35,7 +35,7 @@ pin_project_lite::pin_project! {
     #[derive(Debug)]
     pub struct Response {
         status: StatusCode,
-        headers: Headers,
+        headers: Fields,
         version: Option<Version>,
         has_trailers: bool,
         trailers_sender: Option<async_channel::Sender<Trailers>>,
@@ -123,10 +123,7 @@ impl Response {
     }
 
     /// Set a typed HTTP header.
-    pub fn insert_typed_header<F: Field>(
-        &mut self,
-        field: F,
-    ) -> crate::Result<Option<FieldValues>> {
+    pub fn insert_typed_header<F: Field>(&mut self, field: F) -> Option<FieldValues> {
         self.headers.insert_typed(field)
     }
 
@@ -635,13 +632,13 @@ impl AsyncBufRead for Response {
 }
 
 impl AsRef<Fields> for Response {
-    fn as_ref(&self) -> &Headers {
+    fn as_ref(&self) -> &Fields {
         &self.headers
     }
 }
 
 impl AsMut<Fields> for Response {
-    fn as_mut(&mut self) -> &mut Headers {
+    fn as_mut(&mut self) -> &mut Fields {
         &mut self.headers
     }
 }

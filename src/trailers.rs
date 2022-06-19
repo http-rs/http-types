@@ -60,7 +60,7 @@ use std::task::{Context, Poll};
 /// A collection of trailing HTTP headers.
 #[derive(Debug)]
 pub struct Trailers {
-    headers: Headers,
+    headers: Fields,
 }
 
 impl Trailers {
@@ -120,17 +120,17 @@ impl Trailers {
 
     /// Get a reference to a header.
     pub fn get(&self, name: impl Into<FieldName>) -> Option<&FieldValues> {
-        self.headers.get(name)
+        self.headers.get(name.into())
     }
 
     /// Get a mutable reference to a header.
     pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut FieldValues> {
-        self.headers.get_mut(name)
+        self.headers.get_mut(name.into())
     }
 
     /// Remove a header.
     pub fn remove(&mut self, name: impl Into<FieldName>) -> Option<FieldValues> {
-        self.headers.remove(name)
+        self.headers.remove(name.into())
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -158,7 +158,7 @@ impl Trailers {
 impl Clone for Trailers {
     fn clone(&self) -> Self {
         Self {
-            headers: Headers {
+            headers: Fields {
                 headers: self.headers.headers.clone(),
             },
         }
@@ -166,7 +166,7 @@ impl Clone for Trailers {
 }
 
 impl Deref for Trailers {
-    type Target = Headers;
+    type Target = Fields;
 
     fn deref(&self) -> &Self::Target {
         &self.headers

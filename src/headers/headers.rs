@@ -11,8 +11,6 @@ use crate::headers::{
     Field, FieldName, FieldValues, IntoIter, Iter, IterMut, Names, ToFieldValues, Values,
 };
 
-use super::FieldValue;
-
 /// A collection of HTTP Fields.
 ///
 /// Fields are never manually constructed, but are part of `Request`,
@@ -45,8 +43,14 @@ impl Fields {
     /// Insert a header into the headers.
     ///
     /// Not that this will replace all header values for a given header name.
-    pub fn insert(&mut self, name: FieldName, value: FieldValue) -> Option<FieldValues> {
-        self.headers.insert(name, value.into())
+    pub fn insert(
+        &mut self,
+        name: impl Into<FieldName>,
+        values: impl ToFieldValues,
+    ) -> crate::Result<Option<FieldValues>> {
+        let name = name.into();
+        let values: FieldValues = values.to_field_values().unwrap().collect();
+        Ok(self.headers.insert(name, values))
     }
 
     /// Insert a typed header into the headers.
@@ -57,9 +61,31 @@ impl Fields {
             .insert(F::FIELD_NAME, field.field_value().into())
     }
 
+    /// Append a header to the headers.
+    ///
+    /// Unlike `insert` this function will not override the contents of a header, but insert a
+    /// header if there aren't any. Or else append to the existing list of headers.
+    pub fn append(
+        &mut self,
+        name: impl Into<FieldName>,
+        values: impl ToFieldValues,
+    ) -> crate::Result<()> {
+        let name = name.into();
+        match self.get_mut(&name) {
+            Some(headers) => {
+                let mut values: FieldValues = values.to_field_values()?.collect();
+                headers.append(&mut values);
+            }
+            None => {
+                self.insert(name, values)?;
+            }
+        }
+        Ok(())
+    }
+
     /// Get a reference to a header.
-    pub fn get(&self, name: FieldName) -> Option<&FieldValues> {
-        self.headers.get(&name)
+    pub fn get(&self, name: impl Into<FieldName>) -> Option<&FieldValues> {
+        self.headers.get(&name.into())
     }
 
     /// Get a mutable reference to a header.

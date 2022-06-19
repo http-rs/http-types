@@ -30,7 +30,7 @@ pin_project_lite::pin_project! {
     pub struct Request {
         method: Method,
         url: Url,
-        headers: Headers,
+        headers: Fields,
         version: Option<Version>,
         #[pin]
         body: Body,
@@ -408,7 +408,7 @@ impl Request {
 
     /// Get an HTTP header.
     pub fn header(&self, name: impl Into<FieldName>) -> Option<&FieldValues> {
-        self.headers.get(name)
+        self.headers.get(name.into())
     }
 
     /// Get a mutable reference to a header.
@@ -444,10 +444,7 @@ impl Request {
     }
 
     /// Set a typed HTTP header.
-    pub fn insert_typed_header<F: Field>(
-        &mut self,
-        field: F,
-    ) -> crate::Result<Option<FieldValues>> {
+    pub fn insert_typed_header<F: Field>(&mut self, field: F) -> Option<FieldValues> {
         self.headers.insert_typed(field)
     }
 
@@ -935,13 +932,13 @@ impl AsyncBufRead for Request {
 }
 
 impl AsRef<Fields> for Request {
-    fn as_ref(&self) -> &Headers {
+    fn as_ref(&self) -> &Fields {
         &self.headers
     }
 }
 
 impl AsMut<Fields> for Request {
-    fn as_mut(&mut self) -> &mut Headers {
+    fn as_mut(&mut self) -> &mut Fields {
         &mut self.headers
     }
 }
