@@ -4,7 +4,7 @@ use std::iter;
 use std::option;
 use std::slice;
 
-use crate::headers::{Field, FieldValue, HeaderValues, Values};
+use crate::headers::{Field, FieldValue, FieldValues, Values};
 
 /// A trait for objects which can be converted or resolved to one or more `HeaderValue`s.
 pub trait ToHeaderValues {
@@ -31,7 +31,7 @@ impl ToHeaderValues for FieldValue {
     }
 }
 
-impl<'a> ToHeaderValues for &'a HeaderValues {
+impl<'a> ToHeaderValues for &'a FieldValues {
     type Iter = iter::Cloned<Values<'a>>;
 
     fn to_header_values(&self) -> crate::Result<Self::Iter> {

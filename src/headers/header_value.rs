@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 #[cfg(feature = "cookies")]
 use crate::cookies::Cookie;
-use crate::headers::HeaderValues;
+use crate::headers::FieldValues;
 use crate::mime::Mime;
 use crate::Error;
 
@@ -131,8 +131,8 @@ impl<'a> PartialEq<&String> for FieldValue {
     }
 }
 
-impl From<HeaderValues> for FieldValue {
-    fn from(mut other: HeaderValues) -> Self {
+impl From<FieldValues> for FieldValue {
+    fn from(mut other: FieldValues) -> Self {
         other.inner.reverse();
         other
             .inner

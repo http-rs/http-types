@@ -1,14 +1,11 @@
 //! HTTP headers.
 
 use std::collections::HashMap;
-use std::convert::Into;
 use std::fmt::{self, Debug};
 use std::iter::IntoIterator;
-use std::ops::Index;
-use std::str::FromStr;
 
 use crate::headers::{
-    Field, FieldName, HeaderValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
+    Field, FieldName, FieldValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 
 use super::FieldValue;
@@ -46,25 +43,19 @@ impl Headers {
     ///
     /// Not that this will replace all header values for a given header name.
     pub fn insert<H: Field>(&mut self, header: H) -> Option<FieldValue> {
-        let name = header.field_name();
-        let value = header.field_value();
-        self.headers.insert(name, value)
+        self.headers.insert(H::FIELD_NAME, header.field_value())
     }
 
     /// Get a reference to a header.
-    pub fn get<H: Field>(&self, name: FieldName) -> Option<H> {
-        let value = self.headers.get(&name)?;
-        H::from_parts(name, value.clone()).ok()
-    }
-
-    /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut HeaderValues> {
-        self.headers.get_mut(&name.into())
+    pub fn get<F: Field>(&self) -> Option<F> {
+        let value = self.headers.get(&F::FIELD_NAME)?;
+        F::from_field_pair(F::FIELD_NAME, value.clone()).ok()
     }
 
     /// Remove a header.
-    pub fn remove<H: Field>(&mut self, name: FieldName) -> Option<FieldValue> {
-        self.headers.remove(&name.into())
+    pub fn remove<F: Field>(&mut self) -> Option<F> {
+        let value = self.headers.remove(&F::FIELD_NAME)?;
+        F::from_field_pair(F::FIELD_NAME, value.clone()).ok()
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -95,37 +86,8 @@ impl Headers {
     }
 }
 
-impl Index<FieldName> for Headers {
-    type Output = HeaderValues;
-
-    /// Returns a reference to the value corresponding to the supplied name.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the name is not present in `Headers`.
-    #[inline]
-    fn index(&self, name: FieldName) -> &HeaderValues {
-        self.get(name).expect("no entry found for name")
-    }
-}
-
-impl Index<&str> for Headers {
-    type Output = HeaderValues;
-
-    /// Returns a reference to the value corresponding to the supplied name.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the name is not present in `Headers`.
-    #[inline]
-    fn index(&self, name: &str) -> &HeaderValues {
-        let name = FieldName::from_str(name).expect("string slice needs to be valid ASCII");
-        self.get(name).expect("no entry found for name")
-    }
-}
-
 impl IntoIterator for Headers {
-    type Item = (FieldName, HeaderValues);
+    type Item = (FieldName, FieldValues);
     type IntoIter = IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -138,7 +100,7 @@ impl IntoIterator for Headers {
 }
 
 impl<'a> IntoIterator for &'a Headers {
-    type Item = (&'a FieldName, &'a HeaderValues);
+    type Item = (&'a FieldName, &'a FieldValues);
     type IntoIter = Iter<'a>;
 
     #[inline]
@@ -148,7 +110,7 @@ impl<'a> IntoIterator for &'a Headers {
 }
 
 impl<'a> IntoIterator for &'a mut Headers {
-    type Item = (&'a FieldName, &'a mut HeaderValues);
+    type Item = (&'a FieldName, &'a mut FieldValues);
     type IntoIter = IterMut<'a>;
 
     #[inline]

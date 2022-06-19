@@ -9,11 +9,11 @@ use std::slice::SliceIndex;
 ///
 /// This always contains at least one header value.
 #[derive(Clone)]
-pub struct HeaderValues {
+pub struct FieldValues {
     pub(crate) inner: Vec<FieldValue>,
 }
 
-impl HeaderValues {
+impl FieldValues {
     /// Move all values from `other` into `self`, leaving `other` empty.
     pub fn append(&mut self, other: &mut Self) {
         self.inner.append(&mut other.inner)
@@ -56,7 +56,7 @@ impl HeaderValues {
     // }
 }
 
-impl<I: SliceIndex<[FieldValue]>> Index<I> for HeaderValues {
+impl<I: SliceIndex<[FieldValue]>> Index<I> for FieldValues {
     type Output = I::Output;
 
     #[inline]
@@ -65,8 +65,8 @@ impl<I: SliceIndex<[FieldValue]>> Index<I> for HeaderValues {
     }
 }
 
-impl FromIterator<FieldValue> for HeaderValues {
-    fn from_iter<I>(iter: I) -> HeaderValues
+impl FromIterator<FieldValue> for FieldValues {
+    fn from_iter<I>(iter: I) -> FieldValues
     where
         I: IntoIterator<Item = FieldValue>,
     {
@@ -75,11 +75,11 @@ impl FromIterator<FieldValue> for HeaderValues {
         for v in iter {
             output.push(v);
         }
-        HeaderValues { inner: output }
+        FieldValues { inner: output }
     }
 }
 
-impl Debug for HeaderValues {
+impl Debug for FieldValues {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.inner.len() == 1 {
             write!(f, "{:?}", self.inner[0])
@@ -89,7 +89,7 @@ impl Debug for HeaderValues {
     }
 }
 
-impl Display for HeaderValues {
+impl Display for FieldValues {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_list();
         for v in &self.inner {
@@ -99,55 +99,55 @@ impl Display for HeaderValues {
     }
 }
 
-impl PartialEq<str> for HeaderValues {
+impl PartialEq<str> for FieldValues {
     fn eq(&self, other: &str) -> bool {
         self.inner.len() == 1 && self.inner[0] == other
     }
 }
 
-impl<'a> PartialEq<&'a str> for HeaderValues {
+impl<'a> PartialEq<&'a str> for FieldValues {
     fn eq(&self, other: &&'a str) -> bool {
         self.inner.len() == 1 && &self.inner[0] == other
     }
 }
 
-impl<'a> PartialEq<[&'a str]> for HeaderValues {
+impl<'a> PartialEq<[&'a str]> for FieldValues {
     fn eq(&self, other: &[&'a str]) -> bool {
         self.inner.iter().eq(other.iter())
     }
 }
 
-impl PartialEq<String> for HeaderValues {
+impl PartialEq<String> for FieldValues {
     fn eq(&self, other: &String) -> bool {
         self.inner.len() == 1 && self.inner[0] == *other
     }
 }
 
-impl<'a> PartialEq<&String> for HeaderValues {
+impl<'a> PartialEq<&String> for FieldValues {
     fn eq(&self, other: &&String) -> bool {
         self.inner.len() == 1 && self.inner[0] == **other
     }
 }
 
-impl From<FieldValue> for HeaderValues {
+impl From<FieldValue> for FieldValues {
     fn from(other: FieldValue) -> Self {
         Self { inner: vec![other] }
     }
 }
 
-impl AsRef<FieldValue> for HeaderValues {
+impl AsRef<FieldValue> for FieldValues {
     fn as_ref(&self) -> &FieldValue {
         &self.inner[0]
     }
 }
 
-impl AsMut<FieldValue> for HeaderValues {
+impl AsMut<FieldValue> for FieldValues {
     fn as_mut(&mut self) -> &mut FieldValue {
         &mut self.inner[0]
     }
 }
 
-impl Deref for HeaderValues {
+impl Deref for FieldValues {
     type Target = FieldValue;
 
     fn deref(&self) -> &FieldValue {
@@ -155,13 +155,13 @@ impl Deref for HeaderValues {
     }
 }
 
-impl DerefMut for HeaderValues {
+impl DerefMut for FieldValues {
     fn deref_mut(&mut self) -> &mut FieldValue {
         &mut self.inner[0]
     }
 }
 
-impl<'a> IntoIterator for &'a HeaderValues {
+impl<'a> IntoIterator for &'a FieldValues {
     type Item = &'a FieldValue;
     type IntoIter = Values<'a>;
 
@@ -171,13 +171,13 @@ impl<'a> IntoIterator for &'a HeaderValues {
     }
 }
 
-impl From<Vec<FieldValue>> for HeaderValues {
+impl From<Vec<FieldValue>> for FieldValues {
     fn from(headers: Vec<FieldValue>) -> Self {
         Self { inner: headers }
     }
 }
 
-impl IntoIterator for HeaderValues {
+impl IntoIterator for FieldValues {
     type Item = FieldValue;
     type IntoIter = std::vec::IntoIter<FieldValue>;
 
@@ -193,14 +193,14 @@ mod tests {
 
     #[test]
     fn test_debug_single() {
-        let header_values = HeaderValues {
+        let header_values = FieldValues {
             inner: vec!["foo0".parse().unwrap()],
         };
         assert_eq!(format!("{:?}", header_values), "\"foo0\"");
     }
     #[test]
     fn test_debug_multiple() {
-        let header_values = HeaderValues {
+        let header_values = FieldValues {
             inner: vec!["foo0".parse().unwrap(), "foo1".parse().unwrap()],
         };
         assert_eq!(format!("{:?}", header_values), r#"["foo0", "foo1"]"#);

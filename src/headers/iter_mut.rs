@@ -1,16 +1,16 @@
 use std::collections::hash_map;
 use std::iter::Iterator;
 
-use crate::headers::{FieldName, HeaderValues};
+use crate::headers::{FieldName, FieldValues};
 
 /// Iterator over the headers.
 #[derive(Debug)]
 pub struct IterMut<'a> {
-    pub(super) inner: hash_map::IterMut<'a, FieldName, HeaderValues>,
+    pub(super) inner: hash_map::IterMut<'a, FieldName, FieldValues>,
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = (&'a FieldName, &'a mut HeaderValues);
+    type Item = (&'a FieldName, &'a mut FieldValues);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()

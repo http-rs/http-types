@@ -1,19 +1,19 @@
 use std::collections::hash_map;
 use std::iter::Iterator;
 
-use crate::headers::{FieldName, FieldValue, HeaderValues};
+use crate::headers::{FieldName, FieldValue, FieldValues};
 
 /// Iterator over the header values.
 #[derive(Debug)]
 pub struct Values<'a> {
-    pub(super) inner: Option<hash_map::Values<'a, FieldName, HeaderValues>>,
-    slot: Option<&'a HeaderValues>,
+    pub(super) inner: Option<hash_map::Values<'a, FieldName, FieldValues>>,
+    slot: Option<&'a FieldValues>,
     cursor: usize,
 }
 
 impl<'a> Values<'a> {
     /// Constructor for `Headers`.
-    pub(crate) fn new(inner: hash_map::Values<'a, FieldName, HeaderValues>) -> Self {
+    pub(crate) fn new(inner: hash_map::Values<'a, FieldName, FieldValues>) -> Self {
         Self {
             inner: Some(inner),
             slot: None,
@@ -22,7 +22,7 @@ impl<'a> Values<'a> {
     }
 
     /// Constructor for `HeaderValues`.
-    pub(crate) fn new_values(values: &'a HeaderValues) -> Self {
+    pub(crate) fn new_values(values: &'a FieldValues) -> Self {
         Self {
             inner: None,
             slot: Some(values),

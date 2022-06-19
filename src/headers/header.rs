@@ -1,48 +1,48 @@
-use std::ops::Deref;
-
 use crate::headers::{FieldName, FieldValue};
 
 /// A trait representing a [`HeaderName`] and [`HeaderValue`] pair.
+///
+/// # Specifications
+///
+/// - [RFC 9110, section 5: Fields](https://www.rfc-editor.org/rfc/rfc9110.html#fields)
 #[doc(alias = "Header")]
 #[doc(alias = "FieldHeader")]
 pub trait Field
 where
     Self: Sized,
 {
-    /// The header's name.
-    fn field_name(&self) -> FieldName;
+    /// The header's field name.
+    const FIELD_NAME: FieldName;
 
     /// Access the header's value.
     fn field_value(&self) -> FieldValue;
+
+    /// Create a field from its parts.
+    // TODO: move this to a separate trait.
+    fn from_field_pair(name: FieldName, value: FieldValue) -> Result<Self, ()>;
 }
 
-/// Conversion into a [`Field`].
-#[doc(alias = "IntoHeader")]
-pub trait IntoField {
-    /// What type are we converting into?
-    type IntoField: Field;
+mod void {
+    use core::marker::PhantomData;
 
-    /// Convert into a `Field`.
-    fn into_field(self) -> Self::IntoField;
-}
+    enum Void {}
 
-impl Field for (FieldName, FieldValue) {
-    fn field_name(&self) -> FieldName {
-        self.0
+    impl Copy for Void {}
+
+    impl Clone for Void {
+        fn clone(&self) -> Self {
+            match *self {}
+        }
     }
 
-    fn field_value(&self) -> FieldValue {
-        self.1
-    }
-}
+    pub struct MustBeStr<T>(PhantomData<T>, Void);
 
-impl<'a, T: Field> Field for &'a T {
-    fn field_name(&self) -> FieldName {
-        self.deref().field_name()
-    }
+    impl<T> Copy for MustBeStr<T> {}
 
-    fn field_value(&self) -> FieldValue {
-        self.deref().field_value()
+    impl<T> Clone for MustBeStr<T> {
+        fn clone(&self) -> Self {
+            *self
+        }
     }
 }
 

@@ -10,7 +10,7 @@ use std::task::{Context, Poll};
 #[cfg(feature = "serde")]
 use crate::convert::DeserializeOwned;
 use crate::headers::{
-    self, FieldName, FieldValue, HeaderValues, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
+    self, FieldName, FieldValue, FieldValues, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
@@ -86,17 +86,17 @@ impl Response {
     }
 
     /// Get a mutable reference to a header.
-    pub fn header_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut HeaderValues> {
+    pub fn header_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut FieldValues> {
         self.headers.get_mut(name.into())
     }
 
     /// Get an HTTP header.
-    pub fn header(&self, name: impl Into<FieldName>) -> Option<&HeaderValues> {
+    pub fn header(&self, name: impl Into<FieldName>) -> Option<&FieldValues> {
         self.headers.get(name.into())
     }
 
     /// Remove a header.
-    pub fn remove_header(&mut self, name: impl Into<FieldName>) -> Option<HeaderValues> {
+    pub fn remove_header(&mut self, name: impl Into<FieldName>) -> Option<FieldValues> {
         self.headers.remove(name.into())
     }
 
@@ -118,7 +118,7 @@ impl Response {
         &mut self,
         name: impl Into<FieldName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<HeaderValues>> {
+    ) -> crate::Result<Option<FieldValues>> {
         self.headers.insert(name, values)
     }
 
@@ -376,7 +376,7 @@ impl Response {
     }
 
     /// Set the response MIME.
-    pub fn set_content_type(&mut self, mime: Mime) -> Option<HeaderValues> {
+    pub fn set_content_type(&mut self, mime: Mime) -> Option<FieldValues> {
         let value: FieldValue = mime.into();
 
         // A Mime instance is guaranteed to be valid header name.
@@ -644,7 +644,7 @@ impl From<()> for Response {
     }
 }
 impl Index<FieldName> for Response {
-    type Output = HeaderValues;
+    type Output = FieldValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
     ///
@@ -652,13 +652,13 @@ impl Index<FieldName> for Response {
     ///
     /// Panics if the name is not present in `Response`.
     #[inline]
-    fn index(&self, name: FieldName) -> &HeaderValues {
+    fn index(&self, name: FieldName) -> &FieldValues {
         self.headers.index(name)
     }
 }
 
 impl Index<&str> for Response {
-    type Output = HeaderValues;
+    type Output = FieldValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
     ///
@@ -666,7 +666,7 @@ impl Index<&str> for Response {
     ///
     /// Panics if the name is not present in `Response`.
     #[inline]
-    fn index(&self, name: &str) -> &HeaderValues {
+    fn index(&self, name: &str) -> &FieldValues {
         self.headers.index(name)
     }
 }
@@ -690,7 +690,7 @@ where
 }
 
 impl IntoIterator for Response {
-    type Item = (FieldName, HeaderValues);
+    type Item = (FieldName, FieldValues);
     type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -701,7 +701,7 @@ impl IntoIterator for Response {
 }
 
 impl<'a> IntoIterator for &'a Response {
-    type Item = (&'a FieldName, &'a HeaderValues);
+    type Item = (&'a FieldName, &'a FieldValues);
     type IntoIter = headers::Iter<'a>;
 
     #[inline]
@@ -711,7 +711,7 @@ impl<'a> IntoIterator for &'a Response {
 }
 
 impl<'a> IntoIterator for &'a mut Response {
-    type Item = (&'a FieldName, &'a mut HeaderValues);
+    type Item = (&'a FieldName, &'a mut FieldValues);
     type IntoIter = headers::IterMut<'a>;
 
     #[inline]

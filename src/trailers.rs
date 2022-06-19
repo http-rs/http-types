@@ -49,7 +49,7 @@
 //! - [HTTP/2 spec: HTTP Sequence](https://http2.github.io/http2-spec/#HttpSequence)
 
 use crate::headers::{
-    FieldName, HeaderValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
+    FieldName, FieldValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
 };
 use futures_lite::Stream;
 
@@ -91,7 +91,7 @@ impl Trailers {
         &mut self,
         name: impl Into<FieldName>,
         values: impl ToHeaderValues,
-    ) -> crate::Result<Option<HeaderValues>> {
+    ) -> crate::Result<Option<FieldValues>> {
         self.headers.insert(name, values)
     }
 
@@ -121,17 +121,17 @@ impl Trailers {
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: impl Into<FieldName>) -> Option<&HeaderValues> {
+    pub fn get(&self, name: impl Into<FieldName>) -> Option<&FieldValues> {
         self.headers.get(name)
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut HeaderValues> {
+    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut FieldValues> {
         self.headers.get_mut(name)
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: impl Into<FieldName>) -> Option<HeaderValues> {
+    pub fn remove(&mut self, name: impl Into<FieldName>) -> Option<FieldValues> {
         self.headers.remove(name)
     }
 
@@ -182,7 +182,7 @@ impl DerefMut for Trailers {
 }
 
 impl Index<FieldName> for Trailers {
-    type Output = HeaderValues;
+    type Output = FieldValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
     ///
@@ -190,13 +190,13 @@ impl Index<FieldName> for Trailers {
     ///
     /// Panics if the name is not present in `Trailers`.
     #[inline]
-    fn index(&self, name: FieldName) -> &HeaderValues {
+    fn index(&self, name: FieldName) -> &FieldValues {
         self.headers.index(name)
     }
 }
 
 impl Index<&str> for Trailers {
-    type Output = HeaderValues;
+    type Output = FieldValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
     ///
@@ -204,7 +204,7 @@ impl Index<&str> for Trailers {
     ///
     /// Panics if the name is not present in `Trailers`.
     #[inline]
-    fn index(&self, name: &str) -> &HeaderValues {
+    fn index(&self, name: &str) -> &FieldValues {
         self.headers.index(name)
     }
 }
