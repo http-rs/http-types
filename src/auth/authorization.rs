@@ -93,9 +93,7 @@ impl Authorization {
 }
 
 impl Field for Authorization {
-    fn field_name(&self) -> FieldName {
-        AUTHORIZATION
-    }
+    const FIELD_NAME: FieldName = AUTHORIZATION;
 
     fn field_value(&self) -> FieldValue {
         let output = format!("{} {}", self.scheme, self.credentials);

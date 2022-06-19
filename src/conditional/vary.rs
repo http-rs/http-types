@@ -106,9 +106,7 @@ impl Vary {
 }
 
 impl Field for Vary {
-    fn field_name(&self) -> FieldName {
-        VARY
-    }
+    const FIELD_NAME: FieldName = VARY;
 
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();

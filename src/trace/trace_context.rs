@@ -196,9 +196,7 @@ impl TraceContext {
 }
 
 impl Field for TraceContext {
-    fn field_name(&self) -> FieldName {
-        TRACEPARENT
-    }
+    const FIELD_NAME: FieldName = TRACEPARENT;
 
     fn field_value(&self) -> FieldValue {
         let output = format!("{}", self);

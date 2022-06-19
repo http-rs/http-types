@@ -87,9 +87,7 @@ impl Referer {
 }
 
 impl Field for Referer {
-    fn field_name(&self) -> FieldName {
-        REFERER
-    }
+    const FIELD_NAME: FieldName = REFERER;
 
     fn field_value(&self) -> FieldValue {
         let output = self.location.to_string();

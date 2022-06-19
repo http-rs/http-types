@@ -57,9 +57,7 @@ impl Expect {
 }
 
 impl Field for Expect {
-    fn field_name(&self) -> FieldName {
-        EXPECT
-    }
+    const FIELD_NAME: FieldName = EXPECT;
     fn field_value(&self) -> FieldValue {
         let value = "100-continue";
         // SAFETY: the internal string is validated to be ASCII.

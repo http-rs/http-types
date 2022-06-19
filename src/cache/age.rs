@@ -70,9 +70,7 @@ impl Age {
 }
 
 impl Field for Age {
-    fn field_name(&self) -> FieldName {
-        AGE
-    }
+    const FIELD_NAME: FieldName = AGE;
 
     fn field_value(&self) -> FieldValue {
         let output = self.dur.as_secs().to_string();

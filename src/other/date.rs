@@ -74,9 +74,7 @@ impl Date {
 }
 
 impl Field for Date {
-    fn field_name(&self) -> FieldName {
-        DATE
-    }
+    const FIELD_NAME: FieldName = DATE;
 
     fn field_value(&self) -> FieldValue {
         let date: HttpDate = self.at.into();

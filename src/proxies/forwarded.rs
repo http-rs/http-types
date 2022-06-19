@@ -359,9 +359,7 @@ impl<'a> Forwarded<'a> {
 }
 
 impl<'a> Field for Forwarded<'a> {
-    fn field_name(&self) -> FieldName {
-        FORWARDED
-    }
+    const FIELD_NAME: FieldName = FORWARDED;
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         if let Some(by) = self.by() {

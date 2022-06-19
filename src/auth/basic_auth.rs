@@ -99,9 +99,7 @@ impl BasicAuth {
 }
 
 impl Field for BasicAuth {
-    fn field_name(&self) -> FieldName {
-        AUTHORIZATION
-    }
+    const FIELD_NAME: FieldName = AUTHORIZATION;
 
     fn field_value(&self) -> FieldValue {
         let scheme = AuthenticationScheme::Basic;

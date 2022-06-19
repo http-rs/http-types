@@ -72,9 +72,7 @@ impl Expires {
 }
 
 impl Field for Expires {
-    fn field_name(&self) -> FieldName {
-        EXPIRES
-    }
+    const FIELD_NAME: FieldName = EXPIRES;
     fn field_value(&self) -> FieldValue {
         let output = fmt_http_date(self.instant);
 

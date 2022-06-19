@@ -113,9 +113,7 @@ impl ETag {
 }
 
 impl Field for ETag {
-    fn field_name(&self) -> FieldName {
-        ETAG
-    }
+    const FIELD_NAME: FieldName = ETAG;
     fn field_value(&self) -> FieldValue {
         let s = self.to_string();
         // SAFETY: the internal string is validated to be ASCII.

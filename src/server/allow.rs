@@ -85,9 +85,7 @@ impl Allow {
 }
 
 impl Field for Allow {
-    fn field_name(&self) -> FieldName {
-        ALLOW
-    }
+    const FIELD_NAME: FieldName = ALLOW;
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, method) in self.entries.iter().enumerate() {

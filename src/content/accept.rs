@@ -162,9 +162,7 @@ impl Accept {
 }
 
 impl Field for Accept {
-    fn field_name(&self) -> FieldName {
-        ACCEPT
-    }
+    const FIELD_NAME: FieldName = ACCEPT;
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {
