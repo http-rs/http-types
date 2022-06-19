@@ -22,30 +22,6 @@ where
     fn from_field_pair(name: FieldName, value: FieldValue) -> Result<Self, ()>;
 }
 
-mod void {
-    use core::marker::PhantomData;
-
-    enum Void {}
-
-    impl Copy for Void {}
-
-    impl Clone for Void {
-        fn clone(&self) -> Self {
-            match *self {}
-        }
-    }
-
-    pub struct MustBeStr<T>(PhantomData<T>, Void);
-
-    impl<T> Copy for MustBeStr<T> {}
-
-    impl<T> Clone for MustBeStr<T> {
-        fn clone(&self) -> Self {
-            *self
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;

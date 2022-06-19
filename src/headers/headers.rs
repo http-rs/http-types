@@ -1,20 +1,23 @@
 //! HTTP headers.
 
 use std::collections::HashMap;
+use std::convert::Into;
 use std::fmt::{self, Debug};
 use std::iter::IntoIterator;
+use std::ops::Index;
+use std::str::FromStr;
 
 use crate::headers::{
-    Field, FieldName, FieldValues, IntoIter, Iter, IterMut, Names, ToHeaderValues, Values,
+    Field, FieldName, FieldValues, IntoIter, Iter, IterMut, Names, ToFieldValues, Values,
 };
 
 use super::FieldValue;
 
-/// A collection of HTTP Headers.
+/// A collection of HTTP Fields.
 ///
-/// Headers are never manually constructed, but are part of `Request`,
-/// `Response`, and `Trailers`. Each of these types implements `AsRef<Headers>`
-/// and `AsMut<Headers>` so functions that want to modify headers can be generic
+/// Fields are never manually constructed, but are part of `Request`,
+/// `Response`, and `Trailers`. Each of these types implements `AsRef<Fields>`
+/// and `AsMut<Fields>` so functions that want to modify headers can be generic
 /// over either of these traits.
 ///
 /// # Examples
@@ -27,11 +30,11 @@ use super::FieldValue;
 /// assert_eq!(res["hello"], "foo0");
 /// ```
 #[derive(Clone)]
-pub struct Headers {
+pub struct Fields {
     pub(crate) headers: HashMap<FieldName, FieldValue>,
 }
 
-impl Headers {
+impl Fields {
     /// Create a new instance.
     pub(crate) fn new() -> Self {
         Self {
@@ -42,20 +45,23 @@ impl Headers {
     /// Insert a header into the headers.
     ///
     /// Not that this will replace all header values for a given header name.
-    pub fn insert<H: Field>(&mut self, header: H) -> Option<FieldValue> {
-        self.headers.insert(H::FIELD_NAME, header.field_value())
+    pub fn insert(&mut self, name: FieldName, value: FieldValue) -> Option<FieldValue> {
+        self.headers.insert(name, value)
     }
 
     /// Get a reference to a header.
-    pub fn get<F: Field>(&self) -> Option<F> {
-        let value = self.headers.get(&F::FIELD_NAME)?;
-        F::from_field_pair(F::FIELD_NAME, value.clone()).ok()
+    pub fn get(&self, name: FieldName) -> Option<&FieldValue> {
+        self.headers.get(&name)
+    }
+
+    /// Get a mutable reference to a header.
+    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut FieldValue> {
+        self.headers.get_mut(&name.into())
     }
 
     /// Remove a header.
-    pub fn remove<F: Field>(&mut self) -> Option<F> {
-        let value = self.headers.remove(&F::FIELD_NAME)?;
-        F::from_field_pair(F::FIELD_NAME, value.clone()).ok()
+    pub fn remove(&mut self, name: impl Into<FieldName>) -> Option<FieldValue> {
+        self.headers.remove(&name.into())
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -86,7 +92,36 @@ impl Headers {
     }
 }
 
-impl IntoIterator for Headers {
+impl Index<FieldName> for Fields {
+    type Output = FieldValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Fields`.
+    #[inline]
+    fn index(&self, name: FieldName) -> &FieldValues {
+        self.get(name).expect("no entry found for name")
+    }
+}
+
+impl Index<&str> for Fields {
+    type Output = FieldValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Fields`.
+    #[inline]
+    fn index(&self, name: &str) -> &FieldValues {
+        let name = FieldName::from_str(name).expect("string slice needs to be valid ASCII");
+        self.get(name).expect("no entry found for name")
+    }
+}
+
+impl IntoIterator for Fields {
     type Item = (FieldName, FieldValues);
     type IntoIter = IntoIter;
 
@@ -99,7 +134,7 @@ impl IntoIterator for Headers {
     }
 }
 
-impl<'a> IntoIterator for &'a Headers {
+impl<'a> IntoIterator for &'a Fields {
     type Item = (&'a FieldName, &'a FieldValues);
     type IntoIter = Iter<'a>;
 
@@ -109,7 +144,7 @@ impl<'a> IntoIterator for &'a Headers {
     }
 }
 
-impl<'a> IntoIterator for &'a mut Headers {
+impl<'a> IntoIterator for &'a mut Fields {
     type Item = (&'a FieldName, &'a mut FieldValues);
     type IntoIter = IterMut<'a>;
 
@@ -119,20 +154,20 @@ impl<'a> IntoIterator for &'a mut Headers {
     }
 }
 
-impl Debug for Headers {
+impl Debug for Fields {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.headers.iter()).finish()
     }
 }
 
-impl AsRef<Headers> for Headers {
-    fn as_ref(&self) -> &Headers {
+impl AsRef<Fields> for Fields {
+    fn as_ref(&self) -> &Fields {
         self
     }
 }
 
-impl AsMut<Headers> for Headers {
-    fn as_mut(&mut self) -> &mut Headers {
+impl AsMut<Fields> for Fields {
+    fn as_mut(&mut self) -> &mut Fields {
         self
     }
 }
@@ -149,7 +184,7 @@ mod tests {
         let static_header = FieldName::from_lowercase_str("hello");
         let non_static_header = FieldName::from_str("hello")?;
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.append(STATIC_HEADER, "foo0").unwrap();
         headers.append(static_header.clone(), "foo1").unwrap();
         headers.append(non_static_header.clone(), "foo2").unwrap();
@@ -163,7 +198,7 @@ mod tests {
 
     #[test]
     fn index_into_headers() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert("hello", "foo0").unwrap();
         assert_eq!(headers["hello"], "foo0");
         assert_eq!(headers.get("hello").unwrap(), "foo0");
@@ -171,14 +206,14 @@ mod tests {
 
     #[test]
     fn test_debug_single() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert("single", "foo0").unwrap();
         assert_eq!(format!("{:?}", headers), r#"{"single": "foo0"}"#);
     }
 
     #[test]
     fn test_debug_multiple() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.append("multi", "foo0").unwrap();
         headers.append("multi", "foo1").unwrap();
         assert_eq!(format!("{:?}", headers), r#"{"multi": ["foo0", "foo1"]}"#);

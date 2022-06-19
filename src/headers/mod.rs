@@ -24,5 +24,5 @@ pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;
 pub use names::Names;
-pub use to_header_values::ToHeaderValues;
+pub use to_header_values::ToFieldValues;
 pub use values::Values;

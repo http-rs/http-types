@@ -9,7 +9,7 @@ use std::task::{Context, Poll};
 #[cfg(feature = "serde")]
 use crate::convert::{DeserializeOwned, Serialize};
 use crate::headers::{
-    self, FieldName, FieldValue, FieldValues, Headers, Names, ToHeaderValues, Values, CONTENT_TYPE,
+    self, FieldName, FieldValue, FieldValues, Headers, Names, ToFieldValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
@@ -438,7 +438,7 @@ impl Request {
     pub fn insert_header(
         &mut self,
         name: impl Into<FieldName>,
-        values: impl ToHeaderValues,
+        values: impl ToFieldValues,
     ) -> crate::Result<Option<FieldValues>> {
         self.headers.insert(name, values)
     }
@@ -464,7 +464,7 @@ impl Request {
     pub fn append_header(
         &mut self,
         name: impl Into<FieldName>,
-        values: impl ToHeaderValues,
+        values: impl ToFieldValues,
     ) -> crate::Result<()> {
         self.headers.append(name, values)
     }

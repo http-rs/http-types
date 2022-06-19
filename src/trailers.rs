@@ -49,7 +49,7 @@
 //! - [HTTP/2 spec: HTTP Sequence](https://http2.github.io/http2-spec/#HttpSequence)
 
 use crate::headers::{
-    FieldName, FieldValues, Headers, Iter, IterMut, Names, ToHeaderValues, Values,
+    FieldName, FieldValues, Headers, Iter, IterMut, Names, ToFieldValues, Values,
 };
 use futures_lite::Stream;
 
@@ -90,7 +90,7 @@ impl Trailers {
     pub fn insert(
         &mut self,
         name: impl Into<FieldName>,
-        values: impl ToHeaderValues,
+        values: impl ToFieldValues,
     ) -> crate::Result<Option<FieldValues>> {
         self.headers.insert(name, values)
     }
@@ -115,7 +115,7 @@ impl Trailers {
     pub fn append(
         &mut self,
         name: impl Into<FieldName>,
-        values: impl ToHeaderValues,
+        values: impl ToFieldValues,
     ) -> crate::Result<()> {
         self.headers.append(name, values)
     }

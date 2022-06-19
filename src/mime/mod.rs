@@ -12,7 +12,7 @@ use std::fmt::{self, Debug, Display};
 use std::option;
 use std::str::FromStr;
 
-use crate::headers::{FieldValue, ToHeaderValues};
+use crate::headers::{FieldValue, ToFieldValues};
 
 use infer::Infer;
 
@@ -195,15 +195,15 @@ impl<'a> From<&'a str> for Mime {
     }
 }
 
-impl ToHeaderValues for Mime {
+impl ToFieldValues for Mime {
     type Iter = option::IntoIter<FieldValue>;
 
-    fn to_header_values(&self) -> crate::Result<Self::Iter> {
+    fn to_field_values(&self) -> crate::Result<Self::Iter> {
         let mime = self.clone();
         let header: FieldValue = mime.into();
 
         // A HeaderValue will always convert into itself.
-        Ok(header.to_header_values().unwrap())
+        Ok(header.to_field_values().unwrap())
     }
 }
 
