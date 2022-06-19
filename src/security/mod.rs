@@ -15,7 +15,7 @@
 // //! assert_eq!(res["X-XSS-Protection"], "1; mode=block");
 //! ```
 
-use crate::headers::{FieldName, FieldValue, Headers};
+use crate::headers::{FieldName, FieldValue, Fields};
 
 mod csp;
 mod strict_transport_security;

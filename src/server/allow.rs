@@ -182,7 +182,7 @@ mod test {
         allow.insert(Method::Post);
 
         let mut headers = Fields::new();
-        headers.insert(allow);
+        headers.insert_typed(allow);
 
         let allow = Allow::from_headers(headers)?.unwrap();
         assert!(allow.contains(Method::Put));

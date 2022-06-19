@@ -25,7 +25,7 @@ mod test {
         entries.push(CacheDirective::NoStore);
 
         let mut headers = Fields::new();
-        headers.insert(entries);
+        headers.insert_typed(entries);
 
         let entries = CacheControl::from_headers(headers)?.unwrap();
         let mut entries = entries.iter();

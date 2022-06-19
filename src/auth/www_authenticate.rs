@@ -137,7 +137,7 @@ mod test {
         let authz = WwwAuthenticate::new(scheme, realm.into());
 
         let mut headers = Fields::new();
-        headers.insert(authz);
+        headers.insert_typed(authz);
 
         assert_eq!(
             headers["WWW-Authenticate"],

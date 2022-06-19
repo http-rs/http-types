@@ -244,7 +244,7 @@ mod test {
         entries.push(ETag::new("0xbeefcafe".to_string()));
 
         let mut res = Response::new(200);
-        entries.apply_header(&mut res);
+        res.insert_typed_header(entries);
 
         let entries = IfNoneMatch::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
@@ -266,7 +266,7 @@ mod test {
         entries.set_wildcard(true);
 
         let mut res = Response::new(200);
-        entries.apply_header(&mut res);
+        res.insert_typed_header(entries);
 
         let entries = IfNoneMatch::from_headers(res)?.unwrap();
         assert!(entries.wildcard());

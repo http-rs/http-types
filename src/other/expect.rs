@@ -75,7 +75,7 @@ mod test {
         let expect = Expect::new();
 
         let mut headers = Fields::new();
-        headers.insert(expect);
+        headers.insert_typed(expect);
 
         let expect = Expect::from_headers(headers)?.unwrap();
         assert_eq!(expect, Expect::new());

@@ -131,7 +131,7 @@ mod test {
         let retry = RetryAfter::new(Duration::from_secs(10));
 
         let mut headers = Fields::new();
-        headers.insert(retry);
+        headers.insert_typed(retry);
 
         // `SystemTime::now` uses sub-second precision which means there's some
         // offset that's not encoded.
@@ -150,7 +150,7 @@ mod test {
         let retry = RetryAfter::new_at(now + Duration::from_secs(10));
 
         let mut headers = Fields::new();
-        headers.insert(retry);
+        headers.insert_typed(retry);
 
         // `SystemTime::now` uses sub-second precision which means there's some
         // offset that's not encoded.

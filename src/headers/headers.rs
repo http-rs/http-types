@@ -45,8 +45,16 @@ impl Fields {
     /// Insert a header into the headers.
     ///
     /// Not that this will replace all header values for a given header name.
-    pub fn insert(&mut self, name: FieldName, value: FieldValue) -> Option<FieldValue> {
-        self.headers.insert(name, value)
+    pub fn insert(&mut self, name: FieldName, value: FieldValue) -> Option<FieldValues> {
+        self.headers.insert(name, value.into())
+    }
+
+    /// Insert a typed header into the headers.
+    ///
+    /// Not that this will replace all header values for a given header name.
+    pub fn insert_typed<F: Field>(&mut self, field: F) -> Option<FieldValues> {
+        self.headers
+            .insert(F::FIELD_NAME, field.field_value().into())
     }
 
     /// Get a reference to a header.

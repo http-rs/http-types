@@ -121,7 +121,7 @@ mod test {
         let authz = BasicAuth::new(username, password);
 
         let mut headers = Fields::new();
-        headers.insert(authz);
+        headers.insert_typed(authz);
 
         let authz = BasicAuth::from_headers(headers)?.unwrap();
 

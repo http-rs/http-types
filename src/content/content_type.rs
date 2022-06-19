@@ -112,7 +112,7 @@ mod test {
         let ct = ContentType::new(Mime::from_str("text/*")?);
 
         let mut headers = Fields::new();
-        headers.insert(ct);
+        headers.insert_typed(ct);
 
         let ct = ContentType::from_headers(headers)?.unwrap();
         assert_eq!(

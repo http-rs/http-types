@@ -296,7 +296,7 @@ mod test {
         accept.push(mime::HTML);
 
         let mut headers = Response::new(200);
-        headers.insert(accept);
+        headers.insert_typed_header(accept);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         assert_eq!(accept.iter().next().unwrap(), mime::HTML);
@@ -309,7 +309,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        headers.insert(accept);
+        headers.insert_typed_header(accept);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -323,7 +323,7 @@ mod test {
         accept.set_wildcard(true);
 
         let mut headers = Response::new(200);
-        headers.insert(accept);
+        headers.insert_typed_header(accept);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         assert!(accept.wildcard());
@@ -338,7 +338,7 @@ mod test {
         accept.push(mime::XML);
 
         let mut headers = Response::new(200);
-        headers.insert(accept);
+        headers.insert_typed_header(accept);
 
         let accept = Accept::from_headers(headers)?.unwrap();
         let mut accept = accept.iter();
@@ -355,7 +355,7 @@ mod test {
         accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
 
         let mut headers = Response::new(200);
-        headers.insert(accept);
+        headers.insert_typed_header(accept);
 
         let mut accept = Accept::from_headers(headers)?.unwrap();
         accept.sort();
@@ -374,7 +374,7 @@ mod test {
         accept.push(MediaTypeProposal::new(mime::PLAIN, Some(0.8))?);
 
         let mut res = Response::new(200);
-        accept.apply_header(&mut res);
+        res.insert_typed_header(accept);
 
         let mut accept = Accept::from_headers(res)?.unwrap();
         accept.sort();

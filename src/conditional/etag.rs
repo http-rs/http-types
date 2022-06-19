@@ -140,7 +140,7 @@ mod test {
         let etag = ETag::new("0xcafebeef".to_string());
 
         let mut headers = Fields::new();
-        headers.insert(etag);
+        headers.insert_typed(etag);
 
         let etag = ETag::from_headers(headers)?.unwrap();
         assert_eq!(etag, ETag::Strong(String::from("0xcafebeef")));
@@ -152,7 +152,7 @@ mod test {
         let etag = ETag::new_weak("0xcafebeef".to_string());
 
         let mut headers = Fields::new();
-        headers.insert(etag);
+        headers.insert_typed(etag);
 
         let etag = ETag::from_headers(headers)?.unwrap();
         assert_eq!(etag, ETag::Weak(String::from("0xcafebeef")));

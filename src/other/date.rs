@@ -115,7 +115,7 @@ mod test {
         let date = Date::new(now);
 
         let mut headers = Fields::new();
-        headers.insert(date);
+        headers.insert_typed(date);
 
         let date = Date::from_headers(headers)?.unwrap();
 

@@ -89,7 +89,7 @@ mod test {
         let expires = IfModifiedSince::new(time);
 
         let mut headers = Fields::new();
-        headers.insert(expires);
+        headers.insert_typed(expires);
 
         let expires = IfModifiedSince::from_headers(headers)?.unwrap();
 

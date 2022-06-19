@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers};
+use crate::headers::{Field, FieldName, FieldValue, Fields};
 use crate::Status;
 
 use crate::headers::STRICT_TRANSPORT_SECURITY;
@@ -168,7 +168,7 @@ mod test {
         let stc = StrictTransportSecurity::new(duration);
 
         let mut headers = Response::new(200);
-        headers.insert(stc);
+        headers.insert_typed_header(stc);
 
         let stc = StrictTransportSecurity::from_headers(headers)?.unwrap();
 

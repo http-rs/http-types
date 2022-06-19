@@ -13,7 +13,7 @@ use crate::headers::{
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
-use crate::{Body, Extensions, Method, Url, Version};
+use crate::{Body, Extensions, Field, Method, Url, Version};
 
 pin_project_lite::pin_project! {
     /// An HTTP request.
@@ -441,6 +441,14 @@ impl Request {
         values: impl ToFieldValues,
     ) -> crate::Result<Option<FieldValues>> {
         self.headers.insert(name, values)
+    }
+
+    /// Set a typed HTTP header.
+    pub fn insert_typed_header<F: Field>(
+        &mut self,
+        field: F,
+    ) -> crate::Result<Option<FieldValues>> {
+        self.headers.insert_typed(field)
     }
 
     /// Append a header to the headers.

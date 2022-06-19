@@ -248,7 +248,7 @@ mod test {
         entries.push(ClearDirective::Cookies);
 
         let mut res = Response::new(200);
-        entries.apply_header(&mut res);
+        res.insert_typed_header(entries);
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
         let mut entries = entries.iter();
@@ -264,7 +264,7 @@ mod test {
         entries.set_wildcard(true);
 
         let mut res = Response::new(200);
-        entries.apply_header(&mut res);
+        res.insert_typed_header(entries);
 
         let entries = ClearSiteData::from_headers(res)?.unwrap();
         assert!(entries.wildcard());

@@ -92,7 +92,7 @@ mod test {
         let expires = Expires::new_at(time);
 
         let mut headers = Fields::new();
-        headers.insert(expires);
+        headers.insert_typed(expires);
 
         let expires = Expires::from_headers(headers)?.unwrap();
 
