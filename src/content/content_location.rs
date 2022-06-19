@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, CONTENT_LOCATION};
+use crate::headers::{Field, FieldName, FieldValue, Fields, CONTENT_LOCATION};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -42,7 +42,7 @@ impl ContentLocation {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers<U>(base_url: U, headers: impl AsRef<Headers>) -> crate::Result<Option<Self>>
+    pub fn from_headers<U>(base_url: U, headers: impl AsRef<Fields>) -> crate::Result<Option<Self>>
     where
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
@@ -82,9 +82,7 @@ impl ContentLocation {
 }
 
 impl Field for ContentLocation {
-    fn field_name(&self) -> FieldName {
-        CONTENT_LOCATION
-    }
+    const FIELD_NAME: FieldName = CONTENT_LOCATION;
     fn field_value(&self) -> FieldValue {
         let output = self.url.to_string();
 
@@ -96,13 +94,13 @@ impl Field for ContentLocation {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let content_location = ContentLocation::new(Url::parse("https://example.net/test.json")?);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         content_headers.insert(location);
 
         let content_location =
@@ -117,7 +115,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(CONTENT_LOCATION, "htt://<nori ate the tag. yum.>")
             .unwrap();

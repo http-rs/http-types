@@ -41,7 +41,7 @@ pub use timing_allow_origin::TimingAllowOrigin;
 // /// assert_eq!(headers["X-Content-Type-Options"], "nosniff");
 // /// assert_eq!(headers["X-XSS-Protection"], "1; mode=block");
 // /// ```
-pub fn default(mut headers: impl AsMut<Headers>) {
+pub fn default(mut headers: impl AsMut<Fields>) {
     dns_prefetch_control(&mut headers);
     nosniff(&mut headers);
     frameguard(&mut headers, None);
@@ -63,7 +63,7 @@ pub fn default(mut headers: impl AsMut<Headers>) {
 // /// assert_eq!(headers["X-DNS-Prefetch-Control"], "on");
 // /// ```
 #[inline]
-pub fn dns_prefetch_control(mut headers: impl AsMut<Headers>) {
+pub fn dns_prefetch_control(mut headers: impl AsMut<Fields>) {
     // This will never fail, could use an unsafe version of insert.
     headers
         .as_mut()
@@ -93,7 +93,7 @@ pub enum FrameOptions {
 // /// assert_eq!(headers["X-Frame-Options"], "sameorigin");
 // /// ```
 #[inline]
-pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>) {
+pub fn frameguard(mut headers: impl AsMut<Fields>, guard: Option<FrameOptions>) {
     let kind = match guard {
         None | Some(FrameOptions::SameOrigin) => "sameorigin",
         Some(FrameOptions::Deny) => "deny",
@@ -117,7 +117,7 @@ pub fn frameguard(mut headers: impl AsMut<Headers>, guard: Option<FrameOptions>)
 // /// assert_eq!(headers.get("X-Powered-By"), None);
 // /// ```
 #[inline]
-pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<FieldValue>) {
+pub fn powered_by(mut headers: impl AsMut<Fields>, value: Option<FieldValue>) {
     let name = FieldName::from_lowercase_str("X-Powered-By");
     match value {
         Some(value) => {
@@ -146,7 +146,7 @@ pub fn powered_by(mut headers: impl AsMut<Headers>, value: Option<FieldValue>) {
 // /// assert_eq!(headers["Strict-Transport-Security"], "max-age=5184000");
 // /// ```
 #[inline]
-pub fn hsts(mut headers: impl AsMut<Headers>) {
+pub fn hsts(mut headers: impl AsMut<Fields>) {
     // Never fails, could use unsafe version of insert
     headers
         .as_mut()
@@ -168,7 +168,7 @@ pub fn hsts(mut headers: impl AsMut<Headers>) {
 // /// assert_eq!(headers["X-Content-Type-Options"], "nosniff");
 // /// ```
 #[inline]
-pub fn nosniff(mut headers: impl AsMut<Headers>) {
+pub fn nosniff(mut headers: impl AsMut<Fields>) {
     // Never fails, could use unsafe verison of insert.
     headers
         .as_mut()
@@ -189,7 +189,7 @@ pub fn nosniff(mut headers: impl AsMut<Headers>) {
 // /// assert_eq!(headers["X-XSS-Protection"], "1; mode=block");
 // /// ```
 #[inline]
-pub fn xss_filter(mut headers: impl AsMut<Headers>) {
+pub fn xss_filter(mut headers: impl AsMut<Fields>) {
     // Never fails, could use unsafe version of insert.
     headers
         .as_mut()
@@ -236,7 +236,7 @@ pub enum ReferrerOptions {
 // /// assert_eq!(referrerValues.sort(), vec!("unsafe-url", "no-referrer").sort());
 // /// ```
 #[inline]
-pub fn referrer_policy(mut headers: impl AsMut<Headers>, referrer: Option<ReferrerOptions>) {
+pub fn referrer_policy(mut headers: impl AsMut<Fields>, referrer: Option<ReferrerOptions>) {
     let policy = match referrer {
         None | Some(ReferrerOptions::NoReferrer) => "no-referrer",
         Some(ReferrerOptions::NoReferrerDowngrade) => "no-referrer-when-downgrade",

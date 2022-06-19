@@ -1,5 +1,5 @@
 use crate::bail_status as bail;
-use crate::headers::{FieldName, FieldValue, Headers, WWW_AUTHENTICATE};
+use crate::headers::{FieldName, FieldValue, Fields, WWW_AUTHENTICATE};
 use crate::{auth::AuthenticationScheme, headers::Field};
 
 /// Define the authentication method that should be used to gain access to a
@@ -49,7 +49,7 @@ impl WwwAuthenticate {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(WWW_AUTHENTICATE) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -115,9 +115,7 @@ impl WwwAuthenticate {
 }
 
 impl Field for WwwAuthenticate {
-    fn field_name(&self) -> FieldName {
-        WWW_AUTHENTICATE
-    }
+    const FIELD_NAME: FieldName = WWW_AUTHENTICATE;
 
     fn field_value(&self) -> FieldValue {
         let output = format!(r#"{} realm="{}", charset="UTF-8""#, self.scheme, self.realm);
@@ -130,7 +128,7 @@ impl Field for WwwAuthenticate {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -138,7 +136,7 @@ mod test {
         let realm = "Access to the staging site";
         let authz = WwwAuthenticate::new(scheme, realm.into());
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(authz);
 
         assert_eq!(
@@ -155,7 +153,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(WWW_AUTHENTICATE, "<nori ate the tag. yum.>")
             .unwrap();

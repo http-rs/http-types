@@ -52,7 +52,7 @@ impl TE {
     }
 
     /// Create an instance of `TE` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
         let headers = match headers.as_ref().get(headers::TE) {
             Some(headers) => headers,

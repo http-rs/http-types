@@ -31,7 +31,7 @@ use super::FieldValue;
 /// ```
 #[derive(Clone)]
 pub struct Fields {
-    pub(crate) headers: HashMap<FieldName, FieldValue>,
+    pub(crate) headers: HashMap<FieldName, FieldValues>,
 }
 
 impl Fields {
@@ -50,17 +50,17 @@ impl Fields {
     }
 
     /// Get a reference to a header.
-    pub fn get(&self, name: FieldName) -> Option<&FieldValue> {
+    pub fn get(&self, name: FieldName) -> Option<&FieldValues> {
         self.headers.get(&name)
     }
 
     /// Get a mutable reference to a header.
-    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut FieldValue> {
+    pub fn get_mut(&mut self, name: impl Into<FieldName>) -> Option<&mut FieldValues> {
         self.headers.get_mut(&name.into())
     }
 
     /// Remove a header.
-    pub fn remove(&mut self, name: impl Into<FieldName>) -> Option<FieldValue> {
+    pub fn remove(&mut self, name: impl Into<FieldName>) -> Option<FieldValues> {
         self.headers.remove(&name.into())
     }
 

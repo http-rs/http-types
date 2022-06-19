@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, DATE};
+use crate::headers::{Field, FieldName, FieldValue, Fields, DATE};
 use crate::utils::HttpDate;
 
 use std::time::SystemTime;
@@ -51,7 +51,7 @@ impl Date {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(DATE) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -106,7 +106,7 @@ impl PartialEq<SystemTime> for Date {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
     use std::time::Duration;
 
     #[test]
@@ -114,7 +114,7 @@ mod test {
         let now = SystemTime::now();
         let date = Date::new(now);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(date);
 
         let date = Date::from_headers(headers)?.unwrap();
@@ -126,7 +126,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(DATE, "<nori ate the tag. yum.>").unwrap();
         let err = Date::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);

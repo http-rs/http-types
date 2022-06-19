@@ -1,6 +1,6 @@
 use std::{convert::TryInto, str::FromStr};
 
-use crate::headers::{Field, FieldName, FieldValue, Headers, CONTENT_TYPE};
+use crate::headers::{Field, FieldName, FieldValue, Fields, CONTENT_TYPE};
 use crate::mime::Mime;
 
 /// Indicate the media type of a resource's content.
@@ -57,7 +57,7 @@ impl ContentType {
     /// order to always return fully qualified URLs, a base URL must be passed to
     /// reference the current environment. In HTTP/1.1 and above this value can
     /// always be determined from the request.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(CONTENT_TYPE) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -76,9 +76,7 @@ impl ContentType {
 }
 
 impl Field for ContentType {
-    fn field_name(&self) -> FieldName {
-        CONTENT_TYPE
-    }
+    const FIELD_NAME: FieldName = CONTENT_TYPE;
     fn field_value(&self) -> FieldValue {
         let output = format!("{}", self.media_type);
         // SAFETY: the internal string is validated to be ASCII.
@@ -107,13 +105,13 @@ impl From<Mime> for ContentType {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let ct = ContentType::new(Mime::from_str("text/*")?);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(ct);
 
         let ct = ContentType::from_headers(headers)?.unwrap();
@@ -126,7 +124,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(CONTENT_TYPE, "<nori ate the tag. yum.>")
             .unwrap();

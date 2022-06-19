@@ -32,7 +32,7 @@ use std::iter::Iterator;
 
 use std::slice;
 
-use crate::headers::{Field, FieldName, FieldValue, Headers, SERVER_TIMING};
+use crate::headers::{Field, FieldName, FieldValue, Fields, SERVER_TIMING};
 
 /// Metrics and descriptions for the given request-response cycle.
 ///
@@ -72,7 +72,7 @@ impl ServerTiming {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut timings = vec![];
         let headers = match headers.as_ref().get(SERVER_TIMING) {
             Some(headers) => headers,
@@ -106,9 +106,7 @@ impl ServerTiming {
 }
 
 impl Field for ServerTiming {
-    fn field_name(&self) -> FieldName {
-        SERVER_TIMING
-    }
+    const FIELD_NAME: FieldName = SERVER_TIMING;
 
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
@@ -217,14 +215,14 @@ impl<'a> Iterator for IterMut<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let mut timings = ServerTiming::new();
         timings.push(Metric::new("server".to_owned(), None, None)?);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(timings);
 
         let timings = ServerTiming::from_headers(headers)?.unwrap();
@@ -238,7 +236,7 @@ mod test {
         let mut timings = ServerTiming::new();
         timings.push(Metric::new("server".to_owned(), None, None)?);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(timings);
 
         let timings = ServerTiming::from_headers(headers)?.unwrap();
@@ -249,7 +247,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(SERVER_TIMING, "server; <nori ate your param omnom>")
             .unwrap();

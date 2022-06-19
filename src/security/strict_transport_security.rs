@@ -71,9 +71,7 @@ impl StrictTransportSecurity {
 }
 
 impl Field for StrictTransportSecurity {
-    fn field_name(&self) -> FieldName {
-        STRICT_TRANSPORT_SECURITY
-    }
+    const FIELD_NAME: FieldName = STRICT_TRANSPORT_SECURITY;
 
     fn field_value(&self) -> FieldValue {
         let max_age = self.max_age.as_secs();
@@ -93,7 +91,7 @@ impl Field for StrictTransportSecurity {
 // TODO: move to new header traits
 impl StrictTransportSecurity {
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(STRICT_TRANSPORT_SECURITY) {
             Some(headers) => headers,
             None => return Ok(None),

@@ -1,4 +1,4 @@
-use crate::headers::{FieldName, FieldValue, Headers, AUTHORIZATION};
+use crate::headers::{FieldName, FieldValue, Fields, AUTHORIZATION};
 use crate::Status;
 use crate::{
     auth::{AuthenticationScheme, Authorization},
@@ -53,7 +53,7 @@ impl BasicAuth {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let auth = match Authorization::from_headers(headers)? {
             Some(auth) => auth,
             None => return Ok(None),
@@ -112,7 +112,7 @@ impl Field for BasicAuth {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -120,7 +120,7 @@ mod test {
         let password = "secret_fish!!";
         let authz = BasicAuth::new(username, password);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(authz);
 
         let authz = BasicAuth::from_headers(headers)?.unwrap();
@@ -132,7 +132,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(AUTHORIZATION, "<nori ate the tag. yum.>")
             .unwrap();

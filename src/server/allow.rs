@@ -1,6 +1,6 @@
 //! List the set of methods supported by a resource.
 
-use crate::headers::{Field, FieldName, FieldValue, Headers, ALLOW};
+use crate::headers::{Field, FieldName, FieldValue, Fields, ALLOW};
 use crate::Method;
 
 use std::collections::{hash_set, HashSet};
@@ -49,7 +49,7 @@ impl Allow {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = HashSet::new();
         let headers = match headers.as_ref().get(ALLOW) {
             Some(headers) => headers,
@@ -173,7 +173,7 @@ impl Debug for Allow {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -181,7 +181,7 @@ mod test {
         allow.insert(Method::Put);
         allow.insert(Method::Post);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(allow);
 
         let allow = Allow::from_headers(headers)?.unwrap();

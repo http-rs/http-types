@@ -10,7 +10,7 @@ use std::task::{Context, Poll};
 #[cfg(feature = "serde")]
 use crate::convert::DeserializeOwned;
 use crate::headers::{
-    self, FieldName, FieldValue, FieldValues, Headers, Names, ToFieldValues, Values, CONTENT_TYPE,
+    self, FieldName, FieldValue, FieldValues, Fields, Names, ToFieldValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
@@ -65,7 +65,7 @@ impl Response {
         let (upgrade_sender, upgrade_receiver) = async_channel::bounded(1);
         Self {
             status,
-            headers: Headers::new(),
+            headers: Fields::new(),
             version: None,
             body: Body::empty(),
             trailers_sender: Some(trailers_sender),
@@ -626,13 +626,13 @@ impl AsyncBufRead for Response {
     }
 }
 
-impl AsRef<Headers> for Response {
+impl AsRef<Fields> for Response {
     fn as_ref(&self) -> &Headers {
         &self.headers
     }
 }
 
-impl AsMut<Headers> for Response {
+impl AsMut<Fields> for Response {
     fn as_mut(&mut self) -> &mut Headers {
         &mut self.headers
     }

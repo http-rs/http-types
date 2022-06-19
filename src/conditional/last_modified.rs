@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, LAST_MODIFIED};
+use crate::headers::{Field, FieldName, FieldValue, Fields, LAST_MODIFIED};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
@@ -51,7 +51,7 @@ impl LastModified {
     }
 
     /// Create an instance of `LastModified` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(LAST_MODIFIED) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -67,9 +67,7 @@ impl LastModified {
 }
 
 impl Field for LastModified {
-    fn field_name(&self) -> FieldName {
-        LAST_MODIFIED
-    }
+    const FIELD_NAME: FieldName = LAST_MODIFIED;
     fn field_value(&self) -> FieldValue {
         let output = fmt_http_date(self.instant);
 
@@ -81,7 +79,7 @@ impl Field for LastModified {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
     use std::time::Duration;
 
     #[test]
@@ -89,7 +87,7 @@ mod test {
         let time = SystemTime::now() + Duration::from_secs(5 * 60);
         let last_modified = LastModified::new(time);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         last_headers.insert(modified);
 
         let last_modified = LastModified::from_headers(headers)?.unwrap();
@@ -102,7 +100,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(LAST_MODIFIED, "<nori ate the tag. yum.>")
             .unwrap();

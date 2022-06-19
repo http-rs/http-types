@@ -1,6 +1,6 @@
 //! Apply the HTTP method if the ETag matches.
 
-use crate::headers::{Field, FieldName, FieldValue, Headers, VARY};
+use crate::headers::{Field, FieldName, FieldValue, Fields, VARY};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -51,7 +51,7 @@ impl Vary {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
         let headers = match headers.as_ref().get(VARY) {
             Some(headers) => headers,

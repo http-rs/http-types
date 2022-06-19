@@ -9,7 +9,7 @@ use std::task::{Context, Poll};
 #[cfg(feature = "serde")]
 use crate::convert::{DeserializeOwned, Serialize};
 use crate::headers::{
-    self, FieldName, FieldValue, FieldValues, Headers, Names, ToFieldValues, Values, CONTENT_TYPE,
+    self, FieldName, FieldValue, FieldValues, Fields, Names, ToFieldValues, Values, CONTENT_TYPE,
 };
 use crate::mime::Mime;
 use crate::trailers::{self, Trailers};
@@ -55,7 +55,7 @@ impl Request {
         Self {
             method,
             url,
-            headers: Headers::new(),
+            headers: Fields::new(),
             version: None,
             body: Body::empty(),
             ext: Extensions::new(),
@@ -926,13 +926,13 @@ impl AsyncBufRead for Request {
     }
 }
 
-impl AsRef<Headers> for Request {
+impl AsRef<Fields> for Request {
     fn as_ref(&self) -> &Headers {
         &self.headers
     }
 }
 
-impl AsMut<Headers> for Request {
+impl AsMut<Fields> for Request {
     fn as_mut(&mut self) -> &mut Headers {
         &mut self.headers
     }

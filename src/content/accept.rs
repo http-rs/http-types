@@ -1,6 +1,6 @@
 //! Client header advertising which media types the client is able to understand.
 
-use crate::headers::{FieldName, FieldValue, Headers, ACCEPT};
+use crate::headers::{FieldName, FieldValue, Fields, ACCEPT};
 use crate::mime::Mime;
 use crate::utils::sort_by_weight;
 use crate::{
@@ -63,7 +63,7 @@ impl Accept {
     }
 
     /// Create an instance of `Accept` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
         let headers = match headers.as_ref().get(ACCEPT) {
             Some(headers) => headers,

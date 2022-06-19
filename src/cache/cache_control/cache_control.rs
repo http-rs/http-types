@@ -1,6 +1,6 @@
 use headers::Field;
 
-use crate::headers::{FieldName, FieldValue, Headers, CACHE_CONTROL};
+use crate::headers::{FieldName, FieldValue, Fields, CACHE_CONTROL};
 use crate::{cache::CacheDirective, headers};
 
 use std::fmt::{self, Debug, Write};
@@ -42,7 +42,7 @@ impl CacheControl {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
         let headers = match headers.as_ref().get(CACHE_CONTROL) {
             Some(headers) => headers,
@@ -82,9 +82,7 @@ impl CacheControl {
 }
 
 impl Field for CacheControl {
-    fn field_name(&self) -> FieldName {
-        CACHE_CONTROL
-    }
+    const FIELD_NAME: FieldName = CACHE_CONTROL;
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, directive) in self.entries.iter().enumerate() {

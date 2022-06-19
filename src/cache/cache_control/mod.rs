@@ -16,7 +16,7 @@ pub use cache_directive::CacheDirective;
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::{Field, Headers, CACHE_CONTROL};
+    use crate::headers::{Field, Fields, CACHE_CONTROL};
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -24,7 +24,7 @@ mod test {
         entries.push(CacheDirective::Immutable);
         entries.push(CacheDirective::NoStore);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(entries);
 
         let entries = CacheControl::from_headers(headers)?.unwrap();
@@ -36,7 +36,7 @@ mod test {
 
     #[test]
     fn ignore_unkonwn_directives() -> crate::Result<()> {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(CACHE_CONTROL, "barrel_roll").unwrap();
         let entries = CacheControl::from_headers(headers)?.unwrap();
         let mut entries = entries.iter();
@@ -46,7 +46,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(CACHE_CONTROL, "min-fresh=0.9").unwrap(); // floats are not supported
         let err = CacheControl::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);

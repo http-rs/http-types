@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, AGE};
+use crate::headers::{Field, FieldName, FieldValue, Fields, AGE};
 use crate::Status;
 
 use std::fmt::Debug;
@@ -52,7 +52,7 @@ impl Age {
     }
 
     /// Create an instance of `Age` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(AGE) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -83,13 +83,13 @@ impl Field for Age {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let age = Age::new(Duration::from_secs(12));
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(age);
 
         let age = Age::from_headers(headers)?.unwrap();
@@ -99,7 +99,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(AGE, "<nori ate the tag. yum.>").unwrap();
         let err = Age::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);

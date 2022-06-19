@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, CONTENT_LENGTH};
+use crate::headers::{Field, FieldName, FieldValue, Fields, CONTENT_LENGTH};
 use crate::Status;
 
 /// The size of the entity-body, in bytes, sent to the recipient.
@@ -38,7 +38,7 @@ impl ContentLength {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(CONTENT_LENGTH) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -63,9 +63,7 @@ impl ContentLength {
 }
 
 impl Field for ContentLength {
-    fn field_name(&self) -> FieldName {
-        CONTENT_LENGTH
-    }
+    const FIELD_NAME: FieldName = CONTENT_LENGTH;
     fn field_value(&self) -> FieldValue {
         let output = format!("{}", self.length);
 
@@ -77,13 +75,13 @@ impl Field for ContentLength {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let content_len = ContentLength::new(12);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         content_headers.insert(len);
 
         let content_len = ContentLength::from_headers(headers)?.unwrap();
@@ -93,7 +91,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(CONTENT_LENGTH, "<nori ate the tag. yum.>")
             .unwrap();

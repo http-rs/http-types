@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, EXPIRES};
+use crate::headers::{Field, FieldName, FieldValue, Fields, EXPIRES};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
@@ -56,7 +56,7 @@ impl Expires {
     }
 
     /// Create an instance of `Expires` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(EXPIRES) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -84,14 +84,14 @@ impl Field for Expires {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let time = SystemTime::now() + Duration::from_secs(5 * 60);
         let expires = Expires::new_at(time);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(expires);
 
         let expires = Expires::from_headers(headers)?.unwrap();
@@ -104,7 +104,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(EXPIRES, "<nori ate the tag. yum.>").unwrap();
         let err = Expires::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);

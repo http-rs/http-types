@@ -1,4 +1,4 @@
-use crate::headers::Headers;
+use crate::headers::Fields;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -355,7 +355,7 @@ impl ContentSecurityPolicy {
     }
 
     /// Sets the `Content-Security-Policy` (CSP) HTTP header to prevent cross-site injections
-    pub fn apply(&mut self, mut headers: impl AsMut<Headers>) {
+    pub fn apply(&mut self, mut headers: impl AsMut<Fields>) {
         let name = if self.report_only_flag {
             "Content-Security-Policy-Report-Only"
         } else {

@@ -26,7 +26,7 @@
 //! # Ok(()) }
 //! ```
 
-use crate::headers::{Field, FieldName, FieldValue, Headers, TIMING_ALLOW_ORIGIN};
+use crate::headers::{Field, FieldName, FieldValue, Fields, TIMING_ALLOW_ORIGIN};
 use crate::{Status, Url};
 
 use std::fmt::Write;
@@ -77,7 +77,7 @@ impl TimingAllowOrigin {
     /// # Implementation note
     ///
     /// A header value of `"null"` is treated the same as if no header was sent.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(TIMING_ALLOW_ORIGIN) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -132,9 +132,7 @@ impl TimingAllowOrigin {
 }
 
 impl Field for TimingAllowOrigin {
-    fn field_name(&self) -> FieldName {
-        TIMING_ALLOW_ORIGIN
-    }
+    const FIELD_NAME: FieldName = TIMING_ALLOW_ORIGIN;
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, origin) in self.origins.iter().enumerate() {
@@ -258,14 +256,14 @@ impl Debug for TimingAllowOrigin {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let mut origins = TimingAllowOrigin::new();
         origins.push(Url::parse("https://example.com")?);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(origins);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
@@ -280,7 +278,7 @@ mod test {
         origins.push(Url::parse("https://example.com")?);
         origins.push(Url::parse("https://mozilla.org/")?);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(origins);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();
@@ -295,7 +293,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(TIMING_ALLOW_ORIGIN, "server; <nori ate your param omnom>")
             .unwrap();
@@ -309,7 +307,7 @@ mod test {
         origins.push(Url::parse("https://example.com")?);
         origins.set_wildcard(true);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(origins);
 
         let origins = TimingAllowOrigin::from_headers(headers)?.unwrap();

@@ -1,7 +1,7 @@
 //! Clear browsing data (cookies, storage, cache) associated with the
 //! requesting website
 
-use crate::headers::{self, FieldName, FieldValue, Headers, CLEAR_SITE_DATA};
+use crate::headers::{self, FieldName, FieldValue, Fields, CLEAR_SITE_DATA};
 
 use std::fmt::{self, Debug, Write};
 use std::iter::Iterator;
@@ -60,7 +60,7 @@ impl ClearSiteData {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
         let header_values = match headers.as_ref().get(CLEAR_SITE_DATA) {
             Some(headers) => headers,
@@ -212,9 +212,7 @@ impl Debug for ClearSiteData {
 }
 
 impl Field for ClearSiteData {
-    fn field_name(&self) -> FieldName {
-        CLEAR_SITE_DATA
-    }
+    const FIELD_NAME: FieldName = CLEAR_SITE_DATA;
 
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();

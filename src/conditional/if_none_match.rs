@@ -3,7 +3,7 @@
 //! This is used to update caches or to prevent uploading a new resource when
 //! one already exists.
 
-use crate::headers::{FieldName, FieldValue, Headers, IF_NONE_MATCH};
+use crate::headers::{FieldName, FieldValue, Fields, IF_NONE_MATCH};
 use crate::{conditional::ETag, headers::Field};
 
 use std::fmt::{self, Debug, Write};
@@ -57,7 +57,7 @@ impl IfNoneMatch {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
         let headers = match headers.as_ref().get(IF_NONE_MATCH) {
             Some(headers) => headers,
@@ -110,9 +110,7 @@ impl IfNoneMatch {
 }
 
 impl Field for IfNoneMatch {
-    fn field_name(&self) -> FieldName {
-        IF_NONE_MATCH
-    }
+    const FIELD_NAME: FieldName = IF_NONE_MATCH;
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {

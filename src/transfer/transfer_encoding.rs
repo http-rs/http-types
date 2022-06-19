@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, TRANSFER_ENCODING};
+use crate::headers::{Field, FieldName, FieldValue, Fields, TRANSFER_ENCODING};
 use crate::transfer::{Encoding, EncodingProposal};
 
 use std::fmt::{self, Debug};
@@ -40,7 +40,7 @@ impl TransferEncoding {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(TRANSFER_ENCODING) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -65,9 +65,7 @@ impl TransferEncoding {
 }
 
 impl Field for TransferEncoding {
-    fn field_name(&self) -> FieldName {
-        TRANSFER_ENCODING
-    }
+    const FIELD_NAME: FieldName = TRANSFER_ENCODING;
     fn field_value(&self) -> FieldValue {
         self.inner.into()
     }

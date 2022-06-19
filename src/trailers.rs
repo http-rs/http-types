@@ -48,9 +48,7 @@
 //! - [MDN HTTP Headers: Trailer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Trailer)
 //! - [HTTP/2 spec: HTTP Sequence](https://http2.github.io/http2-spec/#HttpSequence)
 
-use crate::headers::{
-    FieldName, FieldValues, Headers, Iter, IterMut, Names, ToFieldValues, Values,
-};
+use crate::headers::{FieldName, FieldValues, Fields, Iter, IterMut, Names, ToFieldValues, Values};
 use futures_lite::Stream;
 
 use std::convert::Into;
@@ -69,7 +67,7 @@ impl Trailers {
     /// Create a new instance of `Trailers`.
     pub fn new() -> Self {
         Self {
-            headers: Headers::new(),
+            headers: Fields::new(),
         }
     }
 

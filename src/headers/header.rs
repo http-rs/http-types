@@ -17,9 +17,9 @@ where
     /// Access the header's value.
     fn field_value(&self) -> FieldValue;
 
-    /// Create a field from its parts.
-    // TODO: move this to a separate trait.
-    fn from_field_pair(name: FieldName, value: FieldValue) -> Result<Self, ()>;
+    // /// Create a field from its parts.
+    // // TODO: move this to a separate trait.
+    // fn from_field_pair(name: FieldName, value: FieldValue) -> Result<Self, ()>;
 }
 
 #[cfg(test)]

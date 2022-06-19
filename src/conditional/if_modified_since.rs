@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, IF_MODIFIED_SINCE};
+use crate::headers::{Field, FieldName, FieldValue, Fields, IF_MODIFIED_SINCE};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 use std::fmt::Debug;
@@ -52,7 +52,7 @@ impl IfModifiedSince {
     }
 
     /// Create an instance of `IfModifiedSince` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(IF_MODIFIED_SINCE) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -68,9 +68,7 @@ impl IfModifiedSince {
 }
 
 impl Field for IfModifiedSince {
-    fn field_name(&self) -> FieldName {
-        IF_MODIFIED_SINCE
-    }
+    const FIELD_NAME: FieldName = IF_MODIFIED_SINCE;
     fn field_value(&self) -> FieldValue {
         let output = fmt_http_date(self.instant);
 
@@ -82,7 +80,7 @@ impl Field for IfModifiedSince {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
     use std::time::Duration;
 
     #[test]
@@ -90,7 +88,7 @@ mod test {
         let time = SystemTime::now() + Duration::from_secs(5 * 60);
         let expires = IfModifiedSince::new(time);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(expires);
 
         let expires = IfModifiedSince::from_headers(headers)?.unwrap();
@@ -103,7 +101,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(IF_MODIFIED_SINCE, "<nori ate the tag. yum.>")
             .unwrap();

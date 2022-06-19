@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, ETAG};
+use crate::headers::{Field, FieldName, FieldValue, Fields, ETAG};
 use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Display};
@@ -55,7 +55,7 @@ impl ETag {
     ///
     /// Only a single ETag per resource is assumed to exist. If multiple ETag
     /// headers are found the last one is used.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(ETAG) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -133,13 +133,13 @@ impl Display for ETag {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let etag = ETag::new("0xcafebeef".to_string());
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(etag);
 
         let etag = ETag::from_headers(headers)?.unwrap();
@@ -151,7 +151,7 @@ mod test {
     fn smoke_weak() -> crate::Result<()> {
         let etag = ETag::new_weak("0xcafebeef".to_string());
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(etag);
 
         let etag = ETag::from_headers(headers)?.unwrap();
@@ -161,7 +161,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(ETAG, "<nori ate the tag. yum.>").unwrap();
         let err = ETag::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);
@@ -176,7 +176,7 @@ mod test {
     }
 
     fn assert_entry_err(s: &str, msg: &str) {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(ETAG, s).unwrap();
         let err = ETag::from_headers(headers).unwrap_err();
         assert_eq!(format!("{}", err), msg);

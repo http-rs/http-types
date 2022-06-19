@@ -1,4 +1,4 @@
-use crate::headers::{FieldName, FieldValue, Headers, EXPECT};
+use crate::headers::{FieldName, FieldValue, Fields, EXPECT};
 use crate::{ensure_eq_status, headers::Field};
 
 use std::fmt::Debug;
@@ -41,7 +41,7 @@ impl Expect {
     }
 
     /// Create an instance of `Expect` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(EXPECT) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -68,13 +68,13 @@ impl Field for Expect {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let expect = Expect::new();
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(expect);
 
         let expect = Expect::from_headers(headers)?.unwrap();
@@ -84,7 +84,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(EXPECT, "<nori ate the tag. yum.>").unwrap();
         let err = Expect::from_headers(headers).unwrap_err();
         assert_eq!(err.status(), 400);

@@ -1,5 +1,5 @@
 use crate::{
-    headers::{Field, FieldName, FieldValue, Headers, FORWARDED},
+    headers::{Field, FieldName, FieldValue, Fields, FORWARDED},
     parse_utils::{parse_quoted_string, parse_token},
 };
 use std::{borrow::Cow, convert::TryFrom, fmt::Write, net::IpAddr};
@@ -76,7 +76,7 @@ impl<'a> Forwarded<'a> {
     /// # Ok(()) }
     /// ```
 
-    pub fn from_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>, ParseError> {
+    pub fn from_headers(headers: &'a impl AsRef<Fields>) -> Result<Option<Self>, ParseError> {
         if let Some(forwarded) = Self::from_forwarded_header(headers)? {
             Ok(Some(forwarded))
         } else {
@@ -109,7 +109,7 @@ impl<'a> Forwarded<'a> {
     /// # Ok(()) }
     /// ```
     pub fn from_forwarded_header(
-        headers: &'a impl AsRef<Headers>,
+        headers: &'a impl AsRef<Fields>,
     ) -> Result<Option<Self>, ParseError> {
         if let Some(headers) = headers.as_ref().get(FORWARDED) {
             Ok(Some(Self::parse(headers.as_ref().as_str())?))
@@ -143,7 +143,7 @@ impl<'a> Forwarded<'a> {
     /// assert!(Forwarded::from_x_headers(&request)?.is_none());
     /// # Ok(()) }
     /// ```
-    pub fn from_x_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>, ParseError> {
+    pub fn from_x_headers(headers: &'a impl AsRef<Fields>) -> Result<Option<Self>, ParseError> {
         let headers = headers.as_ref();
 
         let forwarded_for: Vec<Cow<'a, str>> = headers

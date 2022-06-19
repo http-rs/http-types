@@ -112,7 +112,7 @@ impl TryFrom<http::HeaderMap> for Headers {
     }
 }
 
-impl TryFrom<Headers> for http::HeaderMap {
+impl TryFrom<Fields> for http::HeaderMap {
     type Error = Error;
 
     fn try_from(headers: Headers) -> Result<Self, Self::Error> {
@@ -156,7 +156,7 @@ fn hyperium_headers_to_headers(
     Ok(())
 }
 
-fn headers_to_hyperium_headers(headers: &mut Headers, hyperium_headers: &mut http::HeaderMap) {
+fn headers_to_hyperium_headers(headers: &mut Fields, hyperium_headers: &mut http::HeaderMap) {
     for (name, values) in headers {
         let name = format!("{}", name).into_bytes();
         let name = http::header::HeaderName::from_bytes(&name).unwrap();

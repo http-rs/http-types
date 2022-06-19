@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::headers::{Field, FieldName, FieldValue, Headers, TRACEPARENT};
+use crate::headers::{Field, FieldName, FieldValue, Fields, TRACEPARENT};
 use crate::Status;
 
 /// Extract and apply [Trace-Context](https://w3c.github.io/trace-context/) headers.
@@ -99,7 +99,7 @@ impl TraceContext {
     /// #
     /// # Ok(()) }
     /// ```
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = headers.as_ref();
 
         let traceparent = match headers.get(TRACEPARENT) {
@@ -220,7 +220,7 @@ mod test {
 
     #[test]
     fn default() -> crate::Result<()> {
-        let mut headers = crate::headers::Headers::new();
+        let mut headers = crate::headers::Fields::new();
         headers.insert(TRACEPARENT, "00-01-deadbeef-00").unwrap();
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert_eq!(context.version(), 0);
@@ -242,7 +242,7 @@ mod test {
 
     #[test]
     fn not_sampled() -> crate::Result<()> {
-        let mut headers = crate::headers::Headers::new();
+        let mut headers = crate::headers::Fields::new();
         headers.insert(TRACEPARENT, "00-01-02-00").unwrap();
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert!(!context.sampled());
@@ -251,7 +251,7 @@ mod test {
 
     #[test]
     fn sampled() -> crate::Result<()> {
-        let mut headers = crate::headers::Headers::new();
+        let mut headers = crate::headers::Fields::new();
         headers.insert(TRACEPARENT, "00-01-02-01").unwrap();
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert!(context.sampled());

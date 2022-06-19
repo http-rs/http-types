@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime, SystemTimeError};
 
-use crate::headers::{Field, FieldName, FieldValue, Headers, RETRY_AFTER};
+use crate::headers::{Field, FieldName, FieldValue, Fields, RETRY_AFTER};
 use crate::utils::{fmt_http_date, parse_http_date};
 
 /// Indicate how long the user agent should wait before making a follow-up request.
@@ -58,7 +58,7 @@ impl RetryAfter {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let header = match headers.as_ref().get(RETRY_AFTER) {
             Some(headers) => headers.last(),
             None => return Ok(None),
@@ -90,9 +90,7 @@ impl RetryAfter {
 }
 
 impl Field for RetryAfter {
-    fn field_name(&self) -> FieldName {
-        RETRY_AFTER
-    }
+    const FIELD_NAME: FieldName = RETRY_AFTER;
 
     fn field_value(&self) -> FieldValue {
         let output = match self.inner {
@@ -126,13 +124,13 @@ enum RetryDirective {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let retry = RetryAfter::new(Duration::from_secs(10));
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(retry);
 
         // `SystemTime::now` uses sub-second precision which means there's some
@@ -151,7 +149,7 @@ mod test {
         let now = SystemTime::now();
         let retry = RetryAfter::new_at(now + Duration::from_secs(10));
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(retry);
 
         // `SystemTime::now` uses sub-second precision which means there's some

@@ -1,6 +1,6 @@
 use crate::auth::AuthenticationScheme;
 use crate::bail_status as bail;
-use crate::headers::{Field, FieldName, FieldValue, Headers, AUTHORIZATION};
+use crate::headers::{Field, FieldName, FieldValue, Fields, AUTHORIZATION};
 
 /// Credentials to authenticate a user agent with a server.
 ///
@@ -46,7 +46,7 @@ impl Authorization {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let headers = match headers.as_ref().get(AUTHORIZATION) {
             Some(headers) => headers,
             None => return Ok(None),
@@ -106,7 +106,7 @@ impl Field for Authorization {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -114,7 +114,7 @@ mod test {
         let credentials = "0xdeadbeef202020";
         let authz = Authorization::new(scheme, credentials.into());
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(authz);
 
         let authz = Authorization::from_headers(headers)?.unwrap();
@@ -126,7 +126,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(AUTHORIZATION, "<nori ate the tag. yum.>")
             .unwrap();

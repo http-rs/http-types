@@ -1,6 +1,6 @@
 //! Client header advertising available compression algorithms.
 
-use crate::headers::{FieldName, FieldValue, Headers, ACCEPT_ENCODING};
+use crate::headers::{FieldName, FieldValue, Fields, ACCEPT_ENCODING};
 use crate::utils::sort_by_weight;
 use crate::{
     content::{ContentEncoding, Encoding, EncodingProposal},
@@ -54,7 +54,7 @@ impl AcceptEncoding {
     }
 
     /// Create an instance of `AcceptEncoding` from a `Headers` instance.
-    pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
+    pub fn from_headers(headers: impl AsRef<Fields>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
         let headers = match headers.as_ref().get(ACCEPT_ENCODING) {
             Some(headers) => headers,
@@ -154,9 +154,7 @@ impl AcceptEncoding {
 }
 
 impl Field for AcceptEncoding {
-    fn field_name(&self) -> FieldName {
-        ACCEPT_ENCODING
-    }
+    const FIELD_NAME: FieldName = ACCEPT_ENCODING;
 
     fn field_value(&self) -> FieldValue {
         let mut output = String::new();

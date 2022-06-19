@@ -19,7 +19,7 @@ pub use header::Field;
 pub use header_name::FieldName;
 pub use header_value::FieldValue;
 pub use header_values::FieldValues;
-pub use headers::Headers;
+pub use headers::Fields;
 pub use into_iter::IntoIter;
 pub use iter::Iter;
 pub use iter_mut::IterMut;

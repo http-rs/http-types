@@ -1,4 +1,4 @@
-use crate::headers::{Field, FieldName, FieldValue, Headers, SOURCE_MAP};
+use crate::headers::{Field, FieldName, FieldValue, Fields, SOURCE_MAP};
 use crate::{bail_status as bail, Status, Url};
 
 use std::convert::TryInto;
@@ -42,7 +42,7 @@ impl SourceMap {
     }
 
     /// Create a new instance from headers.
-    pub fn from_headers<U>(base_url: U, headers: impl AsRef<Headers>) -> crate::Result<Option<Self>>
+    pub fn from_headers<U>(base_url: U, headers: impl AsRef<Fields>) -> crate::Result<Option<Self>>
     where
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
@@ -84,9 +84,7 @@ impl SourceMap {
 }
 
 impl Field for SourceMap {
-    fn field_name(&self) -> FieldName {
-        SOURCE_MAP
-    }
+    const FIELD_NAME: FieldName = SOURCE_MAP;
 
     fn field_value(&self) -> FieldValue {
         let output = self.location.to_string();
@@ -99,13 +97,13 @@ impl Field for SourceMap {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::headers::Headers;
+    use crate::headers::Fields;
 
     #[test]
     fn smoke() -> crate::Result<()> {
         let source_map = SourceMap::new(Url::parse("https://example.net/test.json")?);
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         source_headers.insert(map);
 
         let base_url = Url::parse("https://example.net/")?;
@@ -119,7 +117,7 @@ mod test {
 
     #[test]
     fn bad_request_on_parse_error() {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(SOURCE_MAP, "htt://<nori ate the tag. yum.>")
             .unwrap();
@@ -130,7 +128,7 @@ mod test {
 
     #[test]
     fn fallback_works() -> crate::Result<()> {
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers.insert(SOURCE_MAP, "/test.json").unwrap();
 
         let base_url = Url::parse("https://fallback.net/")?;
@@ -140,7 +138,7 @@ mod test {
             &Url::parse("https://fallback.net/test.json")?
         );
 
-        let mut headers = Headers::new();
+        let mut headers = Fields::new();
         headers
             .insert(SOURCE_MAP, "https://example.com/test.json")
             .unwrap();
