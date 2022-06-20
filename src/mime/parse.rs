@@ -153,12 +153,12 @@ fn is_http_whitespace_char(c: char) -> bool {
 
 /// [code point sequence collection](https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points)
 fn collect_code_point_sequence_char(input: &str, delimiter: char) -> (&str, &str) {
-    input.split_at(input.find(delimiter).unwrap_or_else(|| input.len()))
+    input.split_at(input.find(delimiter).unwrap_or(input.len()))
 }
 
 /// [code point sequence collection](https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points)
 fn collect_code_point_sequence_slice<'a>(input: &'a str, delimiter: &[char]) -> (&'a str, &'a str) {
-    input.split_at(input.find(delimiter).unwrap_or_else(|| input.len()))
+    input.split_at(input.find(delimiter).unwrap_or(input.len()))
 }
 
 /// [HTTP quoted string collection](https://fetch.spec.whatwg.org/#collect-an-http-quoted-string)

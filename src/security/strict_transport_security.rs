@@ -116,7 +116,7 @@ impl StrictTransportSecurity {
             } else if s == "preload" {
                 preload = true;
             } else {
-                let (key, value) = match s.split_once("=") {
+                let (key, value) = match s.split_once('=') {
                     Some(kv) => kv,
                     None => continue, // We don't recognize the directive, continue.
                 };

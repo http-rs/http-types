@@ -283,7 +283,7 @@ impl Body {
     pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
         let mut buf = Vec::with_capacity(1024);
         self.read_to_end(&mut buf).await?;
-        Ok(serde_json::from_slice(&buf).status(StatusCode::UnprocessableEntity)?)
+        serde_json::from_slice(&buf).status(StatusCode::UnprocessableEntity)
     }
 
     /// Creates a `Body` from a type, serializing it using form encoding.
@@ -356,7 +356,7 @@ impl Body {
     #[cfg(feature = "serde")]
     pub async fn into_form<T: DeserializeOwned>(self) -> crate::Result<T> {
         let s = self.into_string().await?;
-        Ok(serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)?)
+        serde_urlencoded::from_str(&s).status(StatusCode::UnprocessableEntity)
     }
 
     /// Create a `Body` from a file named by a path.
@@ -630,7 +630,7 @@ async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
 /// This is useful for plain-text formats such as HTML and CSS.
 #[cfg(all(feature = "fs", not(target_os = "unknown")))]
 fn guess_ext(path: &std::path::Path) -> Option<Mime> {
-    let ext = path.extension().map(|p| p.to_str()).flatten();
+    let ext = path.extension().and_then(|p| p.to_str());
     ext.and_then(Mime::from_extension)
 }
 
