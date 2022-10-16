@@ -172,7 +172,7 @@ mod test {
 
     #[test]
     fn construct_shorthand_with_valid_status_code() {
-        let _res = Some(()).status(200).unwrap();
+        Some(()).status(200).unwrap();
     }
 
     #[test]
@@ -180,6 +180,6 @@ mod test {
     fn construct_shorthand_with_invalid_status_code() {
         let res: Result<(), std::io::Error> =
             Err(std::io::Error::new(std::io::ErrorKind::Other, "oh no!"));
-        let _res = res.status(600).unwrap();
+        res.status(600).unwrap();
     }
 }
