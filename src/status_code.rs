@@ -725,7 +725,7 @@ mod test {
         assert_eq!(StatusCode::Accepted, status_code);
         assert_eq!(
             Some(202),
-            serde_json::to_value(&StatusCode::Accepted)?.as_u64()
+            serde_json::to_value(StatusCode::Accepted)?.as_u64()
         );
         Ok(())
     }

@@ -129,7 +129,7 @@ impl PartialEq<String> for HeaderName {
     }
 }
 
-impl<'a> PartialEq<&String> for HeaderName {
+impl PartialEq<&String> for HeaderName {
     fn eq(&self, other: &&String) -> bool {
         match HeaderName::from_str(other) {
             Err(_) => false,

@@ -123,7 +123,7 @@ impl PartialEq<String> for HeaderValues {
     }
 }
 
-impl<'a> PartialEq<&String> for HeaderValues {
+impl PartialEq<&String> for HeaderValues {
     fn eq(&self, other: &&String) -> bool {
         self.inner.len() == 1 && self.inner[0] == **other
     }
