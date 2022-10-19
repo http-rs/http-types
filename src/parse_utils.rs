@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
-/// https://tools.ietf.org/html/rfc7230#section-3.2.6
-pub(crate) fn parse_token(input: &str) -> (Option<&str>, &str) {
+/// <https://tools.ietf.org/html/rfc7230#section-3.2.6>
+pub(crate) fn parse_token(input: &str) -> Option<(Cow<'_, str>, &str)> {
     let mut end_of_token = 0;
     for (i, c) in input.char_indices() {
         if tchar(c) {
@@ -12,14 +12,15 @@ pub(crate) fn parse_token(input: &str) -> (Option<&str>, &str) {
     }
 
     if end_of_token == 0 {
-        (None, input)
+        None
     } else {
-        (Some(&input[..end_of_token]), &input[end_of_token..])
+        let (token, rest) = input.split_at(end_of_token);
+        Some((Cow::from(token), rest))
     }
 }
 
-/// https://tools.ietf.org/html/rfc7230#section-3.2.6
-fn tchar(c: char) -> bool {
+/// <https://tools.ietf.org/html/rfc7230#section-3.2.6>
+pub(crate) fn tchar(c: char) -> bool {
     matches!(
         c, 'a'..='z'
             | 'A'..='Z'
@@ -42,16 +43,16 @@ fn tchar(c: char) -> bool {
     )
 }
 
-/// https://tools.ietf.org/html/rfc7230#section-3.2.6
+/// <https://tools.ietf.org/html/rfc7230#section-3.2.6>
 fn vchar(c: char) -> bool {
     matches!(c as u8, b'\t' | 32..=126 | 128..=255)
 }
 
-/// https://tools.ietf.org/html/rfc7230#section-3.2.6
-pub(crate) fn parse_quoted_string(input: &str) -> (Option<Cow<'_, str>>, &str) {
+/// <https://tools.ietf.org/html/rfc7230#section-3.2.6>
+pub(crate) fn parse_quoted_string(input: &str) -> Option<(Cow<'_, str>, &str)> {
     // quoted-string must start with a DQUOTE
     if !input.starts_with('"') {
-        return (None, input);
+        return None;
     }
 
     let mut end_of_string = None;
@@ -61,7 +62,7 @@ pub(crate) fn parse_quoted_string(input: &str) -> (Option<Cow<'_, str>>, &str) {
         if i > 1 && backslashes.last() == Some(&(i - 2)) {
             if !vchar(c) {
                 // only VCHARs can be escaped
-                return (None, input);
+                return None;
             }
         // otherwise, we skip over this character while parsing
         } else {
@@ -81,7 +82,7 @@ pub(crate) fn parse_quoted_string(input: &str) -> (Option<Cow<'_, str>>, &str) {
                 b'\t' | b' ' | 15 | 35..=91 | 93..=126 | 128..=255 => {}
 
                 // unexpected character, bail
-                _ => return (None, input),
+                _ => return None,
             }
         }
     }
@@ -110,10 +111,10 @@ pub(crate) fn parse_quoted_string(input: &str) -> (Option<Cow<'_, str>>, &str) {
                 .into()
         };
 
-        (Some(value), &input[end_of_string..])
+        Some((value, &input[end_of_string..]))
     } else {
         // we never reached a closing DQUOTE, so we do not have a valid quoted-string
-        (None, input)
+        None
     }
 }
 
@@ -122,26 +123,29 @@ mod test {
     use super::*;
     #[test]
     fn token_successful_parses() {
-        assert_eq!(parse_token("key=value"), (Some("key"), "=value"));
-        assert_eq!(parse_token("KEY=value"), (Some("KEY"), "=value"));
-        assert_eq!(parse_token("0123)=value"), (Some("0123"), ")=value"));
-        assert_eq!(parse_token("a=b"), (Some("a"), "=b"));
+        assert_eq!(parse_token("key=value"), Some(("key".into(), "=value")));
+        assert_eq!(parse_token("KEY=value"), Some(("KEY".into(), "=value")));
+        assert_eq!(parse_token("0123)=value"), Some(("0123".into(), ")=value")));
+        assert_eq!(parse_token("a=b"), Some(("a".into(), "=b")));
         assert_eq!(
             parse_token("!#$%&'*+-.^_`|~=value"),
-            (Some("!#$%&'*+-.^_`|~"), "=value",)
+            Some(("!#$%&'*+-.^_`|~".into(), "=value"))
         );
     }
 
     #[test]
     fn token_unsuccessful_parses() {
-        assert_eq!(parse_token(""), (None, ""));
-        assert_eq!(parse_token("=value"), (None, "=value"));
+        assert_eq!(parse_token(""), None);
+        assert_eq!(parse_token("=value"), None);
         for c in r#"(),/:;<=>?@[\]{}"#.chars() {
             let s = c.to_string();
-            assert_eq!(parse_token(&s), (None, &*s));
+            assert_eq!(parse_token(&s), None);
 
             let s = format!("match{}rest", s);
-            assert_eq!(parse_token(&s), (Some("match"), &*format!("{}rest", c)));
+            assert_eq!(
+                parse_token(&s),
+                Some(("match".into(), &*format!("{}rest", c)))
+            );
         }
     }
 
@@ -149,24 +153,21 @@ mod test {
     fn qstring_successful_parses() {
         assert_eq!(
             parse_quoted_string(r#""key"=value"#),
-            (Some(Cow::Borrowed("key")), "=value")
+            Some((Cow::Borrowed("key"), "=value"))
         );
 
         assert_eq!(
             parse_quoted_string(r#""escaped \" quote \""rest"#),
-            (
-                Some(Cow::Owned(String::from(r#"escaped " quote ""#))),
-                r#"rest"#
-            )
+            Some((Cow::Owned(String::from(r#"escaped " quote ""#)), r#"rest"#))
         );
     }
 
     #[test]
     fn qstring_unsuccessful_parses() {
-        assert_eq!(parse_quoted_string(r#""abc"#), (None, "\"abc"));
-        assert_eq!(parse_quoted_string(r#"hello""#), (None, "hello\"",));
-        assert_eq!(parse_quoted_string(r#"=value\"#), (None, "=value\\"));
-        assert_eq!(parse_quoted_string(r#"\""#), (None, r#"\""#));
-        assert_eq!(parse_quoted_string(r#""\""#), (None, r#""\""#));
+        assert_eq!(parse_quoted_string(r#""abc"#), None);
+        assert_eq!(parse_quoted_string(r#"hello""#), None);
+        assert_eq!(parse_quoted_string(r#"=value\"#), None);
+        assert_eq!(parse_quoted_string(r#"\""#), None);
+        assert_eq!(parse_quoted_string(r#""\""#), None);
     }
 }
