@@ -10,6 +10,7 @@
 
 mod etag;
 mod if_modified_since;
+mod if_range;
 mod if_unmodified_since;
 mod last_modified;
 mod vary;
@@ -26,6 +27,8 @@ pub use if_match::IfMatch;
 pub use if_modified_since::IfModifiedSince;
 #[doc(inline)]
 pub use if_none_match::IfNoneMatch;
+#[doc(inline)]
+pub use if_range::IfRange;
 #[doc(inline)]
 pub use if_unmodified_since::IfUnmodifiedSince;
 #[doc(inline)]
