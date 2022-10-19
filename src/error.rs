@@ -110,8 +110,8 @@ impl Error {
     #[cfg(backtrace)]
     pub fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
         let backtrace = self.error.backtrace();
-        if let std::backtrace::BacktraceStatus::Captured = backtrace.status() {
-            Some(backtrace)
+        if let std::backtrace::BacktraceStatus::Captured = backtrace?.status() {
+            backtrace
         } else {
             None
         }
