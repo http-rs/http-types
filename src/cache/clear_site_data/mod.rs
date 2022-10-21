@@ -1,6 +1,7 @@
 //! Clear browsing data (cookies, storage, cache) associated with the
 //! requesting website
 
+use crate::errors::HeaderError;
 use crate::headers::{self, HeaderName, HeaderValue, Headers, CLEAR_SITE_DATA};
 
 use std::fmt::{self, Debug, Write};
@@ -75,7 +76,9 @@ impl ClearSiteData {
                     wildcard = true;
                     continue;
                 }
-                entries.push(ClearDirective::from_str(part)?);
+                entries.push(
+                    ClearDirective::from_str(part).map_err(HeaderError::ClearSiteDataInvalid)?,
+                );
             }
         }
 

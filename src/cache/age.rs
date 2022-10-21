@@ -1,5 +1,5 @@
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, AGE};
-use crate::Status;
 
 use std::fmt::Debug;
 
@@ -62,7 +62,10 @@ impl Age {
         // entry. We want the last entry.
         let header = headers.iter().last().unwrap();
 
-        let num: u64 = header.as_str().parse::<u64>().status(400)?;
+        let num: u64 = header
+            .as_str()
+            .parse::<u64>()
+            .map_err(|_| HeaderError::AgeInvalid)?;
         let dur = Duration::from_secs_f64(num as f64);
 
         Ok(Some(Self { dur }))
@@ -84,8 +87,10 @@ impl Header for Age {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -104,6 +109,6 @@ mod test {
         let mut headers = Headers::new();
         headers.insert(AGE, "<nori ate the tag. yum.>").unwrap();
         let err = Age::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

@@ -1,6 +1,8 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
 
+use crate::Error;
+
 /// HTTP request methods.
 ///
 /// See also [Mozilla's documentation][Mozilla docs], the [RFC7231, Section 4][] and
@@ -454,7 +456,7 @@ impl FromStr for Method {
             "UPDATE" => Ok(Self::Update),
             "UPDATEREDIRECTREF" => Ok(Self::UpdateRedirectRef),
             "VERSION-CONTROL" => Ok(Self::VersionControl),
-            _ => crate::bail!("Invalid HTTP method"),
+            s => Err(Error::HttpMethodUnrecognized(s.to_string())),
         }
     }
 }

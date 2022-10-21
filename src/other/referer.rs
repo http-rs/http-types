@@ -1,5 +1,6 @@
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, REFERER};
-use crate::{bail_status as bail, Status, Url};
+use crate::Url;
 
 use std::convert::TryInto;
 
@@ -17,7 +18,7 @@ use std::convert::TryInto;
 /// # Examples
 ///
 /// ```
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::{Response, Url};
 /// use http_types::other::Referer;
@@ -48,7 +49,7 @@ impl Referer {
     pub fn from_headers<U>(base_url: U, headers: impl AsRef<Headers>) -> crate::Result<Option<Self>>
     where
         U: TryInto<Url>,
-        U::Error: std::fmt::Debug,
+        U::Error: std::fmt::Debug + Send + Sync + 'static,
     {
         let headers = match headers.as_ref().get(REFERER) {
             Some(headers) => headers,
@@ -62,8 +63,10 @@ impl Referer {
         let url = match Url::parse(header_value.as_str()) {
             Ok(url) => url,
             Err(_) => match base_url.try_into() {
-                Ok(base_url) => base_url.join(header_value.as_str().trim()).status(500)?,
-                Err(_) => bail!(500, "Invalid base url provided"),
+                Ok(base_url) => base_url
+                    .join(header_value.as_str().trim())
+                    .map_err(HeaderError::RefererInvalidUrl)?,
+                Err(e) => return Err(HeaderError::RefererInvalidBaseUrl(Box::new(e)).into()),
             },
         };
 
@@ -101,11 +104,12 @@ impl Header for Referer {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
 
+    use super::*;
+
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() -> anyhow::Result<()> {
         let referer = Referer::new(Url::parse("https://example.net/test.json")?);
 
         let mut headers = Headers::new();
@@ -128,11 +132,11 @@ mod test {
             .unwrap();
         let err =
             Referer::from_headers(Url::parse("https://example.net").unwrap(), headers).unwrap_err();
-        assert_eq!(err.status(), 500);
+        assert_eq!(err.associated_status_code(), None);
     }
 
     #[test]
-    fn fallback_works() -> crate::Result<()> {
+    fn fallback_works() -> anyhow::Result<()> {
         let mut headers = Headers::new();
         headers.insert(REFERER, "/test.json").unwrap();
 

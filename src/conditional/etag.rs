@@ -1,5 +1,5 @@
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, ETAG};
-use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Display};
 
@@ -89,22 +89,14 @@ impl ETag {
 
         let s = match s.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
             Some(s) => s.to_owned(),
-            None => {
-                return Err(Error::from_str(
-                    StatusCode::BadRequest,
-                    "Invalid ETag header",
-                ))
-            }
+            None => return Err(HeaderError::ETagInvalid.into()),
         };
 
         if !s
             .bytes()
             .all(|c| c == 0x21 || (0x23..=0x7E).contains(&c) || c >= 0x80)
         {
-            return Err(Error::from_str(
-                StatusCode::BadRequest,
-                "Invalid ETag header",
-            ));
+            return Err(HeaderError::ETagInvalid.into());
         }
 
         let etag = if weak { Self::Weak(s) } else { Self::Strong(s) };
@@ -134,8 +126,10 @@ impl Display for ETag {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -166,15 +160,21 @@ mod test {
         let mut headers = Headers::new();
         headers.insert(ETAG, "<nori ate the tag. yum.>").unwrap();
         let err = ETag::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 
     #[test]
     fn validate_quotes() {
-        assert_entry_err(r#""hello"#, "Invalid ETag header");
-        assert_entry_err(r#"hello""#, "Invalid ETag header");
-        assert_entry_err(r#"/O"valid content""#, "Invalid ETag header");
-        assert_entry_err(r#"/Wvalid content""#, "Invalid ETag header");
+        assert_entry_err(r#""hello"#, "Header error: ETag header was invalid");
+        assert_entry_err(r#"hello""#, "Header error: ETag header was invalid");
+        assert_entry_err(
+            r#"/O"valid content""#,
+            "Header error: ETag header was invalid",
+        );
+        assert_entry_err(
+            r#"/Wvalid content""#,
+            "Header error: ETag header was invalid",
+        );
     }
 
     fn assert_entry_err(s: &str, msg: &str) {
@@ -186,7 +186,7 @@ mod test {
 
     #[test]
     fn validate_characters() {
-        assert_entry_err(r#"""hello""#, "Invalid ETag header");
-        assert_entry_err("\"hello\x7F\"", "Invalid ETag header");
+        assert_entry_err(r#"""hello""#, "Header error: ETag header was invalid");
+        assert_entry_err("\"hello\x7F\"", "Header error: ETag header was invalid");
     }
 }

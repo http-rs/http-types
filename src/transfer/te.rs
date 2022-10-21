@@ -1,7 +1,7 @@
+use crate::errors::HeaderError;
 use crate::headers::{self, Header, HeaderName, HeaderValue, Headers};
 use crate::transfer::{Encoding, EncodingProposal, TransferEncoding};
 use crate::utils::sort_by_weight;
-use crate::{Error, StatusCode};
 
 use std::fmt::{self, Debug, Write};
 
@@ -19,7 +19,7 @@ use std::slice;
 /// # Examples
 ///
 /// ```
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::transfer::{TE, TransferEncoding, Encoding, EncodingProposal};
 /// use http_types::Response;
@@ -75,7 +75,9 @@ impl TE {
 
                 // Try and parse a directive from a str. If the directive is
                 // unkown we skip it.
-                if let Some(entry) = EncodingProposal::from_str(part)? {
+                if let Some(entry) = EncodingProposal::from_str(part)
+                    .map_err(HeaderError::TransferEncodingInvalidEncoding)?
+                {
                     entries.push(entry);
                 }
             }
@@ -131,9 +133,7 @@ impl TE {
             }
         }
 
-        let mut err = Error::new_adhoc("No suitable Transfer-Encoding found");
-        err.set_status(StatusCode::NotAcceptable);
-        Err(err)
+        Err(HeaderError::TransferEncodingUnnegotiable.into())
     }
 
     /// An iterator visiting all entries.
@@ -281,7 +281,7 @@ impl Debug for TE {
 mod test {
     use super::*;
     use crate::transfer::Encoding;
-    use crate::Response;
+    use crate::{Response, StatusCode};
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -341,7 +341,7 @@ mod test {
     }
 
     #[test]
-    fn reorder_based_on_weight() -> crate::Result<()> {
+    fn reorder_based_on_weight() -> anyhow::Result<()> {
         let mut accept = TE::new();
         accept.push(EncodingProposal::new(Encoding::Gzip, Some(0.4))?);
         accept.push(EncodingProposal::new(Encoding::Identity, None)?);
@@ -360,7 +360,7 @@ mod test {
     }
 
     #[test]
-    fn reorder_based_on_weight_and_location() -> crate::Result<()> {
+    fn reorder_based_on_weight_and_location() -> anyhow::Result<()> {
         let mut accept = TE::new();
         accept.push(EncodingProposal::new(Encoding::Identity, None)?);
         accept.push(EncodingProposal::new(Encoding::Gzip, None)?);
@@ -379,7 +379,7 @@ mod test {
     }
 
     #[test]
-    fn negotiate() -> crate::Result<()> {
+    fn negotiate() -> anyhow::Result<()> {
         let mut accept = TE::new();
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
         accept.push(EncodingProposal::new(Encoding::Gzip, Some(0.4))?);
@@ -393,20 +393,26 @@ mod test {
     }
 
     #[test]
-    fn negotiate_not_acceptable() -> crate::Result<()> {
+    fn negotiate_not_acceptable() -> anyhow::Result<()> {
         let mut accept = TE::new();
         let err = accept.negotiate(&[Encoding::Gzip]).unwrap_err();
-        assert_eq!(err.status(), 406);
+        assert_eq!(
+            err.associated_status_code(),
+            Some(StatusCode::NotAcceptable)
+        );
 
         let mut accept = TE::new();
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
         let err = accept.negotiate(&[Encoding::Gzip]).unwrap_err();
-        assert_eq!(err.status(), 406);
+        assert_eq!(
+            err.associated_status_code(),
+            Some(StatusCode::NotAcceptable)
+        );
         Ok(())
     }
 
     #[test]
-    fn negotiate_wildcard() -> crate::Result<()> {
+    fn negotiate_wildcard() -> anyhow::Result<()> {
         let mut accept = TE::new();
         accept.push(EncodingProposal::new(Encoding::Brotli, Some(0.8))?);
         accept.set_wildcard(true);

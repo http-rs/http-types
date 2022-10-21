@@ -1,4 +1,4 @@
-use crate::bail_status as bail;
+use crate::errors::{AuthError, HeaderError};
 use crate::headers::{HeaderName, HeaderValue, Headers, WWW_AUTHENTICATE};
 use crate::{auth::AuthenticationScheme, headers::Header};
 
@@ -63,15 +63,15 @@ impl WwwAuthenticate {
         let scheme = iter.next();
         let credential = iter.next();
         let (scheme, realm) = match (scheme, credential) {
-            (None, _) => bail!(400, "Could not find scheme"),
-            (Some(_), None) => bail!(400, "Could not find realm"),
+            (None, _) => return Err(AuthError::SchemeMissing.into()),
+            (Some(_), None) => return Err(AuthError::RealmMissing.into()),
             (Some(scheme), Some(realm)) => (scheme.parse()?, realm.to_owned()),
         };
 
         let realm = realm.trim_start();
         let realm = match realm.strip_prefix(r#"realm=""#) {
             Some(realm) => realm,
-            None => bail!(400, "realm not found"),
+            None => return Err(AuthError::RealmMissing.into()),
         };
 
         let mut chars = realm.chars();
@@ -87,7 +87,7 @@ impl WwwAuthenticate {
             })
             .collect();
         if !closing_quote {
-            bail!(400, r"Expected a closing quote");
+            return Err(HeaderError::WWWAuthenticateInvalid("Expected a closing quote").into());
         }
 
         Ok(Some(Self { scheme, realm }))
@@ -129,8 +129,10 @@ impl Header for WwwAuthenticate {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -160,6 +162,6 @@ mod test {
             .insert(WWW_AUTHENTICATE, "<nori ate the tag. yum.>")
             .unwrap();
         let err = WwwAuthenticate::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

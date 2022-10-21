@@ -1,10 +1,9 @@
+use crate::errors::AuthError;
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
-use crate::Status;
 use crate::{
     auth::{AuthenticationScheme, Authorization},
     headers::Header,
 };
-use crate::{bail_status as bail, ensure_status as ensure};
 
 /// HTTP Basic authorization.
 ///
@@ -60,19 +59,21 @@ impl BasicAuth {
         };
 
         let scheme = auth.scheme();
-        ensure!(
+        internal_ensure!(
             matches!(scheme, AuthenticationScheme::Basic),
-            400,
-            "Expected basic auth scheme found `{}`",
-            scheme
+            AuthError::SchemeUnexpected(AuthenticationScheme::Basic, scheme.to_string())
         );
         Self::from_credentials(auth.credentials()).map(Some)
     }
 
     /// Create a new instance from the base64 encoded credentials.
     pub fn from_credentials(credentials: impl AsRef<[u8]>) -> crate::Result<Self> {
-        let bytes = base64::decode(credentials).status(400)?;
-        let credentials = String::from_utf8(bytes).status(400)?;
+        let bytes = base64::decode(credentials).map_err(|_| {
+            AuthError::CredentialsInvalid(AuthenticationScheme::Basic, "invalid base64")
+        })?;
+        let credentials = String::from_utf8(bytes).map_err(|_| {
+            AuthError::CredentialsInvalid(AuthenticationScheme::Basic, "invalid utf8 from base64")
+        })?;
 
         let mut iter = credentials.splitn(2, ':');
         let username = iter.next();
@@ -80,8 +81,20 @@ impl BasicAuth {
 
         let (username, password) = match (username, password) {
             (Some(username), Some(password)) => (username.to_string(), password.to_string()),
-            (Some(_), None) => bail!(400, "Expected basic auth to contain a password"),
-            (None, _) => bail!(400, "Expected basic auth to contain a username"),
+            (Some(_), None) => {
+                return Err(AuthError::CredentialsInvalid(
+                    AuthenticationScheme::Basic,
+                    "missing password",
+                )
+                .into())
+            }
+            (None, _) => {
+                return Err(AuthError::CredentialsInvalid(
+                    AuthenticationScheme::Basic,
+                    "missing username",
+                )
+                .into())
+            }
         };
 
         Ok(Self { username, password })
@@ -113,8 +126,10 @@ impl Header for BasicAuth {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -139,6 +154,6 @@ mod test {
             .insert(AUTHORIZATION, "<nori ate the tag. yum.>")
             .unwrap();
         let err = BasicAuth::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

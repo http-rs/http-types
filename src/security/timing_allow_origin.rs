@@ -8,7 +8,7 @@
 //! # Examples
 //!
 //! ```
-//! # fn main() -> http_types::Result<()> {
+//! # fn main() -> anyhow::Result<()> {
 //! #
 //! use http_types::{Response, Url, headers::Header};
 //! use http_types::security::TimingAllowOrigin;
@@ -26,8 +26,9 @@
 //! # Ok(()) }
 //! ```
 
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, TIMING_ALLOW_ORIGIN};
-use crate::{Status, Url};
+use crate::Url;
 
 use std::fmt::Write;
 use std::fmt::{self, Debug};
@@ -40,7 +41,7 @@ use std::slice;
 /// # Examples
 ///
 /// ```
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::{Response, Url};
 /// use http_types::security::TimingAllowOrigin;
@@ -91,7 +92,8 @@ impl TimingAllowOrigin {
                     "*" => wildcard = true,
                     r#""null""# => continue,
                     origin => {
-                        let url = Url::parse(origin).status(400)?;
+                        let url =
+                            Url::parse(origin).map_err(HeaderError::TimingAllowOriginInvalidUrl)?;
                         origins.push(url);
                     }
                 }
@@ -257,11 +259,12 @@ impl Debug for TimingAllowOrigin {
 
 #[cfg(test)]
 mod test {
+    use crate::{headers::Headers, StatusCode};
+
     use super::*;
-    use crate::headers::Headers;
 
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() -> anyhow::Result<()> {
         let mut origins = TimingAllowOrigin::new();
         origins.push(Url::parse("https://example.com")?);
 
@@ -275,7 +278,7 @@ mod test {
     }
 
     #[test]
-    fn multi() -> crate::Result<()> {
+    fn multi() -> anyhow::Result<()> {
         let mut origins = TimingAllowOrigin::new();
         origins.push(Url::parse("https://example.com")?);
         origins.push(Url::parse("https://mozilla.org/")?);
@@ -300,11 +303,11 @@ mod test {
             .insert(TIMING_ALLOW_ORIGIN, "server; <nori ate your param omnom>")
             .unwrap();
         let err = TimingAllowOrigin::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 
     #[test]
-    fn wildcard() -> crate::Result<()> {
+    fn wildcard() -> anyhow::Result<()> {
         let mut origins = TimingAllowOrigin::new();
         origins.push(Url::parse("https://example.com")?);
         origins.set_wildcard(true);

@@ -1,5 +1,5 @@
-use crate::headers::{HeaderName, HeaderValue, Headers, EXPECT};
-use crate::{ensure_eq_status, headers::Header};
+use crate::errors::HeaderError;
+use crate::headers::{Header, HeaderName, HeaderValue, Headers, EXPECT};
 
 use std::fmt::Debug;
 
@@ -50,7 +50,7 @@ impl Expect {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let header = headers.iter().last().unwrap();
-        ensure_eq_status!(header, "100-continue", 400, "malformed `Expect` header");
+        internal_ensure_eq!(header, "100-continue", HeaderError::ExpectInvalid);
 
         Ok(Some(Self { _priv: () }))
     }
@@ -69,8 +69,10 @@ impl Header for Expect {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -89,6 +91,6 @@ mod test {
         let mut headers = Headers::new();
         headers.insert(EXPECT, "<nori ate the tag. yum.>").unwrap();
         let err = Expect::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

@@ -1,7 +1,7 @@
 use std::fmt;
 
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, TRACEPARENT};
-use crate::Status;
 
 /// Extract and apply [Trace-Context](https://w3c.github.io/trace-context/) headers.
 ///
@@ -110,10 +110,16 @@ impl TraceContext {
 
         Ok(Some(Self {
             id: fastrand::u64(..),
-            version: u8::from_str_radix(parts[0], 16)?,
-            trace_id: u128::from_str_radix(parts[1], 16).status(400)?,
-            parent_id: Some(u64::from_str_radix(parts[2], 16).status(400)?),
-            flags: u8::from_str_radix(parts[3], 16).status(400)?,
+            version: u8::from_str_radix(parts[0], 16)
+                .map_err(|_| HeaderError::TraceContextInvalid("version"))?,
+            trace_id: u128::from_str_radix(parts[1], 16)
+                .map_err(|_| HeaderError::TraceContextInvalid("trace_id"))?,
+            parent_id: Some(
+                u64::from_str_radix(parts[2], 16)
+                    .map_err(|_| HeaderError::TraceContextInvalid("parent_id"))?,
+            ),
+            flags: u8::from_str_radix(parts[3], 16)
+                .map_err(|_| HeaderError::TraceContextInvalid("flags"))?,
         }))
     }
 

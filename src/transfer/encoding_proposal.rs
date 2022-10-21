@@ -1,4 +1,4 @@
-use crate::ensure;
+use crate::errors::EncodingError;
 use crate::headers::HeaderValue;
 use crate::transfer::Encoding;
 use crate::utils::parse_weight;
@@ -22,11 +22,11 @@ pub struct EncodingProposal {
 
 impl EncodingProposal {
     /// Create a new instance of `EncodingProposal`.
-    pub fn new(encoding: impl Into<Encoding>, weight: Option<f32>) -> crate::Result<Self> {
+    pub fn new(encoding: impl Into<Encoding>, weight: Option<f32>) -> Result<Self, EncodingError> {
         if let Some(weight) = weight {
-            ensure!(
+            internal_ensure!(
                 weight.is_sign_positive() && weight <= 1.0,
-                "EncodingProposal should have a weight between 0.0 and 1.0"
+                EncodingError::Proposal("should have a weight between 0.0 and 1.0")
             )
         }
 
@@ -46,13 +46,17 @@ impl EncodingProposal {
         self.weight
     }
 
-    pub(crate) fn from_str(s: &str) -> crate::Result<Option<Self>> {
+    pub(crate) fn from_str(s: &str) -> Result<Option<Self>, EncodingError> {
         let mut parts = s.split(';');
         let encoding = match Encoding::from_str(parts.next().unwrap()) {
             Some(encoding) => encoding,
             None => return Ok(None),
         };
-        let weight = parts.next().map(parse_weight).transpose()?;
+        let weight = parts
+            .next()
+            .map(parse_weight)
+            .transpose()
+            .map_err(|_| EncodingError::Proposal("weight not a valid float32"))?;
 
         Ok(Some(Self::new(encoding, weight)?))
     }
@@ -129,17 +133,5 @@ mod test {
         let _ = EncodingProposal::new(Encoding::Gzip, Some(0.0)).unwrap();
         let _ = EncodingProposal::new(Encoding::Gzip, Some(0.5)).unwrap();
         let _ = EncodingProposal::new(Encoding::Gzip, Some(1.0)).unwrap();
-    }
-
-    #[test]
-    fn error_code_500() {
-        let err = EncodingProposal::new(Encoding::Gzip, Some(1.1)).unwrap_err();
-        assert_eq!(err.status(), 500);
-
-        let err = EncodingProposal::new(Encoding::Gzip, Some(-0.1)).unwrap_err();
-        assert_eq!(err.status(), 500);
-
-        let err = EncodingProposal::new(Encoding::Gzip, Some(-0.0)).unwrap_err();
-        assert_eq!(err.status(), 500);
     }
 }

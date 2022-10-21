@@ -1,6 +1,8 @@
 use crate::{
+    errors::HeaderError,
     headers::{Header, HeaderName, HeaderValue, Headers, FORWARDED},
     parse_utils::{parse_quoted_string, parse_token},
+    Error, Result,
 };
 use std::{borrow::Cow, convert::TryFrom, fmt::Write, net::IpAddr};
 
@@ -76,7 +78,7 @@ impl<'a> Forwarded<'a> {
     /// # Ok(()) }
     /// ```
 
-    pub fn from_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>, ParseError> {
+    pub fn from_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>> {
         if let Some(forwarded) = Self::from_forwarded_header(headers)? {
             Ok(Some(forwarded))
         } else {
@@ -88,8 +90,8 @@ impl<'a> Forwarded<'a> {
     ///
     /// # Examples
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
-    /// # fn main() -> Result<()> {
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url,};
+    /// # fn main() -> anyhow::Result<()> {
     /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header(
     ///     "Forwarded",
@@ -101,16 +103,14 @@ impl<'a> Forwarded<'a> {
     /// # Ok(()) }
     /// ```
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
-    /// # fn main() -> Result<()> {
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
+    /// # fn main() -> anyhow::Result<()> {
     /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17");
     /// assert!(Forwarded::from_forwarded_header(&request)?.is_none());
     /// # Ok(()) }
     /// ```
-    pub fn from_forwarded_header(
-        headers: &'a impl AsRef<Headers>,
-    ) -> Result<Option<Self>, ParseError> {
+    pub fn from_forwarded_header(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>> {
         if let Some(headers) = headers.as_ref().get(FORWARDED) {
             Ok(Some(Self::parse(headers.as_ref().as_str())?))
         } else {
@@ -124,8 +124,8 @@ impl<'a> Forwarded<'a> {
     ///
     /// # Examples
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
-    /// # fn main() -> Result<()> {
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
+    /// # fn main() -> anyhow::Result<()> {
     /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header("X-Forwarded-For", "192.0.2.43, 2001:db8:cafe::17");
     /// let forwarded = Forwarded::from_headers(&request)?.unwrap();
@@ -133,8 +133,8 @@ impl<'a> Forwarded<'a> {
     /// # Ok(()) }
     /// ```
     /// ```rust
-    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url, Result};
-    /// # fn main() -> Result<()> {
+    /// # use http_types::{proxies::Forwarded, Method::Get, Request, Url};
+    /// # fn main() -> anyhow::Result<()> {
     /// let mut request = Request::new(Get, Url::parse("http://_/")?);
     /// request.insert_header(
     ///     "Forwarded",
@@ -143,7 +143,7 @@ impl<'a> Forwarded<'a> {
     /// assert!(Forwarded::from_x_headers(&request)?.is_none());
     /// # Ok(()) }
     /// ```
-    pub fn from_x_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>, ParseError> {
+    pub fn from_x_headers(headers: &'a impl AsRef<Headers>) -> Result<Option<Self>> {
         let headers = headers.as_ref();
 
         let forwarded_for: Vec<Cow<'a, str>> = headers
@@ -204,7 +204,7 @@ impl<'a> Forwarded<'a> {
     /// );
     /// # Ok(()) }
     /// ```
-    pub fn parse(input: &'a str) -> Result<Self, ParseError> {
+    pub fn parse(input: &'a str) -> Result<Self> {
         let mut input = input;
         let mut forwarded = Forwarded::new();
 
@@ -219,7 +219,7 @@ impl<'a> Forwarded<'a> {
         Ok(forwarded)
     }
 
-    fn parse_forwarded_pair(&mut self, input: &'a str) -> Result<&'a str, ParseError> {
+    fn parse_forwarded_pair(&mut self, input: &'a str) -> Result<&'a str> {
         let (key, value, rest) = match parse_token(input) {
             (Some(key), rest) if rest.starts_with('=') => match parse_value(&rest[1..]) {
                 (Some(value), rest) => Some((key, value, rest)),
@@ -227,26 +227,35 @@ impl<'a> Forwarded<'a> {
             },
             _ => None,
         }
-        .ok_or_else(|| ParseError::new("parse error in forwarded-pair"))?;
+        .ok_or(HeaderError::ForwardedInvalid(
+            "parse error in forwarded-pair",
+        ))?;
 
         match key {
             "by" => {
                 if self.by.is_some() {
-                    return Err(ParseError::new("parse error, duplicate `by` key"));
+                    return Err(
+                        HeaderError::ForwardedInvalid("parse error, duplicate `by` key").into(),
+                    );
                 }
                 self.by = Some(value);
             }
 
             "host" => {
                 if self.host.is_some() {
-                    return Err(ParseError::new("parse error, duplicate `host` key"));
+                    return Err(
+                        HeaderError::ForwardedInvalid("parse error, duplicate `host` key").into(),
+                    );
                 }
                 self.host = Some(value);
             }
 
             "proto" => {
                 if self.proto.is_some() {
-                    return Err(ParseError::new("parse error, duplicate `proto` key"));
+                    return Err(HeaderError::ForwardedInvalid(
+                        "parse error, duplicate `proto` key",
+                    )
+                    .into());
                 }
                 self.proto = Some(value);
             }
@@ -260,13 +269,17 @@ impl<'a> Forwarded<'a> {
         }
     }
 
-    fn parse_for(&mut self, input: &'a str) -> Result<&'a str, ParseError> {
+    fn parse_for(&mut self, input: &'a str) -> Result<&'a str> {
         let mut rest = input;
 
         loop {
             rest = match match_ignore_case("for=", rest) {
                 (true, rest) => rest,
-                (false, _) => return Err(ParseError::new("http list must start with for=")),
+                (false, _) => {
+                    return Err(
+                        HeaderError::ForwardedInvalid("http list must start with for=").into(),
+                    )
+                }
             };
 
             let (value, rest_) = parse_value(rest);
@@ -276,7 +289,7 @@ impl<'a> Forwarded<'a> {
                 // add a successful for= value
                 self.forwarded_for.push(value);
             } else {
-                return Err(ParseError::new("for= without valid value"));
+                return Err(HeaderError::ForwardedInvalid("for= without valid value").into());
             }
 
             match rest.chars().next() {
@@ -292,7 +305,12 @@ impl<'a> Forwarded<'a> {
                 None => return Ok(rest),
 
                 // bail
-                _ => return Err(ParseError::new("unexpected character after for= section")),
+                _ => {
+                    return Err(HeaderError::ForwardedInvalid(
+                        "unexpected character after for= section",
+                    )
+                    .into())
+                }
             }
         }
     }
@@ -443,24 +461,9 @@ impl std::fmt::Display for Forwarded<'_> {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct ParseError(&'static str);
-impl ParseError {
-    pub fn new(msg: &'static str) -> Self {
-        Self(msg)
-    }
-}
-
-impl std::error::Error for ParseError {}
-impl std::fmt::Display for ParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "unable to parse forwarded header: {}", self.0)
-    }
-}
-
 impl<'a> TryFrom<&'a str> for Forwarded<'a> {
-    type Error = ParseError;
-    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+    type Error = Error;
+    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {
         Self::parse(value)
     }
 }
@@ -468,7 +471,7 @@ impl<'a> TryFrom<&'a str> for Forwarded<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Method::Get, Request, Response, Result};
+    use crate::{Method::Get, Request, Response};
     use url::Url;
 
     #[test]
@@ -536,31 +539,31 @@ mod tests {
         let err = Forwarded::parse("by=proxy.com;for=client;host=example.com;host").unwrap_err();
         assert_eq!(
             err.to_string(),
-            "unable to parse forwarded header: parse error in forwarded-pair"
+            "Header error: Forwarded header was invalid: parse error in forwarded-pair"
         );
 
         let err = Forwarded::parse("by;for;host;proto").unwrap_err();
         assert_eq!(
             err.to_string(),
-            "unable to parse forwarded header: parse error in forwarded-pair"
+            "Header error: Forwarded header was invalid: parse error in forwarded-pair"
         );
 
         let err = Forwarded::parse("for=for, key=value").unwrap_err();
         assert_eq!(
             err.to_string(),
-            "unable to parse forwarded header: http list must start with for="
+            "Header error: Forwarded header was invalid: http list must start with for="
         );
 
         let err = Forwarded::parse(r#"for="unterminated string"#).unwrap_err();
         assert_eq!(
             err.to_string(),
-            "unable to parse forwarded header: for= without valid value"
+            "Header error: Forwarded header was invalid: for= without valid value"
         );
 
         let err = Forwarded::parse(r#"for=, for=;"#).unwrap_err();
         assert_eq!(
             err.to_string(),
-            "unable to parse forwarded header: for= without valid value"
+            "Header error: Forwarded header was invalid: for= without valid value"
         );
     }
 
@@ -570,7 +573,7 @@ mod tests {
         response.append_header("forwarded", "uh oh").unwrap();
         assert_eq!(
             Forwarded::from_headers(&response).unwrap_err().to_string(),
-            "unable to parse forwarded header: parse error in forwarded-pair"
+            "Header error: Forwarded header was invalid: parse error in forwarded-pair"
         );
 
         let response = Response::new(200);
@@ -579,7 +582,7 @@ mod tests {
     }
 
     #[test]
-    fn from_x_headers() -> Result<()> {
+    fn from_x_headers() -> anyhow::Result<()> {
         let mut request = Request::new(Get, Url::parse("http://_/")?);
         request
             .append_header(X_FORWARDED_FOR, "192.0.2.43, 2001:db8:cafe::17")
@@ -634,7 +637,7 @@ mod tests {
     }
 
     #[test]
-    fn from_request() -> Result<()> {
+    fn from_request() -> anyhow::Result<()> {
         let mut request = Request::new(Get, Url::parse("http://_/")?);
         request.append_header("Forwarded", "for=for").unwrap();
 
@@ -645,7 +648,7 @@ mod tests {
     }
 
     #[test]
-    fn owned_can_outlive_request() -> Result<()> {
+    fn owned_can_outlive_request() -> anyhow::Result<()> {
         let forwarded = {
             let mut request = Request::new(Get, Url::parse("http://_/")?);
             request
@@ -664,7 +667,7 @@ mod tests {
             "by=proxy.com;proto=https;host=example.com;for=a,for=b",
         ];
         for input in inputs {
-            let forwarded = Forwarded::parse(input).map_err(|_| crate::Error::new_adhoc(input))?;
+            let forwarded = Forwarded::parse(input)?;
             let header = forwarded.header_value();
             let parsed = Forwarded::parse(header.as_str())?;
             assert_eq!(forwarded, parsed);

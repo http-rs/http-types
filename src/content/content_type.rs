@@ -1,5 +1,6 @@
 use std::{convert::TryInto, str::FromStr};
 
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_TYPE};
 use crate::mime::Mime;
 
@@ -15,7 +16,7 @@ use crate::mime::Mime;
 /// # Examples
 ///
 /// ```
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::content::ContentType;
 /// use http_types::{headers::Header, Response};
@@ -67,10 +68,8 @@ impl ContentType {
         // entry. We want the last entry.
         let ctation = headers.iter().last().unwrap();
 
-        let media_type = Mime::from_str(ctation.as_str()).map_err(|mut e| {
-            e.set_status(400);
-            e
-        })?;
+        let media_type =
+            Mime::from_str(ctation.as_str()).map_err(HeaderError::ContentTypeInvalidMediaType)?;
         Ok(Some(Self { media_type }))
     }
 }
@@ -106,11 +105,13 @@ impl From<Mime> for ContentType {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() -> anyhow::Result<()> {
         let ct = ContentType::new(Mime::from_str("text/*")?);
 
         let mut headers = Headers::new();
@@ -131,6 +132,6 @@ mod test {
             .insert(CONTENT_TYPE, "<nori ate the tag. yum.>")
             .unwrap();
         let err = ContentType::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

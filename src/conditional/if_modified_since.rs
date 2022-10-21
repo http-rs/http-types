@@ -15,7 +15,7 @@ use std::time::SystemTime;
 /// # Examples
 ///
 /// ```
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::Response;
 /// use http_types::conditional::IfModifiedSince;
@@ -81,12 +81,15 @@ impl Header for IfModifiedSince {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::headers::Headers;
     use std::time::Duration;
 
+    use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
+
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() -> anyhow::Result<()> {
         let time = SystemTime::now() + Duration::from_secs(5 * 60);
         let expires = IfModifiedSince::new(time);
 
@@ -108,6 +111,6 @@ mod test {
             .insert(IF_MODIFIED_SINCE, "<nori ate the tag. yum.>")
             .unwrap();
         let err = IfModifiedSince::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

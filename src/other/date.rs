@@ -12,7 +12,7 @@ use std::time::SystemTime;
 /// # Examples
 ///
 /// ```
-/// # fn main() -> http_types::Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// #
 /// use http_types::Response;
 /// use http_types::other::Date;
@@ -60,14 +60,7 @@ impl Date {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let date: HttpDate = value
-            .as_str()
-            .trim()
-            .parse()
-            .map_err(|mut e: crate::Error| {
-                e.set_status(400);
-                e
-            })?;
+        let date: HttpDate = value.as_str().trim().parse()?;
         let at = date.into();
         Ok(Some(Self { at }))
     }
@@ -107,12 +100,15 @@ impl PartialEq<SystemTime> for Date {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::headers::Headers;
     use std::time::Duration;
 
+    use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
+
     #[test]
-    fn smoke() -> crate::Result<()> {
+    fn smoke() -> anyhow::Result<()> {
         let now = SystemTime::now();
         let date = Date::new(now);
 
@@ -131,6 +127,6 @@ mod test {
         let mut headers = Headers::new();
         headers.insert(DATE, "<nori ate the tag. yum.>").unwrap();
         let err = Date::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }

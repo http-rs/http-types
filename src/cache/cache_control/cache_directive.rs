@@ -1,5 +1,5 @@
+use crate::errors::HeaderError;
 use crate::headers::HeaderValue;
-use crate::Status;
 
 use std::time::Duration;
 
@@ -93,8 +93,10 @@ impl CacheDirective {
         let next = parts.next().unwrap();
 
         let mut get_dur = || -> crate::Result<Duration> {
-            let dur = parts.next().status(400)?;
-            let dur: u64 = dur.parse::<u64>().status(400)?;
+            let dur = parts.next().ok_or(HeaderError::CacheControlInvalid)?;
+            let dur: u64 = dur
+                .parse::<u64>()
+                .map_err(|_| HeaderError::CacheControlInvalid)?;
             Ok(Duration::new(dur, 0))
         };
 
@@ -112,7 +114,9 @@ impl CacheDirective {
             "max-age" => Some(MaxAge(get_dur()?)),
             "max-stale" => match parts.next() {
                 Some(secs) => {
-                    let dur: u64 = secs.parse::<u64>().status(400)?;
+                    let dur: u64 = secs
+                        .parse::<u64>()
+                        .map_err(|_| HeaderError::CacheControlInvalid)?;
                     Some(MaxStale(Some(Duration::new(dur, 0))))
                 }
                 None => Some(MaxStale(None)),

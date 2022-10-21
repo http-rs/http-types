@@ -1,5 +1,5 @@
+use crate::errors::HeaderError;
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, CONTENT_LENGTH};
-use crate::Status;
 
 /// The size of the entity-body, in bytes, sent to the recipient.
 ///
@@ -47,7 +47,11 @@ impl ContentLength {
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let length = value.as_str().trim().parse::<u64>().status(400)?;
+        let length = value
+            .as_str()
+            .trim()
+            .parse::<u64>()
+            .map_err(|_| HeaderError::ContentLengthInvalid)?;
         Ok(Some(Self { length }))
     }
 
@@ -76,8 +80,10 @@ impl Header for ContentLength {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::headers::Headers;
+    use crate::StatusCode;
+
+    use super::*;
 
     #[test]
     fn smoke() -> crate::Result<()> {
@@ -98,6 +104,6 @@ mod test {
             .insert(CONTENT_LENGTH, "<nori ate the tag. yum.>")
             .unwrap();
         let err = ContentLength::from_headers(headers).unwrap_err();
-        assert_eq!(err.status(), 400);
+        assert_eq!(err.associated_status_code(), Some(StatusCode::BadRequest));
     }
 }
