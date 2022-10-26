@@ -176,7 +176,8 @@ impl Body {
     /// # Ok(()) }) }
     /// ```
     pub async fn into_bytes(mut self) -> crate::Result<Vec<u8>> {
-        let mut buf = Vec::with_capacity(1024);
+        let len = usize::try_from(self.len().unwrap_or(0)).status(StatusCode::PayloadTooLarge)?;
+        let mut buf = Vec::with_capacity(len);
         self.read_to_end(&mut buf)
             .await
             .status(StatusCode::UnprocessableEntity)?;
@@ -280,9 +281,8 @@ impl Body {
     /// # Ok(()) }) }
     /// ```
     #[cfg(feature = "serde")]
-    pub async fn into_json<T: DeserializeOwned>(mut self) -> crate::Result<T> {
-        let mut buf = Vec::with_capacity(1024);
-        self.read_to_end(&mut buf).await?;
+    pub async fn into_json<T: DeserializeOwned>(self) -> crate::Result<T> {
+        let buf = self.into_bytes().await?;
         serde_json::from_slice(&buf).status(StatusCode::UnprocessableEntity)
     }
 
