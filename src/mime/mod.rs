@@ -14,7 +14,7 @@ use std::str::FromStr;
 
 use crate::headers::{HeaderValue, ToHeaderValues};
 
-use infer::Infer;
+use file_format::FileFormat;
 
 /// An IANA media type.
 ///
@@ -41,13 +41,9 @@ pub struct Mime {
 
 impl Mime {
     /// Sniff the mime type from a byte slice.
+    #[inline]
     pub fn sniff(bytes: &[u8]) -> crate::Result<Self> {
-        let info = Infer::new();
-        let mime = match info.get(bytes) {
-            Some(info) => info.mime_type(),
-            None => crate::bail!("Could not sniff the mime type"),
-        };
-        Mime::from_str(mime)
+        Mime::from_str(FileFormat::from_bytes(bytes).media_type())
     }
 
     /// Guess the mime type from a file extension
