@@ -31,7 +31,7 @@ fastrand = "1.4.0"
 base64 = "0.13.0"
 futures-lite = "1.11.1"
 async-channel = "1.5.1"
-file-format = { version = "0.10.0", features = ["cfb", "zip"] }
+file-format = { version = "0.11.0", features = ["cfb", "zip"] }
 pin-project-lite = "0.2.0"
 url = "2.1.1"
 anyhow = "1.0.26"
