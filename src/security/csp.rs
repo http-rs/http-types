@@ -357,9 +357,9 @@ impl ContentSecurityPolicy {
     /// Sets the `Content-Security-Policy` (CSP) HTTP header to prevent cross-site injections
     pub fn apply(&mut self, mut headers: impl AsMut<Headers>) {
         let name = if self.report_only_flag {
-            "Content-Security-Policy-Report-Only"
+            "content-security-policy-report-only"
         } else {
-            "Content-Security-Policy"
+            "content-security-policy"
         };
         headers.as_mut().insert(name, self.value()).unwrap();
     }
