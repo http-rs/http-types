@@ -71,25 +71,27 @@ impl Request {
     /// Sets a string representation of the peer address of this
     /// request. This might take the form of an ip/fqdn and port or a
     /// local socket address.
-    pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
+    pub fn set_peer_addr(&mut self, peer_addr: Option<impl ToString>) {
         self.peer_addr = peer_addr.map(|addr| addr.to_string());
     }
 
     /// Sets a string representation of the local address that this
     /// request was received on. This might take the form of an ip/fqdn and
     /// port, or a local socket address.
-    pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
+    pub fn set_local_addr(&mut self, local_addr: Option<impl ToString>) {
         self.local_addr = local_addr.map(|addr| addr.to_string());
     }
 
     /// Get the peer socket address for the underlying transport, if
     /// that information is available for this request.
+    #[must_use]
     pub fn peer_addr(&self) -> Option<&str> {
         self.peer_addr.as_deref()
     }
 
     /// Get the local socket address for the underlying transport, if
     /// that information is available for this request.
+    #[must_use]
     pub fn local_addr(&self) -> Option<&str> {
         self.local_addr.as_deref()
     }
@@ -100,6 +102,7 @@ impl Request {
     /// 1. `Forwarded` header `for` key
     /// 2. The first `X-Forwarded-For` header
     /// 3. Peer address of the transport
+    #[must_use]
     pub fn remote(&self) -> Option<&str> {
         self.forwarded_for().or_else(|| self.peer_addr())
     }
@@ -111,6 +114,7 @@ impl Request {
     /// 2. The first `X-Forwarded-Host` header
     /// 3. `Host` header
     /// 4. URL domain, if any
+    #[must_use]
     pub fn host(&self) -> Option<&str> {
         self.forwarded_header_part("host")
             .or_else(|| {
@@ -142,6 +146,7 @@ impl Request {
     }
 
     /// Get the HTTP method
+    #[must_use]
     pub fn method(&self) -> Method {
         self.method
     }
@@ -164,6 +169,7 @@ impl Request {
     /// #
     /// # Ok(()) }
     /// ```
+    #[must_use]
     pub fn url(&self) -> &Url {
         &self.url
     }
@@ -285,7 +291,7 @@ impl Request {
     ///
     /// This consumes the request. If you want to read the body without
     /// consuming the request, consider using the `take_body` method and
-    /// then calling `Body::into_string` or using the Request's AsyncRead
+    /// then calling `Body::into_string` or using the Request's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -313,7 +319,7 @@ impl Request {
     ///
     /// This consumes the `Request`. If you want to read the body without
     /// consuming the request, consider using the `take_body` method and
-    /// then calling `Body::into_bytes` or using the Request's AsyncRead
+    /// then calling `Body::into_bytes` or using the Request's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -339,7 +345,7 @@ impl Request {
     ///
     /// This consumes the request. If you want to read the body without
     /// consuming the request, consider using the `take_body` method and
-    /// then calling `Body::into_json` or using the Request's AsyncRead
+    /// then calling `Body::into_json` or using the Request's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -375,7 +381,7 @@ impl Request {
     ///
     /// This consumes the request. If you want to read the body without
     /// consuming the request, consider using the `take_body` method and
-    /// then calling `Body::into_json` or using the Request's AsyncRead
+    /// then calling `Body::into_json` or using the Request's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -489,6 +495,7 @@ impl Request {
     }
 
     /// Get the current content type
+    #[must_use]
     pub fn content_type(&self) -> Option<Mime> {
         self.header(CONTENT_TYPE)?.last().as_str().parse().ok()
     }
@@ -499,12 +506,14 @@ impl Request {
     /// E.g. a string, or a buffer. Consumers of this API should check this
     /// value to decide whether to use `Chunked` encoding, or set the
     /// response length.
+    #[must_use]
     pub fn len(&self) -> Option<u64> {
         self.body.len()
     }
 
     /// Returns `true` if the request has a set body stream length of zero,
     /// `false` otherwise.
+    #[must_use]
     pub fn is_empty(&self) -> Option<bool> {
         self.body.is_empty()
     }
@@ -526,6 +535,7 @@ impl Request {
     /// #
     /// # Ok(()) }
     /// ```
+    #[must_use]
     pub fn version(&self) -> Option<Version> {
         self.version
     }
@@ -568,11 +578,13 @@ impl Request {
     }
 
     /// Returns `true` if sending trailers is in progress.
+    #[must_use]
     pub fn has_trailers(&self) -> bool {
         self.has_trailers
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
+    #[must_use]
     pub fn iter(&self) -> headers::Iter<'_> {
         self.headers.iter()
     }
@@ -584,16 +596,19 @@ impl Request {
     }
 
     /// An iterator visiting all header names in arbitrary order.
+    #[must_use]
     pub fn header_names(&self) -> Names<'_> {
         self.headers.names()
     }
 
     /// An iterator visiting all header values in arbitrary order.
+    #[must_use]
     pub fn header_values(&self) -> Values<'_> {
         self.headers.values()
     }
 
     /// Returns a reference to the existing local state.
+    #[must_use]
     pub fn ext(&self) -> &Extensions {
         &self.ext
     }
@@ -656,13 +671,13 @@ impl Request {
     #[cfg(feature = "serde")]
     pub fn query<'de, T: serde_crate::de::Deserialize<'de>>(&'de self) -> crate::Result<T> {
         // Default to an empty query string if no query parameter has been specified.
-        // This allows successful deserialisation of structs where all fields are optional
-        // when none of those fields has actually been passed by the caller.
+        // This allows successful deserialization of structs where all fields are optional
+        // when the caller has actually passed none of those fields.
         let query = self.url().query().unwrap_or("");
         serde_qs::from_str(query).map_err(|e| {
             // Return the displayable version of the deserialisation error to the caller
             // for easier debugging.
-            crate::Error::from_str(crate::StatusCode::BadRequest, format!("{}", e))
+            crate::Error::from_str(crate::StatusCode::BadRequest, format!("{e}"))
         })
     }
 
@@ -690,7 +705,7 @@ impl Request {
     #[cfg(feature = "serde")]
     pub fn set_query(&mut self, query: &impl Serialize) -> crate::Result<()> {
         let query = serde_qs::to_string(query)
-            .map_err(|e| crate::Error::from_str(crate::StatusCode::BadRequest, format!("{}", e)))?;
+            .map_err(|e| crate::Error::from_str(crate::StatusCode::BadRequest, format!("{e}")))?;
         self.url.set_query(Some(&query));
         Ok(())
     }
@@ -923,7 +938,7 @@ impl AsyncBufRead for Request {
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body).consume(amt)
+        Pin::new(&mut self.body).consume(amt);
     }
 }
 
@@ -1197,7 +1212,7 @@ mod tests {
         request
             .insert_header(
                 "x-forwarded-for",
-                format!("{},proxy.com,other-proxy.com", client),
+                format!("{client},proxy.com,other-proxy.com"),
             )
             .unwrap();
     }
@@ -1206,7 +1221,7 @@ mod tests {
         request
             .insert_header(
                 "x-forwarded-host",
-                format!("{},proxy.com,other-proxy.com", host),
+                format!("{host},proxy.com,other-proxy.com"),
             )
             .unwrap();
     }
@@ -1215,7 +1230,7 @@ mod tests {
         request
             .insert_header(
                 "Forwarded",
-                format!("by=something.com;for={};host=host.com;proto=http", client),
+                format!("by=something.com;for={client};host=host.com;proto=http"),
             )
             .unwrap();
     }

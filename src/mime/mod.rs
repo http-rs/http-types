@@ -89,16 +89,19 @@ impl Mime {
     ///
     /// According to the spec this method should be named `type`, but that's a reserved keyword in
     /// Rust so hence prefix with `base` instead.
+    #[must_use]
     pub fn basetype(&self) -> &str {
         &self.basetype
     }
 
     /// Access the Mime's `subtype` value.
+    #[must_use]
     pub fn subtype(&self) -> &str {
         &self.subtype
     }
 
     /// Access the Mime's `essence` value.
+    #[must_use]
     pub fn essence(&self) -> &str {
         &self.essence
     }
@@ -146,6 +149,7 @@ impl Mime {
     /// // A mime type more general than another mime type is not a subset
     /// assert!(!Mime::from_str("*/css;encoding=utf-8").unwrap().subset_eq(&Mime::from_str("text/css").unwrap()));
     /// ```
+    #[must_use]
     pub fn subset_eq(&self, other: &Mime) -> bool {
         if other.basetype() != "*" && self.basetype() != other.basetype() {
             return false;
@@ -153,12 +157,8 @@ impl Mime {
         if other.subtype() != "*" && self.subtype() != other.subtype() {
             return false;
         }
-        for (name, value) in other.params.iter() {
-            if !self
-                .param(name.clone())
-                .map(|v| v == value)
-                .unwrap_or(false)
-            {
+        for (name, value) in &other.params {
+            if !self.param(name.clone()).map_or(false, |v| v == value) {
                 return false;
             }
         }
@@ -213,6 +213,7 @@ pub struct ParamName(Cow<'static, str>);
 
 impl ParamName {
     /// Get the name as a `&str`
+    #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -248,6 +249,7 @@ pub struct ParamValue(Cow<'static, str>);
 
 impl ParamValue {
     /// Get the value as a `&str`
+    #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
     }

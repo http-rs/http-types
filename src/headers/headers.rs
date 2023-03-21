@@ -93,6 +93,7 @@ impl Headers {
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.headers.iter(),
@@ -108,6 +109,7 @@ impl Headers {
     }
 
     /// An iterator visiting all header names in arbitrary order.
+    #[must_use]
     pub fn names(&self) -> Names<'_> {
         Names {
             inner: self.headers.keys(),
@@ -115,6 +117,7 @@ impl Headers {
     }
 
     /// An iterator visiting all header values in arbitrary order.
+    #[must_use]
     pub fn values(&self) -> Values<'_> {
         Values::new(self.headers.values())
     }
@@ -236,7 +239,7 @@ mod tests {
     fn test_debug_single() {
         let mut headers = Headers::new();
         headers.insert("single", "foo0").unwrap();
-        assert_eq!(format!("{:?}", headers), r#"{"single": "foo0"}"#);
+        assert_eq!(format!("{headers:?}"), r#"{"single": "foo0"}"#);
     }
 
     #[test]
@@ -244,6 +247,6 @@ mod tests {
         let mut headers = Headers::new();
         headers.append("multi", "foo0").unwrap();
         headers.append("multi", "foo1").unwrap();
-        assert_eq!(format!("{:?}", headers), r#"{"multi": ["foo0", "foo1"]}"#);
+        assert_eq!(format!("{headers:?}"), r#"{"multi": ["foo0", "foo1"]}"#);
     }
 }

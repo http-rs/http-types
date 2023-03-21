@@ -39,11 +39,13 @@ pub struct Date {
 
 impl Date {
     /// Create a new instance.
+    #[must_use]
     pub fn new(at: SystemTime) -> Self {
         Self { at }
     }
 
     /// Create a new instance with the date set to now.
+    #[must_use]
     pub fn now() -> Self {
         Self {
             at: SystemTime::now(),
@@ -52,10 +54,7 @@ impl Date {
 
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(DATE) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(DATE) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
@@ -80,7 +79,7 @@ impl Header for Date {
 
     fn header_value(&self) -> HeaderValue {
         let date: HttpDate = self.at.into();
-        let output = format!("{}", date);
+        let output = format!("{date}");
 
         // SAFETY: the internal string is validated to be ASCII.
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }

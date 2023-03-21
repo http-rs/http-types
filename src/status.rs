@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 /// Provides the `status` method for `Result` and `Option`.
 ///
-/// This trait is sealed and cannot be implemented outside of `http-types`.
+/// This trait is sealed and cannot be implemented outside `http-types`.
 pub trait Status<T, E>: private::Sealed {
     /// Wrap the error value with an additional status code.
     fn status<S>(self, status: S) -> Result<T, Error>
@@ -32,8 +32,8 @@ where
     ///
     /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
     ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
+    /// [status]: Status
+    /// [statuscode]: StatusCode
     fn status<S>(self, status: S) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -54,8 +54,8 @@ where
     ///
     /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
     ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
+    /// [status]: Status
+    /// [statuscode]: StatusCode
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -78,8 +78,8 @@ impl<T> Status<T, Error> for Result<T, Error> {
     ///
     /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
     ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
+    /// [status]: Status
+    /// [statuscode]: StatusCode
     fn status<S>(self, status: S) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -98,8 +98,8 @@ impl<T> Status<T, Error> for Result<T, Error> {
     ///
     /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
     ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
+    /// [status]: Status
+    /// [statuscode]: StatusCode
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -120,8 +120,8 @@ impl<T> Status<T, Infallible> for Option<T> {
     ///
     /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
     ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
+    /// [status]: Status
+    /// [statuscode]: StatusCode
     fn status<S>(self, status: S) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,
@@ -142,8 +142,8 @@ impl<T> Status<T, Infallible> for Option<T> {
     ///
     /// Panics if [`Status`][status] is not a valid [`StatusCode`][statuscode].
     ///
-    /// [status]: crate::Status
-    /// [statuscode]: crate::StatusCode
+    /// [status]: Status
+    /// [statuscode]: StatusCode
     fn with_status<S, F>(self, f: F) -> Result<T, Error>
     where
         S: TryInto<StatusCode>,

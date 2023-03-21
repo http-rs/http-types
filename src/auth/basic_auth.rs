@@ -5,6 +5,7 @@ use crate::{
     headers::Header,
 };
 use crate::{bail_status as bail, ensure_status as ensure};
+use base64::{engine::general_purpose, Engine};
 
 /// HTTP Basic authorization.
 ///
@@ -54,10 +55,7 @@ impl BasicAuth {
 
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let auth = match Authorization::from_headers(headers)? {
-            Some(auth) => auth,
-            None => return Ok(None),
-        };
+        let Some(auth) = Authorization::from_headers(headers)? else { return Ok(None) };
 
         let scheme = auth.scheme();
         ensure!(
@@ -71,7 +69,7 @@ impl BasicAuth {
 
     /// Create a new instance from the base64 encoded credentials.
     pub fn from_credentials(credentials: impl AsRef<[u8]>) -> crate::Result<Self> {
-        let bytes = base64::decode(credentials).status(400)?;
+        let bytes = general_purpose::STANDARD.decode(credentials).status(400)?;
         let credentials = String::from_utf8(bytes).status(400)?;
 
         let mut iter = credentials.splitn(2, ':');
@@ -88,11 +86,13 @@ impl BasicAuth {
     }
 
     /// Get the username.
+    #[must_use]
     pub fn username(&self) -> &str {
         self.username.as_str()
     }
 
     /// Get the password.
+    #[must_use]
     pub fn password(&self) -> &str {
         self.password.as_str()
     }
@@ -105,7 +105,8 @@ impl Header for BasicAuth {
 
     fn header_value(&self) -> HeaderValue {
         let scheme = AuthenticationScheme::Basic;
-        let credentials = base64::encode(format!("{}:{}", self.username, self.password));
+        let credentials =
+            general_purpose::STANDARD.encode(format!("{}:{}", self.username, self.password));
         let auth = Authorization::new(scheme, credentials);
         auth.header_value()
     }

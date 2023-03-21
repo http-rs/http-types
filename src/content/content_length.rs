@@ -33,16 +33,14 @@ pub struct ContentLength {
 #[allow(clippy::len_without_is_empty)]
 impl ContentLength {
     /// Create a new instance.
+    #[must_use]
     pub fn new(length: u64) -> Self {
         Self { length }
     }
 
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(CONTENT_LENGTH) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(CONTENT_LENGTH) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
@@ -52,6 +50,7 @@ impl ContentLength {
     }
 
     /// Get the content length.
+    #[must_use]
     pub fn len(&self) -> u64 {
         self.length
     }

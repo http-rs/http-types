@@ -13,6 +13,7 @@ pub struct Sender {
 impl Sender {
     /// Create a new instance of `Sender`.
     #[doc(hidden)]
+    #[must_use]
     pub fn new(sender: async_channel::Sender<Connection>) -> Self {
         Self { sender }
     }

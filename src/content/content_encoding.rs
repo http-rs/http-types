@@ -38,16 +38,14 @@ pub struct ContentEncoding {
 
 impl ContentEncoding {
     /// Create a new instance of `CacheControl`.
+    #[must_use]
     pub fn new(encoding: Encoding) -> Self {
         Self { inner: encoding }
     }
 
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(CONTENT_ENCODING) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(CONTENT_ENCODING) else { return Ok(None) };
 
         let mut inner = None;
 
@@ -62,6 +60,7 @@ impl ContentEncoding {
     }
 
     /// Access the encoding kind.
+    #[must_use]
     pub fn encoding(&self) -> Encoding {
         self.inner
     }

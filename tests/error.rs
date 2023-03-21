@@ -73,26 +73,23 @@ fn option_ext() {
 
 #[test]
 fn anyhow_error_into_http_types_error() {
-    let anyhow_error =
-        anyhow::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
+    let anyhow_error = anyhow::Error::new(io::Error::new(io::ErrorKind::Other, "irrelevant"));
     let http_types_error: Error = anyhow_error.into();
     assert_eq!(http_types_error.status(), StatusCode::InternalServerError);
 
-    let anyhow_error =
-        anyhow::Error::new(std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"));
+    let anyhow_error = anyhow::Error::new(io::Error::new(io::ErrorKind::Other, "irrelevant"));
     let http_types_error: Error = Error::new(StatusCode::ImATeapot, anyhow_error);
     assert_eq!(http_types_error.status(), StatusCode::ImATeapot);
 }
 
 #[test]
 fn normal_error_into_http_types_error() {
-    let http_types_error: Error =
-        std::io::Error::new(std::io::ErrorKind::Other, "irrelevant").into();
+    let http_types_error: Error = io::Error::new(io::ErrorKind::Other, "irrelevant").into();
     assert_eq!(http_types_error.status(), StatusCode::InternalServerError);
 
     let http_types_error = Error::new(
         StatusCode::ImATeapot,
-        std::io::Error::new(std::io::ErrorKind::Other, "irrelevant"),
+        io::Error::new(io::ErrorKind::Other, "irrelevant"),
     );
     assert_eq!(http_types_error.status(), StatusCode::ImATeapot);
 }

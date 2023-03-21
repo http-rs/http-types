@@ -424,6 +424,7 @@ impl StatusCode {
     ///
     /// If this returns `true` it indicates that the request was received,
     /// continuing process.
+    #[must_use]
     pub fn is_informational(&self) -> bool {
         let num: u16 = (*self).into();
         (100..200).contains(&num)
@@ -433,6 +434,7 @@ impl StatusCode {
     ///
     /// If this returns `true` it indicates that the request was successfully
     /// received, understood, and accepted.
+    #[must_use]
     pub fn is_success(&self) -> bool {
         let num: u16 = (*self).into();
         (200..300).contains(&num)
@@ -442,6 +444,7 @@ impl StatusCode {
     ///
     /// If this returns `true` it indicates that further action needs to be
     /// taken in order to complete the request.
+    #[must_use]
     pub fn is_redirection(&self) -> bool {
         let num: u16 = (*self).into();
         (300..400).contains(&num)
@@ -451,6 +454,7 @@ impl StatusCode {
     ///
     /// If this returns `true` it indicates that the request contains bad syntax
     /// or cannot be fulfilled.
+    #[must_use]
     pub fn is_client_error(&self) -> bool {
         let num: u16 = (*self).into();
         (400..500).contains(&num)
@@ -460,12 +464,14 @@ impl StatusCode {
     ///
     /// If this returns `true` it indicates that the server failed to fulfill an
     /// apparently valid request.
+    #[must_use]
     pub fn is_server_error(&self) -> bool {
         let num: u16 = (*self).into();
         (500..600).contains(&num)
     }
 
     /// The canonical reason for a given status code
+    #[must_use]
     pub fn canonical_reason(&self) -> &'static str {
         match self {
             StatusCode::Continue => "Continue",
@@ -586,7 +592,7 @@ mod serde {
             match StatusCode::try_from(v) {
                 Ok(status_code) => Ok(status_code),
                 Err(_) => Err(DeError::invalid_value(
-                    Unexpected::Unsigned(v as u64),
+                    Unexpected::Unsigned(u64::from(v)),
                     &self,
                 )),
             }

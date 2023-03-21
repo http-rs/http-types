@@ -67,6 +67,7 @@ pub struct Trailers {
 
 impl Trailers {
     /// Create a new instance of `Trailers`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             headers: Headers::new(),
@@ -136,6 +137,7 @@ impl Trailers {
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         self.headers.iter()
     }
@@ -147,11 +149,13 @@ impl Trailers {
     }
 
     /// An iterator visiting all header names in arbitrary order.
+    #[must_use]
     pub fn names(&self) -> Names<'_> {
         self.headers.names()
     }
 
     /// An iterator visiting all header values in arbitrary order.
+    #[must_use]
     pub fn values(&self) -> Values<'_> {
         self.headers.values()
     }
@@ -222,6 +226,7 @@ pub struct Sender {
 impl Sender {
     /// Create a new instance of `Sender`.
     #[doc(hidden)]
+    #[must_use]
     pub fn new(sender: async_channel::Sender<Trailers>) -> Self {
         Self { sender }
     }

@@ -15,7 +15,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// The error type for HTTP operations.
 pub struct Error {
     error: anyhow::Error,
-    status: crate::StatusCode,
+    status: StatusCode,
     type_name: Option<&'static str>,
 }
 
@@ -75,6 +75,7 @@ impl Error {
     }
 
     /// Get the status code associated with this error.
+    #[must_use]
     pub fn status(&self) -> StatusCode {
         self.status
     }
@@ -119,12 +120,14 @@ impl Error {
 
     #[cfg(not(backtrace))]
     #[allow(missing_docs)]
+    #[must_use]
     pub const fn backtrace(&self) -> Option<BacktracePlaceholder> {
         None
     }
 
     /// Returns the inner [`anyhow::Error`]
     /// Note: This will lose status code information
+    #[must_use]
     pub fn into_inner(self) -> anyhow::Error {
         self.error
     }
@@ -142,6 +145,7 @@ impl Error {
     }
 
     /// Downcast this error object by reference.
+    #[must_use]
     pub fn downcast_ref<E>(&self) -> Option<&E>
     where
         E: Display + Debug + Send + Sync + 'static,
@@ -158,6 +162,7 @@ impl Error {
     }
 
     /// Retrieves a reference to the type name of the error, if available.
+    #[must_use]
     pub fn type_name(&self) -> Option<&str> {
         self.type_name
     }
@@ -165,7 +170,7 @@ impl Error {
     /// Converts anything which implements `Display` into an `http_types::Error`.
     ///
     /// This is handy for errors which are not `Send + Sync + 'static` because `std::error::Error` requires `Display`.
-    /// Note that any assiciated context not included in the `Display` output will be lost,
+    /// Note that any associated context not included in the `Display` output will be lost,
     /// and so this may be lossy for some types which implement `std::error::Error`.
     ///
     /// **Note: Prefer `error.into()` via `From<Into<anyhow::Error>>` when possible!**
@@ -176,12 +181,12 @@ impl Error {
     /// Converts anything which implements `Debug` into an `http_types::Error`.
     ///
     /// This is handy for errors which are not `Send + Sync + 'static` because `std::error::Error` requires `Debug`.
-    /// Note that any assiciated context not included in the `Debug` output will be lost,
+    /// Note that any associated context not included in the `Debug` output will be lost,
     /// and so this may be lossy for some types which implement `std::error::Error`.
     ///
     /// **Note: Prefer `error.into()` via `From<Into<anyhow::Error>>` when possible!**
     pub fn from_debug<D: Debug>(error: D) -> Self {
-        anyhow::Error::msg(format!("{:?}", error)).into()
+        anyhow::Error::msg(format!("{error:?}")).into()
     }
 }
 

@@ -67,6 +67,7 @@ pub struct ServerTiming {
 
 impl ServerTiming {
     /// Create a new instance of `ServerTiming`.
+    #[must_use]
     pub fn new() -> Self {
         Self { timings: vec![] }
     }
@@ -74,10 +75,7 @@ impl ServerTiming {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut timings = vec![];
-        let headers = match headers.as_ref().get(SERVER_TIMING) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(SERVER_TIMING) else { return Ok(None) };
 
         for value in headers {
             parse_header(value.as_str(), &mut timings)?;
@@ -91,6 +89,7 @@ impl ServerTiming {
     }
 
     /// An iterator visiting all server timings.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.timings.iter(),
@@ -115,8 +114,8 @@ impl Header for ServerTiming {
         for (n, timing) in self.timings.iter().enumerate() {
             let timing: HeaderValue = timing.clone().into();
             match n {
-                0 => write!(output, "{}", timing).unwrap(),
-                _ => write!(output, ", {}", timing).unwrap(),
+                0 => write!(output, "{timing}").unwrap(),
+                _ => write!(output, ", {timing}").unwrap(),
             };
         }
 

@@ -21,7 +21,7 @@ impl HeaderName {
         bytes.make_ascii_lowercase();
 
         // This is permitted because ASCII is valid UTF-8, and we just checked that.
-        let string = unsafe { String::from_utf8_unchecked(bytes.to_vec()) };
+        let string = unsafe { String::from_utf8_unchecked(bytes.clone()) };
         Ok(HeaderName(Cow::Owned(string)))
     }
 
@@ -35,6 +35,7 @@ impl HeaderName {
     }
 
     /// Returns the header name as a `&str`.
+    #[must_use]
     pub fn as_str(&self) -> &'_ str {
         &self.0
     }
@@ -46,8 +47,9 @@ impl HeaderName {
     ///
     /// This function is unsafe because it does not check that the bytes passed to it are valid
     /// ASCII. If this constraint is violated, it may cause memory
-    /// unsafety issues with future users of the HeaderName, as the rest of the library assumes
+    /// unsafety issues with future users of the `HeaderName`, as the rest of the library assumes
     /// that Strings are valid ASCII.
+    #[must_use]
     pub unsafe fn from_bytes_unchecked(mut bytes: Vec<u8>) -> Self {
         bytes.make_ascii_lowercase();
         let string = String::from_utf8_unchecked(bytes);
@@ -179,6 +181,6 @@ mod tests {
     #[test]
     fn test_debug() {
         let header_name = HeaderName::from_str("hello").unwrap();
-        assert_eq!(format!("{:?}", header_name), "\"hello\"");
+        assert_eq!(format!("{header_name:?}"), "\"hello\"");
     }
 }

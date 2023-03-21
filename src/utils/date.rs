@@ -9,7 +9,7 @@ const IMF_FIXDATE_LENGTH: usize = 29;
 const RFC850_MAX_LENGTH: usize = 23;
 const ASCTIME_LENGTH: usize = 24;
 
-const YEAR_9999_SECONDS: u64 = 253402300800;
+const YEAR_9999_SECONDS: u64 = 253_402_300_800;
 const SECONDS_IN_DAY: u64 = 86400;
 const SECONDS_IN_HOUR: u64 = 3600;
 
@@ -40,10 +40,12 @@ pub(crate) struct HttpDate {
 /// ascdate formats. Two digit years are mapped to dates between
 /// 1970 and 2069.
 pub(crate) fn parse_http_date(s: &str) -> crate::Result<SystemTime> {
-    s.parse::<HttpDate>().map(|d| d.into()).map_err(|mut e| {
-        e.set_status(StatusCode::BadRequest);
-        e
-    })
+    s.parse::<HttpDate>()
+        .map(std::convert::Into::into)
+        .map_err(|mut e| {
+            e.set_status(StatusCode::BadRequest);
+            e
+        })
 }
 
 /// Format a date to be used in a HTTP header field.
@@ -262,7 +264,7 @@ impl From<SystemTime> for HttpDate {
 
         let months = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 29];
         let mut month = 0;
-        for month_len in months.iter() {
+        for month_len in &months {
             month += 1;
             if remdays < *month_len {
                 break;
@@ -279,7 +281,7 @@ impl From<SystemTime> for HttpDate {
 
         let mut week_day = (3 + days) % 7;
         if week_day <= 0 {
-            week_day += 7
+            week_day += 7;
         };
 
         HttpDate {
@@ -312,17 +314,17 @@ impl From<HttpDate> for SystemTime {
             11 => 304,
             12 => 334,
             _ => unreachable!(),
-        } + http_date.day as u64
+        } + u64::from(http_date.day)
             - 1;
         if is_leap_year(http_date.year) && http_date.month > 2 {
             ydays += 1;
         }
-        let days = (http_date.year as u64 - 1970) * 365 + leap_years as u64 + ydays;
+        let days = (u64::from(http_date.year) - 1970) * 365 + u64::from(leap_years) + ydays;
         UNIX_EPOCH
             + Duration::from_secs(
-                http_date.second as u64
-                    + http_date.minute as u64 * 60
-                    + http_date.hour as u64 * SECONDS_IN_HOUR
+                u64::from(http_date.second)
+                    + u64::from(http_date.minute) * 60
+                    + u64::from(http_date.hour) * SECONDS_IN_HOUR
                     + days * SECONDS_IN_DAY,
             )
     }
@@ -378,8 +380,8 @@ impl Display for HttpDate {
         buf[0] = week_day[0];
         buf[1] = week_day[1];
         buf[2] = week_day[2];
-        buf[5] = b'0' + (self.day / 10) as u8;
-        buf[6] = b'0' + (self.day % 10) as u8;
+        buf[5] = b'0' + (self.day / 10);
+        buf[6] = b'0' + (self.day % 10);
         buf[8] = month[0];
         buf[9] = month[1];
         buf[10] = month[2];
@@ -387,12 +389,12 @@ impl Display for HttpDate {
         buf[13] = b'0' + (self.year / 100 % 10) as u8;
         buf[14] = b'0' + (self.year / 10 % 10) as u8;
         buf[15] = b'0' + (self.year % 10) as u8;
-        buf[17] = b'0' + (self.hour / 10) as u8;
-        buf[18] = b'0' + (self.hour % 10) as u8;
-        buf[20] = b'0' + (self.minute / 10) as u8;
-        buf[21] = b'0' + (self.minute % 10) as u8;
-        buf[23] = b'0' + (self.second / 10) as u8;
-        buf[24] = b'0' + (self.second % 10) as u8;
+        buf[17] = b'0' + (self.hour / 10);
+        buf[18] = b'0' + (self.hour % 10);
+        buf[20] = b'0' + (self.minute / 10);
+        buf[21] = b'0' + (self.minute % 10);
+        buf[23] = b'0' + (self.second / 10);
+        buf[24] = b'0' + (self.second % 10);
         f.write_str(from_utf8(&buf[..]).unwrap())
     }
 }
@@ -421,7 +423,7 @@ mod tests {
 
     #[test]
     fn test_rfc_example() {
-        let d = UNIX_EPOCH + Duration::from_secs(784111777);
+        let d = UNIX_EPOCH + Duration::from_secs(784_111_777);
         assert_eq!(
             d,
             parse_http_date("Sun, 06 Nov 1994 08:49:37 GMT").expect("#1")
@@ -435,7 +437,7 @@ mod tests {
 
     #[test]
     fn test2() {
-        let d = UNIX_EPOCH + Duration::from_secs(1475419451);
+        let d = UNIX_EPOCH + Duration::from_secs(1_475_419_451);
         assert_eq!(
             d,
             parse_http_date("Sun, 02 Oct 2016 14:44:11 GMT").expect("#1")
@@ -453,17 +455,17 @@ mod tests {
         assert_eq!(d, parse_http_date("Thu, 01 Jan 1970 01:00:00 GMT").unwrap());
         d += Duration::from_secs(SECONDS_IN_DAY);
         assert_eq!(d, parse_http_date("Fri, 02 Jan 1970 01:00:00 GMT").unwrap());
-        d += Duration::from_secs(2592000);
+        d += Duration::from_secs(2_592_000);
         assert_eq!(d, parse_http_date("Sun, 01 Feb 1970 01:00:00 GMT").unwrap());
-        d += Duration::from_secs(2592000);
+        d += Duration::from_secs(2_592_000);
         assert_eq!(d, parse_http_date("Tue, 03 Mar 1970 01:00:00 GMT").unwrap());
-        d += Duration::from_secs(31536005);
+        d += Duration::from_secs(31_536_005);
         assert_eq!(d, parse_http_date("Wed, 03 Mar 1971 01:00:05 GMT").unwrap());
-        d += Duration::from_secs(15552000);
+        d += Duration::from_secs(15_552_000);
         assert_eq!(d, parse_http_date("Mon, 30 Aug 1971 01:00:05 GMT").unwrap());
-        d += Duration::from_secs(6048000);
+        d += Duration::from_secs(6_048_000);
         assert_eq!(d, parse_http_date("Mon, 08 Nov 1971 01:00:05 GMT").unwrap());
-        d += Duration::from_secs(864000000);
+        d += Duration::from_secs(864_000_000);
         assert_eq!(d, parse_http_date("Fri, 26 Mar 1999 01:00:05 GMT").unwrap());
     }
 
@@ -471,12 +473,12 @@ mod tests {
     fn test_fmt() {
         let d = UNIX_EPOCH;
         assert_eq!(fmt_http_date(d), "Thu, 01 Jan 1970 00:00:00 GMT");
-        let d = UNIX_EPOCH + Duration::from_secs(1475419451);
+        let d = UNIX_EPOCH + Duration::from_secs(1_475_419_451);
         assert_eq!(fmt_http_date(d), "Sun, 02 Oct 2016 14:44:11 GMT");
     }
 
     #[test]
     fn size_of() {
-        assert_eq!(::std::mem::size_of::<HttpDate>(), 8);
+        assert_eq!(std::mem::size_of::<HttpDate>(), 8);
     }
 }

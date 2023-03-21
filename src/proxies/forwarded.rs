@@ -154,7 +154,7 @@ impl<'a> Forwarded<'a> {
                     .map(|v| {
                         let v = v.trim();
                         match v.parse::<IpAddr>().ok() {
-                            Some(IpAddr::V6(v6)) => Cow::Owned(format!(r#"[{}]"#, v6)),
+                            Some(IpAddr::V6(v6)) => Cow::Owned(format!(r#"[{v6}]"#)),
                             _ => Cow::Borrowed(v),
                         }
                     })
@@ -176,10 +176,10 @@ impl<'a> Forwarded<'a> {
 
         if !forwarded_for.is_empty() || by.is_some() || proto.is_some() || host.is_some() {
             Ok(Some(Self {
-                forwarded_for,
                 by,
-                proto,
+                forwarded_for,
                 host,
+                proto,
             }))
         } else {
             Ok(None)
@@ -299,6 +299,7 @@ impl<'a> Forwarded<'a> {
 
     /// Transform a borrowed Forwarded into an owned
     /// Forwarded. This is a noop if the Forwarded is already owned.
+    #[must_use]
     pub fn into_owned(self) -> Forwarded<'static> {
         Forwarded {
             by: self.by.map(|by| Cow::Owned(by.into_owned())),
@@ -313,6 +314,7 @@ impl<'a> Forwarded<'a> {
     }
 
     /// Builds a new empty Forwarded
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -323,8 +325,12 @@ impl<'a> Forwarded<'a> {
     }
 
     /// Returns the `for` field of this header
+    #[must_use]
     pub fn forwarded_for(&self) -> Vec<&str> {
-        self.forwarded_for.iter().map(|x| x.as_ref()).collect()
+        self.forwarded_for
+            .iter()
+            .map(std::convert::AsRef::as_ref)
+            .collect()
     }
 
     /// Sets the `host` field of this header
@@ -333,16 +339,18 @@ impl<'a> Forwarded<'a> {
     }
 
     /// Returns the `host` field of this header
+    #[must_use]
     pub fn host(&self) -> Option<&str> {
         self.host.as_deref()
     }
 
     /// Sets the `proto` field of this header
     pub fn set_proto(&mut self, proto: impl Into<Cow<'a, str>>) {
-        self.proto = Some(proto.into())
+        self.proto = Some(proto.into());
     }
 
     /// Returns the `proto` field of this header
+    #[must_use]
     pub fn proto(&self) -> Option<&str> {
         self.proto.as_deref()
     }
@@ -353,6 +361,7 @@ impl<'a> Forwarded<'a> {
     }
 
     /// Returns the `by` field of this header
+    #[must_use]
     pub fn by(&self) -> Option<&str> {
         self.by.as_deref()
     }
@@ -365,7 +374,7 @@ impl<'a> Header for Forwarded<'a> {
     fn header_value(&self) -> HeaderValue {
         let mut output = String::new();
         if let Some(by) = self.by() {
-            write!(&mut output, "by={};", by).unwrap();
+            write!(&mut output, "by={by};").unwrap();
         }
 
         output.push_str(
@@ -380,11 +389,11 @@ impl<'a> Header for Forwarded<'a> {
         output.push(';');
 
         if let Some(host) = self.host() {
-            write!(&mut output, "host={};", host).unwrap();
+            write!(&mut output, "host={host};").unwrap();
         }
 
         if let Some(proto) = self.proto() {
-            write!(&mut output, "proto={};", proto).unwrap();
+            write!(&mut output, "proto={proto};").unwrap();
         }
 
         // remove a trailing semicolon
@@ -403,19 +412,18 @@ fn parse_value(input: &str) -> (Option<Cow<'_, str>>, &str) {
 }
 
 fn format_value(input: &str) -> Cow<'_, str> {
-    match parse_token(input) {
-        (_, "") => input.into(),
-        _ => {
-            let mut string = String::from("\"");
-            for ch in input.chars() {
-                if let '\\' | '"' = ch {
-                    string.push('\\');
-                }
-                string.push(ch);
+    if let (_, "") = parse_token(input) {
+        input.into()
+    } else {
+        let mut string = String::from("\"");
+        for ch in input.chars() {
+            if let '\\' | '"' = ch {
+                string.push('\\');
             }
-            string.push('"');
-            string.into()
+            string.push(ch);
         }
+        string.push('"');
+        string.into()
     }
 }
 

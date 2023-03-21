@@ -36,16 +36,14 @@ pub struct Expect {
 
 impl Expect {
     /// Create a new instance of `Expect`.
+    #[must_use]
     pub fn new() -> Self {
         Self { _priv: () }
     }
 
     /// Create an instance of `Expect` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(EXPECT) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(EXPECT) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.

@@ -47,18 +47,13 @@ impl<'a> Iterator for Values<'a> {
             }
 
             // Get the next item
-            match self.slot.unwrap().get(self.cursor) {
+            if let Some(item) = self.slot.unwrap().get(self.cursor) {
                 // If an item is found, increment the cursor and return the item.
-                Some(item) => {
-                    self.cursor += 1;
-                    return Some(item);
-                }
-                // If no item is found, unset the slot and loop again.
-                None => {
-                    self.slot = None;
-                    continue;
-                }
+                self.cursor += 1;
+                return Some(item);
             }
+            // If no item is found, unset the slot and loop again.
+            self.slot = None;
         }
     }
 

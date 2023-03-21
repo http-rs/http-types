@@ -52,6 +52,7 @@ pub struct ClearSiteData {
 
 impl ClearSiteData {
     /// Create a new instance of `ClearSiteData`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entries: vec![],
@@ -62,10 +63,7 @@ impl ClearSiteData {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let header_values = match headers.as_ref().get(CLEAR_SITE_DATA) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(header_values) = headers.as_ref().get(CLEAR_SITE_DATA) else { return Ok(None) };
 
         let mut wildcard = false;
         for value in header_values {
@@ -88,16 +86,18 @@ impl ClearSiteData {
     }
 
     /// Returns `true` if a wildcard directive was set.
+    #[must_use]
     pub fn wildcard(&self) -> bool {
         self.wildcard
     }
 
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
-        self.wildcard = wildcard
+        self.wildcard = wildcard;
     }
 
     /// An iterator visiting all server entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -220,8 +220,8 @@ impl Header for ClearSiteData {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {
             match n {
-                0 => write!(output, "{}", etag).unwrap(),
-                _ => write!(output, ", {}", etag).unwrap(),
+                0 => write!(output, "{etag}").unwrap(),
+                _ => write!(output, ", {etag}").unwrap(),
             };
         }
 

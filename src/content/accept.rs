@@ -55,6 +55,7 @@ pub struct Accept {
 
 impl Accept {
     /// Create a new instance of `Accept`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entries: vec![],
@@ -65,10 +66,7 @@ impl Accept {
     /// Create an instance of `Accept` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(ACCEPT) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(ACCEPT) else { return Ok(None) };
 
         let mut wildcard = false;
 
@@ -76,16 +74,18 @@ impl Accept {
             for part in value.as_str().trim().split(',') {
                 let part = part.trim();
 
-                // Handle empty strings, and wildcard directives.
+                // Handle empty strings.
                 if part.is_empty() {
                     continue;
-                } else if part == "*" {
+                }
+                // Handle wildcard directives.
+                if part == "*" {
                     wildcard = true;
                     continue;
                 }
 
                 // Try and parse a directive from a str. If the directive is
-                // unkown we skip it.
+                // unknown we skip it.
                 let entry = MediaTypeProposal::from_str(part)?;
                 entries.push(entry);
             }
@@ -100,13 +100,14 @@ impl Accept {
     }
 
     /// Returns `true` if a wildcard directive was passed.
+    #[must_use]
     pub fn wildcard(&self) -> bool {
         self.wildcard
     }
 
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
-        self.wildcard = wildcard
+        self.wildcard = wildcard;
     }
 
     /// Sort the header directives by weight.
@@ -147,6 +148,7 @@ impl Accept {
     }
 
     /// An iterator visiting all entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -170,8 +172,8 @@ impl Header for Accept {
         for (n, directive) in self.entries.iter().enumerate() {
             let directive: HeaderValue = directive.clone().into();
             match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
+                0 => write!(output, "{directive}").unwrap(),
+                _ => write!(output, ", {directive}").unwrap(),
             };
         }
 

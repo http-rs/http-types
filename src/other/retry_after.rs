@@ -42,6 +42,7 @@ impl RetryAfter {
     /// Create a new instance from a `Duration`.
     ///
     /// This value will be encoded over the wire as a relative offset in seconds.
+    #[must_use]
     pub fn new(dur: Duration) -> Self {
         Self {
             inner: RetryDirective::Duration(dur),
@@ -51,6 +52,7 @@ impl RetryAfter {
     /// Create a new instance from a `SystemTime` instant.
     ///
     /// This value will be encoded a specific `Date` over the wire.
+    #[must_use]
     pub fn new_at(at: SystemTime) -> Self {
         Self {
             inner: RetryDirective::SystemTime(at),
@@ -64,12 +66,11 @@ impl RetryAfter {
             None => return Ok(None),
         };
 
-        let inner = match header.as_str().parse::<u64>() {
-            Ok(dur) => RetryDirective::Duration(Duration::from_secs(dur)),
-            Err(_) => {
-                let at = parse_http_date(header.as_str())?;
-                RetryDirective::SystemTime(at)
-            }
+        let inner = if let Ok(dur) = header.as_str().parse::<u64>() {
+            RetryDirective::Duration(Duration::from_secs(dur))
+        } else {
+            let at = parse_http_date(header.as_str())?;
+            RetryDirective::SystemTime(at)
         };
         Ok(Some(Self { inner }))
     }
@@ -115,7 +116,7 @@ impl From<RetryAfter> for SystemTime {
 
 /// What value are we decoding into?
 ///
-/// This value is intionally never exposes; all end-users want is a `Duration`
+/// This value is intentionally never exposed; all end-users want is a `Duration`
 /// value that tells them how long to wait for before trying again.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 enum RetryDirective {

@@ -42,6 +42,7 @@ pub struct Allow {
 
 impl Allow {
     /// Create a new instance of `Allow`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entries: HashSet::new(),
@@ -51,10 +52,7 @@ impl Allow {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = HashSet::new();
-        let headers = match headers.as_ref().get(ALLOW) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(ALLOW) else { return Ok(None) };
 
         for value in headers {
             for part in value.as_str().trim().split(',') {
@@ -72,6 +70,7 @@ impl Allow {
     }
 
     /// An iterator visiting all server entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -79,6 +78,7 @@ impl Allow {
     }
 
     /// Returns `true` if the header contains the `Method`.
+    #[must_use]
     pub fn contains(&self, method: Method) -> bool {
         self.entries.contains(&method)
     }
@@ -92,8 +92,8 @@ impl Header for Allow {
         let mut output = String::new();
         for (n, method) in self.entries.iter().enumerate() {
             match n {
-                0 => write!(output, "{}", method).unwrap(),
-                _ => write!(output, ", {}", method).unwrap(),
+                0 => write!(output, "{method}").unwrap(),
+                _ => write!(output, ", {method}").unwrap(),
             };
         }
 

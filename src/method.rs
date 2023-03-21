@@ -341,6 +341,7 @@ impl Method {
     /// Whether a method is considered "safe", meaning the request is essentially read-only.
     ///
     /// See [the spec](https://tools.ietf.org/html/rfc7231#section-4.2.1) for more details.
+    #[must_use]
     pub fn is_safe(&self) -> bool {
         matches!(
             self,

@@ -58,10 +58,7 @@ impl ContentType {
     /// reference the current environment. In HTTP/1.1 and above this value can
     /// always be determined from the request.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(CONTENT_TYPE) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(CONTENT_TYPE) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
