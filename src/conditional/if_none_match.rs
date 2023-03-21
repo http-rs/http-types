@@ -1,4 +1,4 @@
-//! Apply the HTTP method if the ETags do not match.
+//! Apply the HTTP method if the `ETags` do not match.
 //!
 //! This is used to update caches or to prevent uploading a new resource when
 //! one already exists.
@@ -11,7 +11,7 @@ use std::iter::Iterator;
 
 use std::slice;
 
-/// Apply the HTTP method if the ETags do not match.
+/// Apply the HTTP method if the `ETags` do not match.
 ///
 /// This is used to update caches or to prevent uploading a new resource when
 /// one already exists.
@@ -49,6 +49,7 @@ pub struct IfNoneMatch {
 
 impl IfNoneMatch {
     /// Create a new instance of `IfNoneMatch`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entries: vec![],
@@ -59,10 +60,7 @@ impl IfNoneMatch {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(IF_NONE_MATCH) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(IF_NONE_MATCH) else { return Ok(None) };
 
         let mut wildcard = false;
         for value in headers {
@@ -85,16 +83,18 @@ impl IfNoneMatch {
     }
 
     /// Returns `true` if a wildcard directive was set.
+    #[must_use]
     pub fn wildcard(&self) -> bool {
         self.wildcard
     }
 
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
-        self.wildcard = wildcard
+        self.wildcard = wildcard;
     }
 
     /// An iterator visiting all server entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -117,8 +117,8 @@ impl Header for IfNoneMatch {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {
             match n {
-                0 => write!(output, "{}", etag).unwrap(),
-                _ => write!(output, ", {}", etag).unwrap(),
+                0 => write!(output, "{etag}").unwrap(),
+                _ => write!(output, ", {etag}").unwrap(),
             };
         }
 

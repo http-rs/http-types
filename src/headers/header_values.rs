@@ -16,10 +16,11 @@ pub struct HeaderValues {
 impl HeaderValues {
     /// Move all values from `other` into `self`, leaving `other` empty.
     pub fn append(&mut self, other: &mut Self) {
-        self.inner.append(&mut other.inner)
+        self.inner.append(&mut other.inner);
     }
 
     /// Returns a reference or a value depending on the type of index.
+    #[must_use]
     pub fn get(&self, index: usize) -> Option<&HeaderValue> {
         self.inner.get(index)
     }
@@ -31,11 +32,13 @@ impl HeaderValues {
 
     /// Returns `true` if there is a value corresponding to the specified `HeaderValue` in the list,
     /// `false` otherwise.
+    #[must_use]
     pub fn contains(&self, value: &HeaderValue) -> bool {
         self.inner.contains(value)
     }
 
     /// Returns the last `HeaderValue`.
+    #[must_use]
     pub fn last(&self) -> &HeaderValue {
         self.inner
             .last()
@@ -43,6 +46,7 @@ impl HeaderValues {
     }
 
     /// An iterator visiting all header values in arbitrary order.
+    #[must_use]
     pub fn iter(&self) -> Values<'_> {
         Values::new_values(self)
     }
@@ -196,13 +200,13 @@ mod tests {
         let header_values = HeaderValues {
             inner: vec!["foo0".parse().unwrap()],
         };
-        assert_eq!(format!("{:?}", header_values), "\"foo0\"");
+        assert_eq!(format!("{header_values:?}"), "\"foo0\"");
     }
     #[test]
     fn test_debug_multiple() {
         let header_values = HeaderValues {
             inner: vec!["foo0".parse().unwrap(), "foo1".parse().unwrap()],
         };
-        assert_eq!(format!("{:?}", header_values), r#"["foo0", "foo1"]"#);
+        assert_eq!(format!("{header_values:?}"), r#"["foo0", "foo1"]"#);
     }
 }

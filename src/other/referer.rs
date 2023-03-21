@@ -40,6 +40,7 @@ pub struct Referer {
 
 impl Referer {
     /// Create a new instance of `Referer` header.
+    #[must_use]
     pub fn new(location: Url) -> Self {
         Self { location }
     }
@@ -50,10 +51,7 @@ impl Referer {
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
     {
-        let headers = match headers.as_ref().get(REFERER) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(REFERER) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
@@ -71,6 +69,7 @@ impl Referer {
     }
 
     /// Get the url.
+    #[must_use]
     pub fn location(&self) -> &Url {
         &self.location
     }

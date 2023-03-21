@@ -42,21 +42,20 @@ pub struct IfUnmodifiedSince {
 
 impl IfUnmodifiedSince {
     /// Create a new instance of `IfUnmodifiedSince`.
+    #[must_use]
     pub fn new(instant: SystemTime) -> Self {
         Self { instant }
     }
 
     /// Returns the last modification time listed.
+    #[must_use]
     pub fn modified(&self) -> SystemTime {
         self.instant
     }
 
     /// Create an instance of `IfUnmodifiedSince` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(IF_UNMODIFIED_SINCE) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(IF_UNMODIFIED_SINCE) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.

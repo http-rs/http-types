@@ -44,9 +44,9 @@ pub struct TraceContext {
 }
 
 impl TraceContext {
-    /// Generate a new TraceContext object without a parent.
+    /// Generate a new `TraceContext` object without a parent.
     ///
-    /// By default root TraceContext objects are sampled.
+    /// By default root `TraceContext` objects are sampled.
     /// To mark it unsampled, call `context.set_sampled(false)`.
     ///
     /// # Examples
@@ -58,6 +58,7 @@ impl TraceContext {
     /// assert_eq!(context.parent_id(), None);
     /// assert!(context.sampled());
     /// ```
+    #[must_use]
     pub fn new() -> Self {
         Self {
             id: fastrand::u64(..),
@@ -68,7 +69,7 @@ impl TraceContext {
         }
     }
 
-    /// Create and return TraceContext object based on `traceparent` HTTP header.
+    /// Create and return `TraceContext` object based on `traceparent` HTTP header.
     ///
     /// # Errors
     ///
@@ -102,10 +103,7 @@ impl TraceContext {
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let headers = headers.as_ref();
 
-        let traceparent = match headers.get(TRACEPARENT) {
-            Some(header) => header,
-            None => return Ok(None),
-        };
+        let Some(traceparent) = headers.get(TRACEPARENT) else { return Ok(None) };
         let parts: Vec<&str> = traceparent.as_str().split('-').collect();
 
         Ok(Some(Self {
@@ -117,10 +115,11 @@ impl TraceContext {
         }))
     }
 
-    /// Generate a child of the current TraceContext and return it.
+    /// Generate a child of the current `TraceContext` and return it.
     ///
-    /// The child will have a new randomly genrated `id` and its `parent_id` will be set to the
-    /// `id` of this TraceContext.
+    /// The child will have a new randomly generated `id` and its `parent_id` will be set to the
+    /// `id` of this `TraceContext`.
+    #[must_use]
     pub fn child(&self) -> Self {
         Self {
             id: fastrand::u64(..),
@@ -131,27 +130,31 @@ impl TraceContext {
         }
     }
 
-    /// Return the id of the TraceContext.
+    /// Return the id of the `TraceContext`.
+    #[must_use]
     pub fn id(&self) -> u64 {
         self.id
     }
 
-    /// Return the version of the TraceContext spec used.
+    /// Return the version of the `TraceContext` spec used.
     ///
     /// You probably don't need this.
+    #[must_use]
     pub fn version(&self) -> u8 {
         self.version
     }
 
-    /// Return the trace id of the TraceContext.
+    /// Return the trace id of the `TraceContext`.
     ///
     /// All children will have the same `trace_id`.
+    #[must_use]
     pub fn trace_id(&self) -> u128 {
         self.trace_id
     }
 
-    /// Return the id of the parent TraceContext.
+    /// Return the id of the parent `TraceContext`.
     #[inline]
+    #[must_use]
     pub fn parent_id(&self) -> Option<u64> {
         self.parent_id
     }
@@ -173,8 +176,9 @@ impl TraceContext {
     /// #
     /// # Ok(()) }
     /// ```
+    #[must_use]
     pub fn sampled(&self) -> bool {
-        (self.flags & 0b00000001) == 1
+        (self.flags & 0b0000_0001) == 1
     }
 
     /// Change sampled flag
@@ -190,7 +194,7 @@ impl TraceContext {
     /// assert!(!context.sampled());
     /// ```
     pub fn set_sampled(&mut self, sampled: bool) {
-        let x = sampled as u8;
+        let x = u8::from(sampled);
         self.flags ^= (x ^ self.flags) & (1 << 0);
     }
 }
@@ -201,7 +205,7 @@ impl Header for TraceContext {
     }
 
     fn header_value(&self) -> HeaderValue {
-        let output = format!("{}", self);
+        let output = format!("{self}");
         unsafe { HeaderValue::from_bytes_unchecked(output.into()) }
     }
 }
@@ -222,12 +226,12 @@ mod test {
 
     #[test]
     fn default() -> crate::Result<()> {
-        let mut headers = crate::headers::Headers::new();
+        let mut headers = Headers::new();
         headers.insert(TRACEPARENT, "00-01-deadbeef-00").unwrap();
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert_eq!(context.version(), 0);
         assert_eq!(context.trace_id(), 1);
-        assert_eq!(context.parent_id().unwrap(), 3735928559);
+        assert_eq!(context.parent_id().unwrap(), 3_735_928_559);
         assert_eq!(context.flags, 0);
         assert!(!context.sampled());
         Ok(())
@@ -244,7 +248,7 @@ mod test {
 
     #[test]
     fn not_sampled() -> crate::Result<()> {
-        let mut headers = crate::headers::Headers::new();
+        let mut headers = Headers::new();
         headers.insert(TRACEPARENT, "00-01-02-00").unwrap();
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert!(!context.sampled());
@@ -253,7 +257,7 @@ mod test {
 
     #[test]
     fn sampled() -> crate::Result<()> {
-        let mut headers = crate::headers::Headers::new();
+        let mut headers = Headers::new();
         headers.insert(TRACEPARENT, "00-01-02-01").unwrap();
         let context = TraceContext::from_headers(&mut headers)?.unwrap();
         assert!(context.sampled());

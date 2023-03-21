@@ -38,6 +38,7 @@ pub struct Authorization {
 
 impl Authorization {
     /// Create a new instance of `Authorization`.
+    #[must_use]
     pub fn new(scheme: AuthenticationScheme, credentials: String) -> Self {
         Self {
             scheme,
@@ -47,10 +48,7 @@ impl Authorization {
 
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(AUTHORIZATION) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(AUTHORIZATION) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
@@ -72,6 +70,7 @@ impl Authorization {
     }
 
     /// Get the authorization scheme.
+    #[must_use]
     pub fn scheme(&self) -> AuthenticationScheme {
         self.scheme
     }
@@ -82,6 +81,7 @@ impl Authorization {
     }
 
     /// Get the authorization credentials.
+    #[must_use]
     pub fn credentials(&self) -> &str {
         self.credentials.as_str()
     }

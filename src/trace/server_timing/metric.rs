@@ -37,16 +37,19 @@ impl Metric {
     }
 
     /// The timing name.
+    #[must_use]
     pub fn name(&self) -> &String {
         &self.name
     }
 
     /// The timing duration.
+    #[must_use]
     pub fn duration(&self) -> Option<Duration> {
         self.dur
     }
 
     /// The timing description.
+    #[must_use]
     pub fn description(&self) -> Option<&str> {
         self.desc.as_deref()
     }
@@ -61,10 +64,10 @@ impl From<Metric> for HeaderValue {
 
         match (entry.dur, entry.desc) {
             (Some(dur), Some(desc)) => {
-                string.push_str(&format!("; dur={}; desc=\"{}\"", f(dur), desc))
+                string.push_str(&format!("; dur={}; desc=\"{}\"", f(dur), desc));
             }
             (Some(dur), None) => string.push_str(&format!("; dur={}", f(dur))),
-            (None, Some(desc)) => string.push_str(&format!("; desc=\"{}\"", desc)),
+            (None, Some(desc)) => string.push_str(&format!("; desc=\"{desc}\"")),
             (None, None) => {}
         };
 

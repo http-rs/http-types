@@ -44,16 +44,14 @@ pub struct WwwAuthenticate {
 
 impl WwwAuthenticate {
     /// Create a new instance of `WwwAuthenticate`.
+    #[must_use]
     pub fn new(scheme: AuthenticationScheme, realm: String) -> Self {
         Self { scheme, realm }
     }
 
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(WWW_AUTHENTICATE) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(WWW_AUTHENTICATE) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
@@ -69,10 +67,7 @@ impl WwwAuthenticate {
         };
 
         let realm = realm.trim_start();
-        let realm = match realm.strip_prefix(r#"realm=""#) {
-            Some(realm) => realm,
-            None => bail!(400, "realm not found"),
-        };
+        let Some(realm) = realm.strip_prefix(r#"realm=""#) else { bail!(400, "realm not found") };
 
         let mut chars = realm.chars();
         let mut closing_quote = false;
@@ -94,6 +89,7 @@ impl WwwAuthenticate {
     }
 
     /// Get the authorization scheme.
+    #[must_use]
     pub fn scheme(&self) -> AuthenticationScheme {
         self.scheme
     }
@@ -104,6 +100,7 @@ impl WwwAuthenticate {
     }
 
     /// Get the authorization realm.
+    #[must_use]
     pub fn realm(&self) -> &str {
         self.realm.as_str()
     }

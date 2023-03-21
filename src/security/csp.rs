@@ -150,6 +150,7 @@ impl Default for ContentSecurityPolicy {
 
 impl ContentSecurityPolicy {
     /// Create a new instance.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             policy: Vec::new(),
@@ -282,15 +283,15 @@ impl ContentSecurityPolicy {
     ///
     /// [MDN | report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to)
     #[cfg(feature = "serde")]
-    pub fn report_to(&mut self, endpoints: Vec<ReportTo>) -> &mut Self {
-        for endpoint in endpoints.iter() {
+    pub fn report_to(&mut self, endpoints: &[ReportTo]) -> &mut Self {
+        for endpoint in endpoints {
             match serde_json::to_string(&endpoint) {
                 Ok(json) => {
-                    let policy = format!("report-to {}", json);
+                    let policy = format!("report-to {json}");
                     self.policy.push(policy);
                 }
                 Err(error) => {
-                    println!("{:?}", error);
+                    println!("{error:?}");
                 }
             }
         }

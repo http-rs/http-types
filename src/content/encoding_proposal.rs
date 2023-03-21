@@ -25,7 +25,7 @@ impl EncodingProposal {
             ensure!(
                 weight.is_sign_positive() && weight <= 1.0,
                 "EncodingProposal should have a weight between 0.0 and 1.0"
-            )
+            );
         }
 
         Ok(Self {
@@ -35,21 +35,20 @@ impl EncodingProposal {
     }
 
     /// Get the proposed encoding.
+    #[must_use]
     pub fn encoding(&self) -> &Encoding {
         &self.encoding
     }
 
     /// Get the weight of the proposal.
+    #[must_use]
     pub fn weight(&self) -> Option<f32> {
         self.weight
     }
 
     pub(crate) fn from_str(s: &str) -> crate::Result<Option<Self>> {
         let mut parts = s.split(';');
-        let encoding = match Encoding::from_str(parts.next().unwrap()) {
-            Some(encoding) => encoding,
-            None => return Ok(None),
-        };
+        let Some(encoding) = Encoding::from_str(parts.next().unwrap()) else { return Ok(None) };
         let weight = parts.next().map(parse_weight).transpose()?;
 
         Ok(Some(Self::new(encoding, weight)?))
@@ -98,7 +97,7 @@ impl DerefMut for EncodingProposal {
 // NOTE: This comparison does not include a notion of `*` (any value is valid).
 // that needs to be handled separately.
 impl PartialOrd for EncodingProposal {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self.weight, other.weight) {
             (Some(left), Some(right)) => left.partial_cmp(&right),
             (Some(_), None) => Some(Ordering::Greater),

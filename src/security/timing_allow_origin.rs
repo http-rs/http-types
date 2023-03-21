@@ -65,6 +65,7 @@ pub struct TimingAllowOrigin {
 
 impl TimingAllowOrigin {
     /// Create a new instance of `AllowOrigin`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             origins: vec![],
@@ -78,10 +79,7 @@ impl TimingAllowOrigin {
     ///
     /// A header value of `"null"` is treated the same as if no header was sent.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(TIMING_ALLOW_ORIGIN) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(TIMING_ALLOW_ORIGIN) else { return Ok(None) };
 
         let mut wildcard = false;
         let mut origins = vec![];
@@ -107,16 +105,18 @@ impl TimingAllowOrigin {
     }
 
     /// Returns `true` if a wildcard directive was set.
+    #[must_use]
     pub fn wildcard(&self) -> bool {
         self.wildcard
     }
 
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
-        self.wildcard = wildcard
+        self.wildcard = wildcard;
     }
 
     /// An iterator visiting all server timings.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.origins.iter(),
@@ -139,8 +139,8 @@ impl Header for TimingAllowOrigin {
         let mut output = String::new();
         for (n, origin) in self.origins.iter().enumerate() {
             match n {
-                0 => write!(output, "{}", origin).unwrap(),
-                _ => write!(output, ", {}", origin).unwrap(),
+                0 => write!(output, "{origin}").unwrap(),
+                _ => write!(output, ", {origin}").unwrap(),
             };
         }
 

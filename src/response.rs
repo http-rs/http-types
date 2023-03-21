@@ -82,6 +82,7 @@ impl Response {
     }
 
     /// Get the status
+    #[must_use]
     pub fn status(&self) -> StatusCode {
         self.status
     }
@@ -254,7 +255,7 @@ impl Response {
     ///
     /// This consumes the response. If you want to read the body without
     /// consuming the response, consider using the `take_body` method and
-    /// then calling `Body::into_string` or using the Response's AsyncRead
+    /// then calling `Body::into_string` or using the Response's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -281,7 +282,7 @@ impl Response {
     ///
     /// This consumes the `Response`. If you want to read the body without
     /// consuming the response, consider using the `take_body` method and
-    /// then calling `Body::into_bytes` or using the Response's AsyncRead
+    /// then calling `Body::into_bytes` or using the Response's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -307,7 +308,7 @@ impl Response {
     ///
     /// This consumes the response. If you want to read the body without
     /// consuming the response, consider using the `take_body` method and
-    /// then calling `Body::into_json` or using the Response's AsyncRead
+    /// then calling `Body::into_json` or using the Response's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -344,7 +345,7 @@ impl Response {
     ///
     /// This consumes the request. If you want to read the body without
     /// consuming the request, consider using the `take_body` method and
-    /// then calling `Body::into_json` or using the Response's AsyncRead
+    /// then calling `Body::into_json` or using the Response's `AsyncRead`
     /// implementation to read the body.
     ///
     /// # Examples
@@ -394,6 +395,7 @@ impl Response {
     }
 
     /// Get the current content type
+    #[must_use]
     pub fn content_type(&self) -> Option<Mime> {
         self.header(CONTENT_TYPE)?.last().as_str().parse().ok()
     }
@@ -404,12 +406,14 @@ impl Response {
     /// E.g. a string, or a buffer. Consumers of this API should check this
     /// value to decide whether to use `Chunked` encoding, or set the
     /// response length.
+    #[must_use]
     pub fn len(&self) -> Option<u64> {
         self.body.len()
     }
 
     /// Returns `true` if the set length of the body stream is zero, `false`
     /// otherwise.
+    #[must_use]
     pub fn is_empty(&self) -> Option<bool> {
         self.body.is_empty()
     }
@@ -431,6 +435,7 @@ impl Response {
     /// #
     /// # Ok(()) }
     /// ```
+    #[must_use]
     pub fn version(&self) -> Option<Version> {
         self.version
     }
@@ -438,24 +443,26 @@ impl Response {
     /// Sets a string representation of the peer address that this
     /// response was sent to. This might take the form of an ip/fqdn
     /// and port or a local socket address.
-    pub fn set_peer_addr(&mut self, peer_addr: Option<impl std::string::ToString>) {
+    pub fn set_peer_addr(&mut self, peer_addr: Option<impl ToString>) {
         self.peer_addr = peer_addr.map(|addr| addr.to_string());
     }
 
     /// Sets a string representation of the local address that this
     /// response was sent on. This might take the form of an ip/fqdn and
     /// port, or a local socket address.
-    pub fn set_local_addr(&mut self, local_addr: Option<impl std::string::ToString>) {
+    pub fn set_local_addr(&mut self, local_addr: Option<impl ToString>) {
         self.local_addr = local_addr.map(|addr| addr.to_string());
     }
 
     /// Get the peer socket address for the underlying transport, if appropriate
+    #[must_use]
     pub fn peer_addr(&self) -> Option<&str> {
         self.peer_addr.as_deref()
     }
 
     /// Get the local socket address for the underlying transport, if
     /// appropriate
+    #[must_use]
     pub fn local_addr(&self) -> Option<&str> {
         self.local_addr.as_deref()
     }
@@ -503,6 +510,7 @@ impl Response {
     }
 
     /// Returns `true` if sending trailers is in progress.
+    #[must_use]
     pub fn has_trailers(&self) -> bool {
         self.has_trailers
     }
@@ -520,7 +528,7 @@ impl Response {
 
     /// Receive an upgraded connection from a sender.
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
-    pub async fn recv_upgrade(&mut self) -> upgrade::Receiver {
+    pub fn recv_upgrade(&mut self) -> upgrade::Receiver {
         self.has_upgrade = true;
         let receiver = self
             .upgrade_receiver
@@ -531,11 +539,13 @@ impl Response {
 
     /// Returns `true` if a protocol upgrade is in progress.
     #[cfg_attr(feature = "docs", doc(cfg(unstable)))]
+    #[must_use]
     pub fn has_upgrade(&self) -> bool {
         self.has_upgrade
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
+    #[must_use]
     pub fn iter(&self) -> headers::Iter<'_> {
         self.headers.iter()
     }
@@ -547,16 +557,19 @@ impl Response {
     }
 
     /// An iterator visiting all header names in arbitrary order.
+    #[must_use]
     pub fn header_names(&self) -> Names<'_> {
         self.headers.names()
     }
 
     /// An iterator visiting all header values in arbitrary order.
+    #[must_use]
     pub fn header_values(&self) -> Values<'_> {
         self.headers.values()
     }
 
     /// Returns a reference to the existing local.
+    #[must_use]
     pub fn ext(&self) -> &Extensions {
         &self.ext
     }
@@ -623,7 +636,7 @@ impl AsyncBufRead for Response {
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.body).consume(amt)
+        Pin::new(&mut self.body).consume(amt);
     }
 }
 

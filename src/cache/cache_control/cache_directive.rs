@@ -45,8 +45,11 @@ pub enum CacheDirective {
 
 impl CacheDirective {
     /// Check whether this directive is valid in an HTTP request.
+    #[must_use]
     pub fn valid_in_req(&self) -> bool {
-        use CacheDirective::*;
+        use CacheDirective::{
+            MaxAge, MaxStale, MinFresh, NoCache, NoStore, NoTransform, OnlyIfCached,
+        };
         matches!(
             self,
             MaxAge(_) | MaxStale(_) | MinFresh(_) | NoCache | NoStore | NoTransform | OnlyIfCached
@@ -54,8 +57,12 @@ impl CacheDirective {
     }
 
     /// Check whether this directive is valid in an HTTP response.
+    #[must_use]
     pub fn valid_in_res(&self) -> bool {
-        use CacheDirective::*;
+        use CacheDirective::{
+            MaxAge, MustRevalidate, NoCache, NoStore, NoTransform, Private, ProxyRevalidate,
+            Public, SMaxAge, StaleIfError, StaleWhileRevalidate,
+        };
         matches!(
             self,
             MustRevalidate
@@ -79,7 +86,11 @@ impl CacheDirective {
     // function, but we cannot guarantee this to be true in the general
     // sense.
     pub(crate) fn from_str(s: &str) -> crate::Result<Option<Self>> {
-        use CacheDirective::*;
+        use CacheDirective::{
+            Immutable, MaxAge, MaxStale, MinFresh, MustRevalidate, NoCache, NoStore, NoTransform,
+            OnlyIfCached, Private, ProxyRevalidate, Public, SMaxAge, StaleIfError,
+            StaleWhileRevalidate,
+        };
 
         let s = s.trim();
 
@@ -129,7 +140,11 @@ impl CacheDirective {
 
 impl From<CacheDirective> for HeaderValue {
     fn from(directive: CacheDirective) -> Self {
-        use CacheDirective::*;
+        use CacheDirective::{
+            Immutable, MaxAge, MaxStale, MinFresh, MustRevalidate, NoCache, NoStore, NoTransform,
+            OnlyIfCached, Private, ProxyRevalidate, Public, SMaxAge, StaleIfError,
+            StaleWhileRevalidate,
+        };
         let h = |s: String| unsafe { HeaderValue::from_bytes_unchecked(s.into_bytes()) };
 
         match directive {

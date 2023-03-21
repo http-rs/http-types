@@ -37,6 +37,7 @@ pub struct ContentLocation {
 
 impl ContentLocation {
     /// Create a new instance of `Content-Location` header.
+    #[must_use]
     pub fn new(url: Url) -> Self {
         Self { url }
     }
@@ -47,24 +48,19 @@ impl ContentLocation {
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
     {
-        let headers = match headers.as_ref().get(CONTENT_LOCATION) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(CONTENT_LOCATION) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
         let value = headers.iter().last().unwrap();
-        let base = match base_url.try_into() {
-            Ok(b) => b,
-            Err(_) => bail!(400, "Invalid base url provided"),
-        };
+        let Ok(base) = base_url.try_into() else {bail!(400, "Invalid base url provided")};
 
         let url = base.join(value.as_str().trim()).status(400)?;
         Ok(Some(Self { url }))
     }
 
     /// Get the url.
+    #[must_use]
     pub fn location(&self) -> &Url {
         &self.url
     }
@@ -77,7 +73,7 @@ impl ContentLocation {
     {
         self.url = location
             .try_into()
-            .expect("Could not convert into valid URL")
+            .expect("Could not convert into valid URL");
     }
 }
 

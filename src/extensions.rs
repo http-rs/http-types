@@ -36,6 +36,7 @@ impl Extensions {
     }
 
     /// Check if container contains value for type
+    #[must_use]
     pub fn contains<T: 'static>(&self) -> bool {
         self.map
             .as_ref()
@@ -44,6 +45,7 @@ impl Extensions {
     }
 
     /// Get a reference to a value previously inserted on this `Extensions`.
+    #[must_use]
     pub fn get<T: 'static>(&self) -> Option<&T> {
         self.map
             .as_ref()
@@ -82,11 +84,16 @@ impl fmt::Debug for Extensions {
     }
 }
 
-// With TypeIds as keys, there's no need to hash them. So we simply use an identy hasher.
+// With TypeIds as keys, there's no need to hash them. So we simply use an identity hasher.
 #[derive(Default)]
 struct IdHasher(u64);
 
 impl Hasher for IdHasher {
+    #[inline]
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
     fn write(&mut self, _: &[u8]) {
         unreachable!("TypeId calls write_u64");
     }
@@ -94,11 +101,6 @@ impl Hasher for IdHasher {
     #[inline]
     fn write_u64(&mut self, id: u64) {
         self.0 = id;
-    }
-
-    #[inline]
-    fn finish(&self) -> u64 {
-        self.0
     }
 }
 

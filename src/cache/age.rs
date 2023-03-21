@@ -36,27 +36,27 @@ pub struct Age {
 
 impl Age {
     /// Create a new instance of `Age`.
+    #[must_use]
     pub fn new(dur: Duration) -> Self {
         Self { dur }
     }
 
     /// Create a new instance of `Age` from secs.
+    #[must_use]
     pub fn from_secs(secs: u64) -> Self {
         let dur = Duration::from_secs(secs);
         Self { dur }
     }
 
     /// Get the duration from the header.
+    #[must_use]
     pub fn duration(&self) -> Duration {
         self.dur
     }
 
     /// Create an instance of `Age` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(AGE) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(AGE) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.

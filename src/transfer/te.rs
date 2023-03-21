@@ -44,6 +44,7 @@ pub struct TE {
 
 impl TE {
     /// Create a new instance of `TE`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entries: vec![],
@@ -54,10 +55,7 @@ impl TE {
     /// Create an instance of `TE` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(headers::TE) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(headers::TE) else { return Ok(None) };
 
         let mut wildcard = false;
 
@@ -65,16 +63,18 @@ impl TE {
             for part in value.as_str().trim().split(',') {
                 let part = part.trim();
 
-                // Handle empty strings, and wildcard directives.
+                // Handle empty strings.
                 if part.is_empty() {
                     continue;
-                } else if part == "*" {
+                }
+                // Handle wildcard directives.
+                if part == "*" {
                     wildcard = true;
                     continue;
                 }
 
                 // Try and parse a directive from a str. If the directive is
-                // unkown we skip it.
+                // unknown we skip it.
                 if let Some(entry) = EncodingProposal::from_str(part)? {
                     entries.push(entry);
                 }
@@ -90,13 +90,14 @@ impl TE {
     }
 
     /// Returns `true` if a wildcard directive was passed.
+    #[must_use]
     pub fn wildcard(&self) -> bool {
         self.wildcard
     }
 
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
-        self.wildcard = wildcard
+        self.wildcard = wildcard;
     }
 
     /// Sort the header directives by weight.
@@ -137,6 +138,7 @@ impl TE {
     }
 
     /// An iterator visiting all entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -161,8 +163,8 @@ impl Header for TE {
         for (n, directive) in self.entries.iter().enumerate() {
             let directive: HeaderValue = (*directive).into();
             match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
+                0 => write!(output, "{directive}").unwrap(),
+                _ => write!(output, ", {directive}").unwrap(),
             };
         }
 

@@ -40,27 +40,27 @@ pub struct Expires {
 
 impl Expires {
     /// Create a new instance of `Expires`.
+    #[must_use]
     pub fn new(dur: Duration) -> Self {
         let instant = SystemTime::now() + dur;
         Self { instant }
     }
 
     /// Create a new instance of `Expires` from secs.
+    #[must_use]
     pub fn new_at(instant: SystemTime) -> Self {
         Self { instant }
     }
 
     /// Get the expiration time.
+    #[must_use]
     pub fn expiration(&self) -> SystemTime {
         self.instant
     }
 
     /// Create an instance of `Expires` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(EXPIRES) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(EXPIRES) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.

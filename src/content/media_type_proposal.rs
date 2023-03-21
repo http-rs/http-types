@@ -27,7 +27,7 @@ impl MediaTypeProposal {
             ensure!(
                 weight.is_sign_positive() && weight <= 1.0,
                 "MediaTypeProposal should have a weight between 0.0 and 1.0"
-            )
+            );
         }
         if weight.is_none() {
             return Ok(Self {
@@ -42,12 +42,14 @@ impl MediaTypeProposal {
         })
     }
 
-    /// Get the proposed media_type.
+    /// Get the proposed `media_type`.
+    #[must_use]
     pub fn media_type(&self) -> &Mime {
         &self.media_type
     }
 
     /// Get the weight of the proposal.
+    #[must_use]
     pub fn weight(&self) -> Option<f32> {
         self.weight
     }
@@ -115,7 +117,7 @@ impl DerefMut for MediaTypeProposal {
 // NOTE: This comparison does not include a notion of `*` (any value is valid).
 // that needs to be handled separately.
 impl PartialOrd for MediaTypeProposal {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self.weight, other.weight) {
             (Some(left), Some(right)) => left.partial_cmp(&right),
             (Some(_), None) => Some(Ordering::Greater),

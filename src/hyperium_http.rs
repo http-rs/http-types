@@ -158,11 +158,11 @@ fn hyperium_headers_to_headers(
 
 fn headers_to_hyperium_headers(headers: &mut Headers, hyperium_headers: &mut http::HeaderMap) {
     for (name, values) in headers {
-        let name = format!("{}", name).into_bytes();
+        let name = format!("{name}").into_bytes();
         let name = http::header::HeaderName::from_bytes(&name).unwrap();
 
         for value in values.iter() {
-            let value = format!("{}", value).into_bytes();
+            let value = format!("{value}").into_bytes();
             let value = http::header::HeaderValue::from_bytes(&value).unwrap();
             hyperium_headers.append(&name, value);
         }
@@ -170,22 +170,22 @@ fn headers_to_hyperium_headers(headers: &mut Headers, hyperium_headers: &mut htt
 }
 
 // Neither type is defined in this lib, so we can't do From/Into impls
-fn from_uri_to_url(uri: http::Uri) -> Result<Url, crate::url::ParseError> {
-    format!("{}", uri).parse()
+fn from_uri_to_url(uri: &http::Uri) -> Result<Url, url::ParseError> {
+    format!("{uri}").parse()
 }
 
 // Neither type is defined in this lib, so we can't do From/Into impls
 fn from_url_to_uri(url: &Url) -> http::Uri {
-    http::Uri::try_from(&format!("{}", url)).unwrap()
+    http::Uri::try_from(&format!("{url}")).unwrap()
 }
 
 impl TryFrom<http::Request<Body>> for Request {
-    type Error = crate::Error;
+    type Error = Error;
 
     fn try_from(req: http::Request<Body>) -> Result<Self, Self::Error> {
         let (parts, body) = req.into_parts();
         let method = parts.method.into();
-        let url = from_uri_to_url(parts.uri)?;
+        let url = from_uri_to_url(&parts.uri)?;
         let mut req = Request::new(method, url);
         req.set_body(body);
         req.set_version(Some(parts.version.into()));
@@ -197,7 +197,10 @@ impl TryFrom<http::Request<Body>> for Request {
 impl From<Request> for http::Request<Body> {
     fn from(mut req: Request) -> Self {
         let method: http::Method = req.method().into();
-        let version = req.version().map(|v| v.into()).unwrap_or_default();
+        let version = req
+            .version()
+            .map(std::convert::Into::into)
+            .unwrap_or_default();
         let mut builder = http::request::Builder::new()
             .method(method)
             .uri(from_url_to_uri(req.url()))
@@ -208,7 +211,7 @@ impl From<Request> for http::Request<Body> {
 }
 
 impl TryFrom<http::Response<Body>> for Response {
-    type Error = crate::Error;
+    type Error = Error;
     fn try_from(res: http::Response<Body>) -> Result<Self, Self::Error> {
         let (parts, body) = res.into_parts();
         let mut res = Response::new(parts.status);
@@ -222,7 +225,10 @@ impl TryFrom<http::Response<Body>> for Response {
 impl From<Response> for http::Response<Body> {
     fn from(mut res: Response) -> Self {
         let status: u16 = res.status().into();
-        let version = res.version().map(|v| v.into()).unwrap_or_default();
+        let version = res
+            .version()
+            .map(std::convert::Into::into)
+            .unwrap_or_default();
         let mut builder = http::response::Builder::new()
             .status(status)
             .version(version);

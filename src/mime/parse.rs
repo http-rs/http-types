@@ -64,15 +64,14 @@ pub(crate) fn parse(input: &str) -> crate::Result<Mime> {
         if input.is_empty() {
             // 6.
             break;
-        } else {
-            // 5.
-            if input.starts_with(';') {
-                continue;
-            } else {
-                // It's a '='
-                input = &input[1..];
-            }
         }
+        if input.starts_with(';') {
+            // 5.
+            continue;
+        }
+
+        // It's a '='
+        input = &input[1..];
 
         let parameter_value = if input.starts_with('"') {
             // 8.
@@ -210,9 +209,9 @@ pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Resul
     if mime_type.is_utf8 {
         write!(f, ";charset=utf-8")?;
     }
-    for (name, value) in mime_type.params.iter() {
+    for (name, value) in &mime_type.params {
         if value.0.chars().all(is_http_token_code_point) && !value.0.is_empty() {
-            write!(f, ";{}={}", name, value)?;
+            write!(f, ";{name}={value}")?;
         } else {
             let value = value
                 .0
@@ -222,7 +221,7 @@ pub(crate) fn format(mime_type: &Mime, f: &mut fmt::Formatter<'_>) -> fmt::Resul
                     c => EscapeMimeValue::char(c),
                 })
                 .collect::<String>();
-            write!(f, ";{}=\"{}\"", name, value)?;
+            write!(f, ";{name}=\"{value}\"")?;
         }
     }
     Ok(())

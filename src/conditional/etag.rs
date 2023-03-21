@@ -5,7 +5,7 @@ use std::fmt::{self, Debug, Display};
 
 /// HTTP Entity Tags.
 ///
-/// ETags provide an ID for a particular resource, enabling clients and servers
+/// `ETags` provide an ID for a particular resource, enabling clients and servers
 /// to reason about caches and make conditional requests.
 ///
 /// # Specifications
@@ -39,13 +39,15 @@ pub enum ETag {
 }
 
 impl ETag {
-    /// Create a new ETag that uses strong validation.
+    /// Create a new `ETag` that uses strong validation.
+    #[must_use]
     pub fn new(s: String) -> Self {
         debug_assert!(!s.contains('\\'), "ETags ought to avoid backslash chars");
         Self::Strong(s)
     }
 
-    /// Create a new ETag that uses weak validation.
+    /// Create a new `ETag` that uses weak validation.
+    #[must_use]
     pub fn new_weak(s: String) -> Self {
         debug_assert!(!s.contains('\\'), "ETags ought to avoid backslash chars");
         Self::Weak(s)
@@ -53,25 +55,24 @@ impl ETag {
 
     /// Create a new instance from headers.
     ///
-    /// Only a single ETag per resource is assumed to exist. If multiple ETag
+    /// Only a single `ETag` per resource is assumed to exist. If multiple `ETag`
     /// headers are found the last one is used.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(ETAG) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(ETAG) else { return Ok(None) };
 
         // If a header is returned we can assume at least one exists.
         let s = headers.iter().last().unwrap().as_str();
         Self::from_str(s).map(Some)
     }
 
-    /// Returns `true` if the ETag is a `Strong` value.
+    /// Returns `true` if the `ETag` is a `Strong` value.
+    #[must_use]
     pub fn is_strong(&self) -> bool {
         matches!(self, Self::Strong(_))
     }
 
-    /// Returns `true` if the ETag is a `Weak` value.
+    /// Returns `true` if the `ETag` is a `Weak` value.
+    #[must_use]
     pub fn is_weak(&self) -> bool {
         matches!(self, Self::Weak(_))
     }
@@ -126,8 +127,8 @@ impl Header for ETag {
 impl Display for ETag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Strong(s) => write!(f, r#""{}""#, s),
-            Self::Weak(s) => write!(f, r#"W/"{}""#, s),
+            Self::Strong(s) => write!(f, r#""{s}""#),
+            Self::Weak(s) => write!(f, r#"W/"{s}""#),
         }
     }
 }
@@ -181,7 +182,7 @@ mod test {
         let mut headers = Headers::new();
         headers.insert(ETAG, s).unwrap();
         let err = ETag::from_headers(headers).unwrap_err();
-        assert_eq!(format!("{}", err), msg);
+        assert_eq!(format!("{err}"), msg);
     }
 
     #[test]

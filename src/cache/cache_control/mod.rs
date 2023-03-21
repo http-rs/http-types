@@ -35,7 +35,7 @@ mod test {
     }
 
     #[test]
-    fn ignore_unkonwn_directives() -> crate::Result<()> {
+    fn ignore_unknown_directives() -> crate::Result<()> {
         let mut headers = Headers::new();
         headers.insert(CACHE_CONTROL, "barrel_roll").unwrap();
         let entries = CacheControl::from_headers(headers)?.unwrap();

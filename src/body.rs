@@ -76,6 +76,7 @@ impl Body {
     /// let mut req = Response::new(StatusCode::Ok);
     /// req.set_body(Body::empty());
     /// ```
+    #[must_use]
     pub fn empty() -> Self {
         Self {
             reader: Box::new(io::empty()),
@@ -129,6 +130,7 @@ impl Body {
     /// let body = Body::from_reader(cursor, None);
     /// let _ = body.into_reader();
     /// ```
+    #[must_use]
     pub fn into_reader(self) -> Box<dyn AsyncBufRead + Unpin + Send + Sync + 'static> {
         self.reader
     }
@@ -151,6 +153,7 @@ impl Body {
     /// let input = vec![1, 2, 3];
     /// req.set_body(Body::from_bytes(input));
     /// ```
+    #[must_use]
     pub fn from_bytes(bytes: Vec<u8>) -> Self {
         Self {
             mime: Some(mime::BYTE_STREAM),
@@ -201,6 +204,7 @@ impl Body {
     /// let input = String::from("hello Nori!");
     /// req.set_body(Body::from_string(input));
     /// ```
+    #[must_use]
     pub fn from_string(s: String) -> Self {
         Self {
             mime: Some(mime::PLAIN),
@@ -464,16 +468,19 @@ impl Body {
     /// let body = Body::from_reader(cursor, Some(len));
     /// assert_eq!(body.len(), Some(10));
     /// ```
+    #[must_use]
     pub fn len(&self) -> Option<u64> {
         self.length
     }
 
     /// Returns `true` if the body has a length of zero, and `false` otherwise.
+    #[must_use]
     pub fn is_empty(&self) -> Option<bool> {
         self.length.map(|length| length == 0)
     }
 
     /// Returns the mime type of this Body.
+    #[must_use]
     pub fn mime(&self) -> Option<&Mime> {
         self.mime.as_ref()
     }
@@ -517,6 +524,7 @@ impl Body {
     /// assert_eq!(&body.into_string().await.unwrap(), "Hello Nori");
     /// # Ok(()) }) }
     /// ```
+    #[must_use]
     pub fn chain(self, other: Body) -> Self {
         let mime = if self.mime == other.mime {
             self.mime.clone()
@@ -530,7 +538,7 @@ impl Body {
         Self {
             mime,
             length,
-            reader: Box::new(futures_lite::io::AsyncReadExt::chain(self, other)),
+            reader: Box::new(io::AsyncReadExt::chain(self, other)),
             bytes_read: 0,
         }
     }
@@ -608,7 +616,7 @@ impl AsyncBufRead for Body {
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.reader).consume(amt)
+        Pin::new(&mut self.reader).consume(amt);
     }
 }
 
@@ -630,7 +638,7 @@ async fn peek_mime(file: &mut async_std::fs::File) -> io::Result<Option<Mime>> {
 /// This is useful for plain-text formats such as HTML and CSS.
 #[cfg(all(feature = "fs", not(target_os = "unknown")))]
 fn guess_ext(path: &std::path::Path) -> Option<Mime> {
-    let ext = path.extension().and_then(|p| p.to_str());
+    let ext = path.extension().and_then(std::ffi::OsStr::to_str);
     ext.and_then(Mime::from_extension)
 }
 

@@ -37,6 +37,7 @@ pub struct CacheControl {
 
 impl CacheControl {
     /// Create a new instance of `CacheControl`.
+    #[must_use]
     pub fn new() -> Self {
         Self { entries: vec![] }
     }
@@ -44,15 +45,12 @@ impl CacheControl {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(CACHE_CONTROL) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(CACHE_CONTROL) else { return Ok(None) };
 
         for value in headers {
             for part in value.as_str().trim().split(',') {
                 // Try and parse a directive from a str. If the directive is
-                // unkown we skip it.
+                // unknown we skip it.
                 if let Some(entry) = CacheDirective::from_str(part)? {
                     entries.push(entry);
                 }
@@ -67,6 +65,7 @@ impl CacheControl {
     }
 
     /// An iterator visiting all server entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -90,8 +89,8 @@ impl Header for CacheControl {
         for (n, directive) in self.entries.iter().enumerate() {
             let directive: HeaderValue = directive.clone().into();
             match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
+                0 => write!(output, "{directive}").unwrap(),
+                _ => write!(output, ", {directive}").unwrap(),
             };
         }
 

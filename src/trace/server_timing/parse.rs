@@ -168,7 +168,7 @@ mod test {
 
     fn assert_entry_err(s: &str, msg: &str) {
         let err = parse_entry(s).unwrap_err();
-        assert_eq!(format!("{}", err), msg);
+        assert_eq!(format!("{err}"), msg);
     }
 
     /// Assert an entry and all of its fields.

@@ -41,21 +41,20 @@ pub struct LastModified {
 
 impl LastModified {
     /// Create a new instance of `LastModified`.
+    #[must_use]
     pub fn new(instant: SystemTime) -> Self {
         Self { instant }
     }
 
     /// Returns the last modification time listed.
+    #[must_use]
     pub fn modified(&self) -> SystemTime {
         self.instant
     }
 
     /// Create an instance of `LastModified` from a `Headers` instance.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(LAST_MODIFIED) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(LAST_MODIFIED) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.

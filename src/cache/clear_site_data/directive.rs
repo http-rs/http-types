@@ -28,6 +28,7 @@ pub enum ClearDirective {
 
 impl ClearDirective {
     /// Get the formatted string.
+    #[must_use]
     pub fn as_str(&self) -> &'static str {
         match self {
             ClearDirective::Cache => r#""cache""#,

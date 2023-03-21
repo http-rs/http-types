@@ -17,16 +17,13 @@ pub(crate) fn parse_weight(s: &str) -> crate::Result<f32> {
         err.set_status(StatusCode::BadRequest);
         return Err(err);
     }
-    match parts.next() {
-        Some(s) => {
-            let weight = f32::from_str(s).status(400)?;
-            Ok(weight)
-        }
-        None => {
-            let mut err = Error::new_adhoc("invalid weight");
-            err.set_status(StatusCode::BadRequest);
-            Err(err)
-        }
+    if let Some(s) = parts.next() {
+        let weight = f32::from_str(s).status(400)?;
+        Ok(weight)
+    } else {
+        let mut err = Error::new_adhoc("invalid weight");
+        err.set_status(StatusCode::BadRequest);
+        Err(err)
     }
 }
 

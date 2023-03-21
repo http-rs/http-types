@@ -35,14 +35,16 @@ impl HeaderValue {
     ///
     /// This function is unsafe because it does not check that the bytes passed to it are valid
     /// ASCII. If this constraint is violated, it may cause memory
-    /// unsafety issues with future users of the HeaderValue, as the rest of the library assumes
+    /// unsafety issues with future users of the `HeaderValue`, as the rest of the library assumes
     /// that Strings are valid ASCII.
+    #[must_use]
     pub unsafe fn from_bytes_unchecked(bytes: Vec<u8>) -> Self {
         let string = String::from_utf8_unchecked(bytes);
         Self { inner: string }
     }
 
     /// Get the header value as a `&str`
+    #[must_use]
     pub fn as_str(&self) -> &str {
         &self.inner
     }
@@ -51,7 +53,7 @@ impl HeaderValue {
 impl From<Mime> for HeaderValue {
     fn from(mime: Mime) -> Self {
         HeaderValue {
-            inner: format!("{}", mime),
+            inner: format!("{mime}"),
         }
     }
 }
@@ -68,7 +70,7 @@ impl From<Cookie<'_>> for HeaderValue {
 impl From<&Mime> for HeaderValue {
     fn from(mime: &Mime) -> Self {
         HeaderValue {
-            inner: format!("{}", mime),
+            inner: format!("{mime}"),
         }
     }
 }
@@ -148,6 +150,6 @@ mod tests {
     #[test]
     fn test_debug() {
         let header_value = HeaderValue::from_str("foo0").unwrap();
-        assert_eq!(format!("{:?}", header_value), "\"foo0\"");
+        assert_eq!(format!("{header_value:?}"), "\"foo0\"");
     }
 }

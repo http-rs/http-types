@@ -1,4 +1,4 @@
-//! Apply the HTTP method if the ETag matches.
+//! Apply the HTTP method if the `ETag` matches.
 
 use crate::headers::{Header, HeaderName, HeaderValue, Headers, VARY};
 
@@ -8,7 +8,7 @@ use std::iter::Iterator;
 use std::slice;
 use std::str::FromStr;
 
-/// Apply the HTTP method if the ETag matches.
+/// Apply the HTTP method if the `ETag` matches.
 ///
 /// # Specifications
 ///
@@ -43,6 +43,7 @@ pub struct Vary {
 
 impl Vary {
     /// Create a new instance of `Vary`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entries: vec![],
@@ -53,10 +54,7 @@ impl Vary {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(VARY) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(VARY) else { return Ok(None) };
 
         let mut wildcard = false;
         for value in headers {
@@ -75,13 +73,14 @@ impl Vary {
     }
 
     /// Returns `true` if a wildcard directive was set.
+    #[must_use]
     pub fn wildcard(&self) -> bool {
         self.wildcard
     }
 
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
-        self.wildcard = wildcard
+        self.wildcard = wildcard;
     }
 
     /// Push a directive into the list of entries.
@@ -91,6 +90,7 @@ impl Vary {
     }
 
     /// An iterator visiting all server entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -118,8 +118,8 @@ impl Header for Vary {
                 .parse()
                 .expect("Could not convert a HeaderName into a HeaderValue");
             match n {
-                0 => write!(output, "{}", directive).unwrap(),
-                _ => write!(output, ", {}", directive).unwrap(),
+                0 => write!(output, "{directive}").unwrap(),
+                _ => write!(output, ", {directive}").unwrap(),
             };
         }
 

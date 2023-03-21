@@ -23,7 +23,7 @@ impl Default for StrictTransportSecurity {
     /// [Read more](https://hstspreload.org/)
     fn default() -> Self {
         Self {
-            max_age: Duration::from_secs(31536000), // 1 year
+            max_age: Duration::from_secs(31_536_000), // 1 year
             include_subdomains: false,
             preload: true,
         }
@@ -32,6 +32,7 @@ impl Default for StrictTransportSecurity {
 
 impl StrictTransportSecurity {
     /// Create a new instance.
+    #[must_use]
     pub fn new(duration: Duration) -> Self {
         Self {
             max_age: duration,
@@ -40,6 +41,7 @@ impl StrictTransportSecurity {
         }
     }
     /// Get a reference to the strict transport security's include subdomains.
+    #[must_use]
     pub fn include_subdomains(&self) -> bool {
         self.include_subdomains
     }
@@ -50,6 +52,7 @@ impl StrictTransportSecurity {
     }
 
     /// Get a reference to the strict transport security's preload.
+    #[must_use]
     pub fn preload(&self) -> bool {
         self.preload
     }
@@ -59,12 +62,13 @@ impl StrictTransportSecurity {
         self.preload = preload;
     }
 
-    /// Get a reference to the strict transport security's max_age.
+    /// Get a reference to the strict transport security's `max_age`.
+    #[must_use]
     pub fn max_age(&self) -> Duration {
         self.max_age
     }
 
-    /// Set the strict transport security's max_age.
+    /// Set the strict transport security's `max_age`.
     pub fn set_max_age(&mut self, duration: Duration) {
         self.max_age = duration;
     }
@@ -77,7 +81,7 @@ impl Header for StrictTransportSecurity {
 
     fn header_value(&self) -> HeaderValue {
         let max_age = self.max_age.as_secs();
-        let mut output = format!("max-age={}", max_age);
+        let mut output = format!("max-age={max_age}");
         if self.include_subdomains {
             output.push_str(";includeSubdomains");
         }
@@ -94,10 +98,7 @@ impl Header for StrictTransportSecurity {
 impl StrictTransportSecurity {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
-        let headers = match headers.as_ref().get(STRICT_TRANSPORT_SECURITY) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(STRICT_TRANSPORT_SECURITY) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
@@ -116,10 +117,9 @@ impl StrictTransportSecurity {
             } else if s == "preload" {
                 preload = true;
             } else {
-                let (key, value) = match s.split_once('=') {
-                    Some(kv) => kv,
-                    None => continue, // We don't recognize the directive, continue.
-                };
+                let Some((key, value)) = s.split_once('=') else {
+                    // We don't recognize the directive, continue.
+                    continue };
 
                 if key == "max-age" {
                     let secs = value.parse::<u64>().status(400)?;
@@ -128,15 +128,12 @@ impl StrictTransportSecurity {
             }
         }
 
-        let max_age = match max_age {
-            Some(max_age) => max_age,
-            None => {
-                return Err(crate::format_err_status!(
-                    400,
-                    "`Strict-Transport-Security` header did not contain a `max-age` directive",
-                ));
-            }
-        };
+        let Some(max_age) = max_age else {
+                             return Err(crate::format_err_status!(
+                     400,
+                     "`Strict-Transport-Security` header did not contain a `max-age` directive",
+                 ));
+                         };
 
         Ok(Some(Self {
             max_age,

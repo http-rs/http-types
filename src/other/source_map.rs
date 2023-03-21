@@ -37,6 +37,7 @@ pub struct SourceMap {
 
 impl SourceMap {
     /// Create a new instance of `SourceMap` header.
+    #[must_use]
     pub fn new(location: Url) -> Self {
         Self { location }
     }
@@ -47,10 +48,7 @@ impl SourceMap {
         U: TryInto<Url>,
         U::Error: std::fmt::Debug,
     {
-        let headers = match headers.as_ref().get(SOURCE_MAP) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(SOURCE_MAP) else { return Ok(None) };
 
         // If we successfully parsed the header then there's always at least one
         // entry. We want the last entry.
@@ -68,6 +66,7 @@ impl SourceMap {
     }
 
     /// Get the url.
+    #[must_use]
     pub fn location(&self) -> &Url {
         &self.location
     }

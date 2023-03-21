@@ -1,4 +1,4 @@
-//! Apply the HTTP method if the ETag matches.
+//! Apply the HTTP method if the `ETag` matches.
 
 use crate::headers::{HeaderName, HeaderValue, Headers, IF_MATCH};
 use crate::{conditional::ETag, headers::Header};
@@ -8,7 +8,7 @@ use std::iter::Iterator;
 
 use std::slice;
 
-/// Apply the HTTP method if the ETag matches.
+/// Apply the HTTP method if the `ETag` matches.
 ///
 /// # Specifications
 ///
@@ -43,6 +43,7 @@ pub struct IfMatch {
 
 impl IfMatch {
     /// Create a new instance of `IfMatch`.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entries: vec![],
@@ -53,10 +54,7 @@ impl IfMatch {
     /// Create a new instance from headers.
     pub fn from_headers(headers: impl AsRef<Headers>) -> crate::Result<Option<Self>> {
         let mut entries = vec![];
-        let headers = match headers.as_ref().get(IF_MATCH) {
-            Some(headers) => headers,
-            None => return Ok(None),
-        };
+        let Some(headers) = headers.as_ref().get(IF_MATCH) else { return Ok(None) };
 
         let mut wildcard = false;
         for value in headers {
@@ -79,16 +77,18 @@ impl IfMatch {
     }
 
     /// Returns `true` if a wildcard directive was set.
+    #[must_use]
     pub fn wildcard(&self) -> bool {
         self.wildcard
     }
 
     /// Set the wildcard directive.
     pub fn set_wildcard(&mut self, wildcard: bool) {
-        self.wildcard = wildcard
+        self.wildcard = wildcard;
     }
 
     /// An iterator visiting all server entries.
+    #[must_use]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.entries.iter(),
@@ -111,8 +111,8 @@ impl Header for IfMatch {
         let mut output = String::new();
         for (n, etag) in self.entries.iter().enumerate() {
             match n {
-                0 => write!(output, "{}", etag).unwrap(),
-                _ => write!(output, ", {}", etag).unwrap(),
+                0 => write!(output, "{etag}").unwrap(),
+                _ => write!(output, ", {etag}").unwrap(),
             };
         }
 
