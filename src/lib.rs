@@ -96,6 +96,7 @@
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs)]
 #![allow(clippy::new_without_default)]
+#![feature(rustdoc_missing_doc_code_examples)]
 #![cfg_attr(backtrace, feature(backtrace))]
 #![cfg_attr(feature = "docs", feature(doc_cfg))]
 #![doc(html_favicon_url = "https://yoshuawuyts.com/assets/http-rs/favicon.ico")]

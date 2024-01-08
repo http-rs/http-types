@@ -1,3 +1,5 @@
+use base64::Engine;
+
 use crate::headers::{HeaderName, HeaderValue, Headers, AUTHORIZATION};
 use crate::Status;
 use crate::{
@@ -71,7 +73,9 @@ impl BasicAuth {
 
     /// Create a new instance from the base64 encoded credentials.
     pub fn from_credentials(credentials: impl AsRef<[u8]>) -> crate::Result<Self> {
-        let bytes = base64::decode(credentials).status(400)?;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(credentials)
+            .status(400)?;
         let credentials = String::from_utf8(bytes).status(400)?;
 
         let mut iter = credentials.splitn(2, ':');
@@ -105,7 +109,13 @@ impl Header for BasicAuth {
 
     fn header_value(&self) -> HeaderValue {
         let scheme = AuthenticationScheme::Basic;
-        let credentials = base64::encode(format!("{}:{}", self.username, self.password));
+
+        let mut credentials = String::new();
+        base64::engine::general_purpose::STANDARD.encode_string(
+            format!("{}:{}", self.username, self.password),
+            &mut credentials,
+        );
+
         let auth = Authorization::new(scheme, credentials);
         auth.header_value()
     }
