@@ -39,7 +39,7 @@ use crate::Status;
 pub struct TraceContext {
     id: u64,
     version: u8,
-    trace_id: u128,
+    trace_id: u64,
     parent_id: Option<u64>,
     flags: u8,
 }
@@ -115,7 +115,7 @@ impl TraceContext {
         Ok(Some(Self {
             id: rng.gen(),
             version: u8::from_str_radix(parts[0], 16)?,
-            trace_id: u128::from_str_radix(parts[1], 16).status(400)?,
+            trace_id: u64::from_str_radix(parts[1], 16).status(400)?,
             parent_id: Some(u64::from_str_radix(parts[2], 16).status(400)?),
             flags: u8::from_str_radix(parts[3], 16).status(400)?,
         }))
@@ -197,7 +197,7 @@ impl TraceContext {
     /// Return the trace id of the TraceContext.
     ///
     /// All children will have the same `trace_id`.
-    pub fn trace_id(&self) -> u128 {
+    pub fn trace_id(&self) -> u64 {
         self.trace_id
     }
 
