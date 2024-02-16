@@ -378,8 +378,8 @@ impl Display for HttpDate {
         buf[0] = week_day[0];
         buf[1] = week_day[1];
         buf[2] = week_day[2];
-        buf[5] = b'0' + (self.day / 10) as u8;
-        buf[6] = b'0' + (self.day % 10) as u8;
+        buf[5] = b'0' + (self.day / 10);
+        buf[6] = b'0' + (self.day % 10);
         buf[8] = month[0];
         buf[9] = month[1];
         buf[10] = month[2];
@@ -387,12 +387,12 @@ impl Display for HttpDate {
         buf[13] = b'0' + (self.year / 100 % 10) as u8;
         buf[14] = b'0' + (self.year / 10 % 10) as u8;
         buf[15] = b'0' + (self.year % 10) as u8;
-        buf[17] = b'0' + (self.hour / 10) as u8;
-        buf[18] = b'0' + (self.hour % 10) as u8;
-        buf[20] = b'0' + (self.minute / 10) as u8;
-        buf[21] = b'0' + (self.minute % 10) as u8;
-        buf[23] = b'0' + (self.second / 10) as u8;
-        buf[24] = b'0' + (self.second % 10) as u8;
+        buf[17] = b'0' + (self.hour / 10);
+        buf[18] = b'0' + (self.hour % 10);
+        buf[20] = b'0' + (self.minute / 10);
+        buf[21] = b'0' + (self.minute % 10);
+        buf[23] = b'0' + (self.second / 10);
+        buf[24] = b'0' + (self.second % 10);
         f.write_str(from_utf8(&buf[..]).unwrap())
     }
 }

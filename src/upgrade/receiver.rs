@@ -10,14 +10,16 @@ use crate::upgrade::Connection;
 #[must_use = "Futures do nothing unless polled or .awaited"]
 #[derive(Debug)]
 pub struct Receiver {
-    receiver: async_channel::Receiver<Connection>,
+    receiver: Pin<Box<async_channel::Receiver<Connection>>>,
 }
 
 impl Receiver {
     /// Create a new instance of `Receiver`.
     #[allow(unused)]
     pub(crate) fn new(receiver: async_channel::Receiver<Connection>) -> Self {
-        Self { receiver }
+        Self {
+            receiver: Box::pin(receiver),
+        }
     }
 }
 
@@ -25,6 +27,6 @@ impl Future for Receiver {
     type Output = Option<Connection>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        Pin::new(&mut self.receiver).poll_next(cx)
+        self.receiver.as_mut().poll_next(cx)
     }
 }

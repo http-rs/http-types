@@ -1,99 +1,97 @@
-// This is the compat file for the "hyperium/http" crate.
-
 use crate::headers::{HeaderName, HeaderValue, Headers};
 use crate::{Body, Error, Method, Request, Response, StatusCode, Url, Version};
 use std::convert::{TryFrom, TryInto};
 use std::str::FromStr;
 
-impl From<http02::Method> for Method {
-    fn from(method: http02::Method) -> Self {
+impl From<http1::Method> for Method {
+    fn from(method: http1::Method) -> Self {
         Method::from_str(method.as_str()).unwrap()
     }
 }
 
-impl From<Method> for http02::Method {
+impl From<Method> for http1::Method {
     fn from(method: Method) -> Self {
-        http02::Method::from_str(method.as_ref()).unwrap()
+        http1::Method::from_str(method.as_ref()).unwrap()
     }
 }
 
-impl From<http02::StatusCode> for StatusCode {
-    fn from(status: http02::StatusCode) -> Self {
+impl From<http1::StatusCode> for StatusCode {
+    fn from(status: http1::StatusCode) -> Self {
         StatusCode::try_from(status.as_u16()).unwrap()
     }
 }
 
-impl From<StatusCode> for http02::StatusCode {
+impl From<StatusCode> for http1::StatusCode {
     fn from(status: StatusCode) -> Self {
-        http02::StatusCode::from_u16(status.into()).unwrap()
+        http1::StatusCode::from_u16(status.into()).unwrap()
     }
 }
 
-impl From<http02::Version> for Version {
-    fn from(version: http02::Version) -> Self {
+impl From<http1::Version> for Version {
+    fn from(version: http1::Version) -> Self {
         match version {
-            http02::Version::HTTP_09 => Version::Http0_9,
-            http02::Version::HTTP_10 => Version::Http1_0,
-            http02::Version::HTTP_11 => Version::Http1_1,
-            http02::Version::HTTP_2 => Version::Http2_0,
-            http02::Version::HTTP_3 => Version::Http3_0,
-            _ => panic!("unknown HTTP version conversion"),
+            http1::Version::HTTP_09 => Version::Http0_9,
+            http1::Version::HTTP_10 => Version::Http1_0,
+            http1::Version::HTTP_11 => Version::Http1_1,
+            http1::Version::HTTP_2 => Version::Http2_0,
+            http1::Version::HTTP_3 => Version::Http3_0,
+            _ => panic!("unknown http1 version conversion"),
         }
     }
 }
 
-impl From<Version> for http02::Version {
+impl From<Version> for http1::Version {
     fn from(version: Version) -> Self {
         match version {
-            Version::Http0_9 => http02::Version::HTTP_09,
-            Version::Http1_0 => http02::Version::HTTP_10,
-            Version::Http1_1 => http02::Version::HTTP_11,
-            Version::Http2_0 => http02::Version::HTTP_2,
-            Version::Http3_0 => http02::Version::HTTP_3,
+            Version::Http0_9 => http1::Version::HTTP_09,
+            Version::Http1_0 => http1::Version::HTTP_10,
+            Version::Http1_1 => http1::Version::HTTP_11,
+            Version::Http2_0 => http1::Version::HTTP_2,
+            Version::Http3_0 => http1::Version::HTTP_3,
         }
     }
 }
 
-impl TryFrom<http02::header::HeaderName> for HeaderName {
+impl TryFrom<http1::header::HeaderName> for HeaderName {
     type Error = Error;
 
-    fn try_from(name: http02::header::HeaderName) -> Result<Self, Self::Error> {
+    fn try_from(name: http1::header::HeaderName) -> Result<Self, Self::Error> {
         let name = name.as_str().as_bytes().to_owned();
         HeaderName::from_bytes(name)
     }
 }
 
-impl TryFrom<HeaderName> for http02::header::HeaderName {
+impl TryFrom<HeaderName> for http1::header::HeaderName {
     type Error = Error;
 
     fn try_from(name: HeaderName) -> Result<Self, Self::Error> {
         let name = name.as_str().as_bytes();
-        http02::header::HeaderName::from_bytes(name).map_err(Error::new_adhoc)
+        http1::header::HeaderName::from_bytes(name).map_err(Error::new_adhoc)
     }
 }
 
-impl TryFrom<http02::header::HeaderValue> for HeaderValue {
+impl TryFrom<http1::header::HeaderValue> for HeaderValue {
     type Error = Error;
 
-    fn try_from(value: http02::header::HeaderValue) -> Result<Self, Self::Error> {
+    fn try_from(value: http1::header::HeaderValue) -> Result<Self, Self::Error> {
         let value = value.as_bytes().to_owned();
         HeaderValue::from_bytes(value)
     }
 }
 
-impl TryFrom<HeaderValue> for http02::header::HeaderValue {
+impl TryFrom<HeaderValue> for http1::header::HeaderValue {
     type Error = Error;
 
     fn try_from(value: HeaderValue) -> Result<Self, Self::Error> {
         let value = value.as_str().as_bytes();
-        http02::header::HeaderValue::from_bytes(value).map_err(Error::new_adhoc)
+        http1::header::HeaderValue::from_bytes(value).map_err(Error::new_adhoc)
     }
 }
 
-impl TryFrom<http02::HeaderMap> for Headers {
+impl TryFrom<http1::HeaderMap> for Headers {
     type Error = Error;
 
-    fn try_from(hyperium_headers: http02::HeaderMap) -> Result<Self, Self::Error> {
+    fn try_from(hyperium_headers: http1::HeaderMap) -> Result<Self, Self::Error> {
         let mut headers = Headers::new();
 
         hyperium_headers
@@ -112,21 +110,21 @@ impl TryFrom<http02::HeaderMap> for Headers {
     }
 }
 
-impl TryFrom<Headers> for http02::HeaderMap {
+impl TryFrom<Headers> for http1::HeaderMap {
     type Error = Error;
 
     fn try_from(headers: Headers) -> Result<Self, Self::Error> {
-        let mut hyperium_headers = http02::HeaderMap::new();
+        let mut hyperium_headers = http1::HeaderMap::new();
 
         headers
             .into_iter()
             .map(|(name, values)| {
-                let name: http02::header::HeaderName = name.try_into()?;
+                let name: http1::header::HeaderName = name.try_into()?;
 
                 values
                     .into_iter()
                     .map(|value| {
-                        let value: http02::header::HeaderValue = value.try_into()?;
+                        let value: http1::header::HeaderValue = value.try_into()?;
                         hyperium_headers.append(&name, value);
                         Ok(())
                     })
@@ -141,7 +139,7 @@ impl TryFrom<Headers> for http02::HeaderMap {
 }
 
 fn hyperium_headers_to_headers(
-    hyperium_headers: http02::HeaderMap,
+    hyperium_headers: http1::HeaderMap,
     headers: &mut Headers,
 ) -> crate::Result<()> {
     for (name, value) in hyperium_headers {
@@ -156,33 +154,33 @@ fn hyperium_headers_to_headers(
     Ok(())
 }
 
-fn headers_to_hyperium_headers(headers: &mut Headers, hyperium_headers: &mut http02::HeaderMap) {
+fn headers_to_hyperium_headers(headers: &mut Headers, hyperium_headers: &mut http1::HeaderMap) {
     for (name, values) in headers {
         let name = format!("{}", name).into_bytes();
-        let name = http02::header::HeaderName::from_bytes(&name).unwrap();
+        let name = http1::header::HeaderName::from_bytes(&name).unwrap();
 
         for value in values.iter() {
             let value = format!("{}", value).into_bytes();
-            let value = http02::header::HeaderValue::from_bytes(&value).unwrap();
+            let value = http1::header::HeaderValue::from_bytes(&value).unwrap();
             hyperium_headers.append(&name, value);
         }
     }
 }
 
 // Neither type is defined in this lib, so we can't do From/Into impls
-fn from_uri_to_url(uri: http02::Uri) -> Result<Url, crate::url::ParseError> {
+fn from_uri_to_url(uri: http1::Uri) -> Result<Url, crate::url::ParseError> {
     format!("{}", uri).parse()
 }
 
 // Neither type is defined in this lib, so we can't do From/Into impls
-fn from_url_to_uri(url: &Url) -> http02::Uri {
-    http02::Uri::try_from(&format!("{}", url)).unwrap()
+fn from_url_to_uri(url: &Url) -> http1::Uri {
+    http1::Uri::try_from(&format!("{}", url)).unwrap()
 }
 
-impl TryFrom<http02::Request<Body>> for Request {
+impl TryFrom<http1::Request<Body>> for Request {
     type Error = crate::Error;
 
-    fn try_from(req: http02::Request<Body>) -> Result<Self, Self::Error> {
+    fn try_from(req: http1::Request<Body>) -> Result<Self, Self::Error> {
         let (parts, body) = req.into_parts();
         let method = parts.method.into();
         let url = from_uri_to_url(parts.uri)?;
@@ -194,11 +192,11 @@ impl TryFrom<http02::Request<Body>> for Request {
     }
 }
 
-impl From<Request> for http02::Request<Body> {
+impl From<Request> for http1::Request<Body> {
     fn from(mut req: Request) -> Self {
-        let method: http02::Method = req.method().into();
+        let method: http1::Method = req.method().into();
         let version = req.version().map(|v| v.into()).unwrap_or_default();
-        let mut builder = http02::request::Builder::new()
+        let mut builder = http1::request::Builder::new()
             .method(method)
             .uri(from_url_to_uri(req.url()))
             .version(version);
@@ -207,9 +205,9 @@ impl From<Request> for http02::Request<Body> {
     }
 }
 
-impl TryFrom<http02::Response<Body>> for Response {
+impl TryFrom<http1::Response<Body>> for Response {
     type Error = crate::Error;
-    fn try_from(res: http02::Response<Body>) -> Result<Self, Self::Error> {
+    fn try_from(res: http1::Response<Body>) -> Result<Self, Self::Error> {
         let (parts, body) = res.into_parts();
         let mut res = Response::new(parts.status);
         res.set_body(body);
@@ -219,11 +217,11 @@ impl TryFrom<http02::Response<Body>> for Response {
     }
 }
 
-impl From<Response> for http02::Response<Body> {
+impl From<Response> for http1::Response<Body> {
     fn from(mut res: Response) -> Self {
         let status: u16 = res.status().into();
         let version = res.version().map(|v| v.into()).unwrap_or_default();
-        let mut builder = http02::response::Builder::new()
+        let mut builder = http1::response::Builder::new()
             .status(status)
             .version(version);
         headers_to_hyperium_headers(res.as_mut(), builder.headers_mut().unwrap());

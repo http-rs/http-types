@@ -242,13 +242,15 @@ impl Sender {
 #[must_use = "Futures do nothing unless polled or .awaited"]
 #[derive(Debug)]
 pub struct Receiver {
-    receiver: async_channel::Receiver<Trailers>,
+    receiver: Pin<Box<async_channel::Receiver<Trailers>>>,
 }
 
 impl Receiver {
     /// Create a new instance of `Receiver`.
     pub(crate) fn new(receiver: async_channel::Receiver<Trailers>) -> Self {
-        Self { receiver }
+        Self {
+            receiver: Box::pin(receiver),
+        }
     }
 }
 
@@ -256,6 +258,6 @@ impl Future for Receiver {
     type Output = Option<Trailers>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        Pin::new(&mut self.receiver).poll_next(cx)
+        self.receiver.as_mut().poll_next(cx)
     }
 }
