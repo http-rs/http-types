@@ -159,8 +159,11 @@ pub use crate::url::Url;
 pub mod security;
 pub mod trailers;
 
-#[cfg(feature = "hyperium_http")]
+#[cfg(feature = "hyperium_http_02")]
 mod hyperium_http;
+
+#[cfg(feature = "hyperium_http_1")]
+mod hyperium_http_1;
 
 #[doc(inline)]
 pub use crate::extensions::Extensions;
